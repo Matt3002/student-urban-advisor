@@ -143,8 +143,8 @@ app.MapGet("/api/accessibility/score", async (double lat, double lon, int ora, U
         scoreTrasporti = Math.Clamp(scoreTrasporti, 0, 50);
 
         score = scoreStudio + scoreTrasporti;
-        motivazione = $"Giorno: Trovate {bibliotecheVicine} biblioteche a 15 min a piedi. Fermata bus a {(int)distanzaFermataMetri}m.";
-    }
+        motivazione = $"🌞 Contesto Diurno: Ottima accessibilità allo studio. L'algoritmo ha rilevato {bibliotecheVicine} aule studio entro 15 minuti a piedi. La fermata TPER per la mobilità dista {(int)distanzaFermataMetri} metri.";
+        }
     else
     {
         // CONTESTO NOTTURNO: Biblioteche chiuse. Focus su mobilità sicura e residenze.
@@ -159,7 +159,7 @@ app.MapGet("/api/accessibility/score", async (double lat, double lon, int ora, U
         int scoreSicurezza = residenzeVicine > 0 ? 20 : 0;
 
         score = scoreTrasporti + scoreSicurezza;
-        motivazione = $"Notte: Focus su trasporti. Fermata a {(int)distanzaFermataMetri}m. Residenze vicine: {residenzeVicine}.";
+        motivazione =motivazione = $"🌙 Contesto Notturno: Aule studio chiuse. L'algoritmo contestuale dà priorità alla mobilità sicura: la fermata TPER dista {(int)distanzaFermataMetri} metri. Trovate {residenzeVicine} residenze universitarie nel raggio di 1 km.";
     }
 
     return Results.Ok(new 

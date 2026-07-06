@@ -40,12 +40,20 @@
             <hr>
             <h5>Filtri Layer</h5>
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" id="layerBiblioteche" checked>
-                <label class="form-check-label" for="layerBiblioteche">Biblioteche e Aule Studio</label>
+                <input class="form-check-input layer-toggle" type="checkbox" id="layerBiblioteche" data-layer="biblioteche" checked>
+                <label class="form-check-label" for="layerBiblioteche">📚 Biblioteche e Aule Studio</label>
             </div>
             <div class="form-check form-switch mt-2">
-                <input class="form-check-input" type="checkbox" id="layerFermate">
-                <label class="form-check-label" for="layerFermate">Fermate Autobus (TPER)</label>
+                <input class="form-check-input layer-toggle" type="checkbox" id="layerResidenze" data-layer="residenze">
+                <label class="form-check-label" for="layerResidenze">🏠 Residenze Universitarie</label>
+            </div>
+            <div class="form-check form-switch mt-2">
+                <input class="form-check-input layer-toggle" type="checkbox" id="layerAreeVerdi" data-layer="areeverdi">
+                <label class="form-check-label" for="layerAreeVerdi">🌳 Aree Verdi e Parchi</label>
+            </div>
+            <div class="form-check form-switch mt-2">
+                <input class="form-check-input layer-toggle" type="checkbox" id="layerFermate" data-layer="fermate">
+                <label class="form-check-label" for="layerFermate">🚌 Fermate Autobus (TPER)</label>
             </div>
         </div>
 

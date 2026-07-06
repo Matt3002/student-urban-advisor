@@ -41,6 +41,101 @@ async function caricaBiblioteche() {
 }
 
 // ==========================================
+// GESTIONE DEI LIVELLI (LAYERS) E DATI
+// ==========================================
+
+// Creiamo i gruppi logici per i vari layer
+let residenzeLayer = L.layerGroup();
+let areeVerdiLayer = L.layerGroup();
+let fermateLayer = L.layerGroup();
+
+// Funzione per caricare le Residenze Universitarie (Pin gialli)
+async function caricaResidenze() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/residenze`);
+        const data = await response.json();
+        
+        // Icona personalizzata per le residenze
+        const iconaResidenza = L.icon({
+            iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-gold.png',
+            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+            iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+        });
+
+        data.forEach(item => {
+            if (item.lat !== 0 && item.lon !== 0) {
+                L.marker([item.lat, item.lon], { icon: iconaResidenza })
+                    .bindPopup(`<b>${item.nome}</b><br>Posti Letto: ${item.posti || 'N/D'}`)
+                    .addTo(residenzeLayer);
+            }
+        });
+    } catch (error) { console.error("Errore Residenze:", error); }
+}
+
+// Funzione per caricare le Aree Verdi (Punti verdi)
+async function caricaAreeVerdi() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/areeverdi`);
+        const data = await response.json();
+        data.forEach(item => {
+            if (item.lat !== 0 && item.lon !== 0) {
+                // Usiamo un CircleMarker per non ingombrare troppo
+                L.circleMarker([item.lat, item.lon], { color: 'green', radius: 5, fillOpacity: 0.7 })
+                    .bindPopup(`<b>${item.nome || 'Area Verde'}</b><br>Tipo: ${item.tipo || 'N/D'}`)
+                    .addTo(areeVerdiLayer);
+            }
+        });
+    } catch (error) { console.error("Errore Aree Verdi:", error); }
+}
+
+// Funzione per caricare le Fermate (Punti arancioni)
+async function caricaFermate() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/fermate`);
+        const data = await response.json();
+        data.forEach(item => {
+            if (item.lat !== 0 && item.lon !== 0) {
+                L.circleMarker([item.lat, item.lon], { color: '#fd7e14', radius: 4, stroke: false, fillOpacity: 0.8 })
+                    .bindPopup(`<b>Fermata: ${item.nome}</b><br>Linee: ${item.linea}`)
+                    .addTo(fermateLayer);
+            }
+        });
+    } catch (error) { console.error("Errore Fermate:", error); }
+}
+
+// ==========================================
+// LOGICA DEGLI INTERRUTTORI (TOGGLES)
+// ==========================================
+
+// Mappa che collega il nome del data-layer nel HTML alla variabile JavaScript corrispondente
+const layerMap = {
+    'biblioteche': bibliotecheLayer,
+    'residenze': residenzeLayer,
+    'areeverdi': areeVerdiLayer,
+    'fermate': fermateLayer
+};
+
+// Aggiungiamo un "ascoltatore" a tutti i toggle switch
+document.querySelectorAll('.layer-toggle').forEach(toggle => {
+    toggle.addEventListener('change', function(e) {
+        const layerNome = this.getAttribute('data-layer');
+        const layerOggetto = layerMap[layerNome];
+        
+        // Se è spuntato aggiungiamo il layer alla mappa, altrimenti lo rimuoviamo
+        if (this.checked) {
+            map.addLayer(layerOggetto);
+        } else {
+            map.removeLayer(layerOggetto);
+        }
+    });
+});
+
+// Avviamo i caricamenti in background all'apertura della pagina
+caricaResidenze();
+caricaAreeVerdi();
+caricaFermate();
+
+// ==========================================
 // 4. GESTIONE DEL CLICK E ALGORITMO CONTEXT-AWARE
 // ==========================================
 

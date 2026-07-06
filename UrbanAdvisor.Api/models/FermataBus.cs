@@ -8,8 +8,11 @@ namespace UrbanAdvisor.Api.Models
     public class FermataBus
     {
         [Key]
+        [Column("id")]
+        public int Id { get; set; }
+
         [Column("codice_fermata")]
-        public string CodiceFermata { get; set; } = null!;
+        public string? CodiceFermata { get; set; }
 
         [Column("linea_bus")]
         public string? LineaBus { get; set; }
