@@ -52,4 +52,43 @@ app.MapGet("/api/biblioteche", async (UrbanAdvisorDbContext db) =>
 })
 .WithName("GetBiblioteche");
 
+// Endpoint Fermate Bus
+app.MapGet("/api/fermate", async (UrbanAdvisorDbContext db) =>
+{
+    return Results.Ok(await db.FermateBus
+        .Select(f => new {
+            id = f.CodiceFermata,
+            nome = f.NomeFermata,
+            linea = f.LineaBus,
+            lat = f.Geom != null ? f.Geom.Coordinate.Y : 0,
+            lon = f.Geom != null ? f.Geom.Coordinate.X : 0
+        }).ToListAsync());
+});
+
+// Endpoint Residenze
+app.MapGet("/api/residenze", async (UrbanAdvisorDbContext db) =>
+{
+    return Results.Ok(await db.ResidenzeUniversitarie
+        .Select(r => new {
+            id = r.Id,
+            nome = r.Nome,
+            posti = r.PostiLetto,
+            lat = r.Geom != null ? r.Geom.Coordinate.Y : 0,
+            lon = r.Geom != null ? r.Geom.Coordinate.X : 0
+        }).ToListAsync());
+});
+
+// Endpoint Aree Verdi
+app.MapGet("/api/areeverdi", async (UrbanAdvisorDbContext db) =>
+{
+    return Results.Ok(await db.AreeVerdi
+        .Select(a => new {
+            id = a.Id,
+            nome = a.NomeArea,
+            tipo = a.Tipologia,
+            lat = a.Geom != null ? a.Geom.Coordinate.Y : 0,
+            lon = a.Geom != null ? a.Geom.Coordinate.X : 0
+        }).ToListAsync());
+});
+
 app.Run();
