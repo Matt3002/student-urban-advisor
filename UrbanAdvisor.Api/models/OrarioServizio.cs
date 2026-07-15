@@ -16,7 +16,6 @@ namespace UrbanAdvisor.Api.Models
         [Column("nome_servizio")]
         public string? NomeServizio { get; set; }
 
-        /// <summary>0=Lunedì, 1=Martedì, ..., 5=Sabato, 6=Domenica</summary>
         [Column("giorno_settimana")]
         public int GiornoSettimana { get; set; }
 

@@ -41,7 +41,6 @@
 
     <div class="container-fluid mt-3">
         <div class="row g-3">
-            <!-- MAPPA -->
             <div class="col-lg-8">
                 <div id="map"></div>
                 <div id="nearbyResults" class="sidebar mt-3 d-none">
@@ -50,7 +49,6 @@
                 </div>
             </div>
 
-            <!-- SIDEBAR -->
             <div class="col-lg-4">
                 <div class="mb-2 d-flex flex-wrap gap-0">
                     <button class="tab-btn active" onclick="switchTab('layers',this)">Layers</button>
@@ -65,7 +63,6 @@
                     <button class="tab-btn" onclick="switchTab('stats',this)">Stats</button>
                 </div>
 
-                <!-- TAB: Layers -->
                 <div id="tab-layers" class="sidebar tab-panel">
                     <h6 class="mb-3"><i class="bi bi-layers"></i> Layer sulla Mappa</h6>
                     <div class="layer-toggle p-2 d-flex align-items-center gap-2">
@@ -113,7 +110,6 @@
                     <small class="text-muted">Clicca sulla mappa per cercare i servizi vicini.</small>
                 </div>
 
-                <!-- TAB: Score -->
                 <div id="tab-score" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-speedometer2"></i> Accessibility Score</h6>
                     <div class="mb-2">
@@ -138,7 +134,6 @@
                     </div>
                 </div>
 
-                <!-- TAB: Profilo -->
                 <div id="tab-profilo" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-person-gear"></i> Gestione Profili</h6>
                     <div class="mb-3">
@@ -170,7 +165,6 @@
                     <div id="confrontoResult" class="d-none small"></div>
                 </div>
 
-                <!-- TAB: Raccomandazioni -->
                 <div id="tab-raccomandazioni" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-stars"></i> Zone Raccomandate</h6>
                     <p class="small text-muted">Le migliori zone di Bologna per la vita universitaria, calcolate con lo Student Accessibility Score.</p>
@@ -190,7 +184,6 @@
                     <div id="recList"></div>
                 </div>
 
-                <!-- TAB: Analisi Spaziale -->
                 <div id="tab-analisi" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-grid-3x3"></i> Analisi Spaziale</h6>
                     <div class="mb-2">
@@ -218,7 +211,6 @@
                     <div id="gridStats" class="mt-3 small"></div>
                 </div>
 
-                <!-- TAB: Temporale -->
                 <div id="tab-temporale" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-clock"></i> Analisi Temporale</h6>
                     <div class="mb-2">
@@ -245,7 +237,6 @@
                     <div id="tempSugChart"></div>
                 </div>
 
-                <!-- TAB: Storico -->
                 <div id="tab-storico" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-clock-history"></i> Storico Suggerimenti</h6>
                     <div class="mb-2">
@@ -256,7 +247,6 @@
                     <div id="storicoList" style="max-height: 500px; overflow-y: auto;"></div>
                 </div>
 
-                <!-- TAB: Privacy -->
                 <div id="tab-privacy" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-shield-lock"></i> Privacy Location-Aware</h6>
                     <p class="small text-muted">Perturbazione gaussiana della posizione. Clicca sulla mappa, regola σ e confronta il risultato reale vs perturbato.</p>
@@ -285,7 +275,6 @@
                     <div id="tradeoffResult"></div>
                 </div>
 
-                <!-- TAB: Clustering -->
                 <div id="tab-clustering" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-diagram-3"></i> Clustering & Moran</h6>
                     <p class="small text-muted">K-Means sulle zone urbane + autocorrelazione spaziale di Moran.</p>
@@ -311,7 +300,6 @@
                     <div id="moranResult" class="mt-3"></div>
                 </div>
 
-                <!-- TAB: Stats -->
                 <div id="tab-stats" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-bar-chart"></i> Statistiche di Utilizzo</h6>
                     <div id="statsContent"><p class="text-muted small">Caricamento...</p></div>

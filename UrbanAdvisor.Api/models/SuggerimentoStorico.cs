@@ -3,11 +3,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UrbanAdvisor.Api.Models
 {
-    /// <summary>
-    /// Storico dei suggerimenti generati dal sistema.
-    /// Ogni record memorizza il contesto in cui il suggerimento è stato prodotto
-    /// (posizione, ora, profilo) e il feedback opzionale dell'utente.
-    /// </summary>
     [Table("suggerimenti_storico")]
     public class SuggerimentoStorico
     {
@@ -36,11 +31,9 @@ namespace UrbanAdvisor.Api.Models
         [Column("motivazione")]
         public string Motivazione { get; set; } = null!;
 
-        /// <summary>Timestamp UTC di generazione del suggerimento</summary>
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        /// <summary>Feedback utente: "utile", "non_utile", "salvato" oppure null se non dato</summary>
         [Column("feedback")]
         public string? Feedback { get; set; }
     }

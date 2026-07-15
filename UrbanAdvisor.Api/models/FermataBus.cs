@@ -1,3 +1,6 @@
+// ============================================================================
+// FermataBus.cs - Modello dati per le fermate autobus TPER
+// ============================================================================
 using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -7,8 +10,6 @@ namespace UrbanAdvisor.Api.Models
     [Table("fermate_bus")]
     public class FermataBus
     {
-        // Nella tabella PostGIS la chiave primaria è "codice_fermata" (VARCHAR),
-        // NON esiste una colonna "id": mappare un "id" fittizio faceva fallire EF.
         [Key]
         [Column("codice_fermata")]
         public string CodiceFermata { get; set; } = null!;

@@ -19,7 +19,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
 COPY --from=build /app/publish .
-# Il front-end statico va accanto alla dll (WebRootPath = "Frontend")
 COPY UrbanAdvisor.Api/Frontend ./Frontend
 
 ENV ASPNETCORE_URLS=http://+:8080
