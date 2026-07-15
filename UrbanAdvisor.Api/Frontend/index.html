@@ -3,67 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Urban Advisor - Accessibilità Studentesca</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
+    <title>Student Urban Accessibility Advisor - Bologna</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
-        /* La mappa deve avere un'altezza definita, altrimenti scompare */
-        #map { height: 100vh; width: 100%; }
-        .sidebar { height: 100vh; overflow-y: auto; background: #f8f9fa; padding: 20px; box-shadow: 2px 0 5px rgba(0,0,0,0.1); z-index: 1000; position: relative;}
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f6f9; }
+        #map { height: 600px; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.12); }
+        .sidebar { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+        .score-badge { font-size: 2.5rem; font-weight: 700; }
+        .score-high { color: #198754; }
+        .score-mid { color: #ffc107; }
+        .score-low { color: #dc3545; }
+        .subscore-bar { height: 8px; border-radius: 4px; background: #e9ecef; }
+        .subscore-fill { height: 100%; border-radius: 4px; transition: width .4s; }
+        .layer-toggle { cursor: pointer; user-select: none; }
+        .layer-toggle:hover { background: #f0f0f0; border-radius: 6px; }
+        .tab-btn { border: none; background: none; padding: 6px 10px; font-weight: 500; font-size: 0.82rem; color: #6c757d; border-bottom: 2px solid transparent; }
+        .tab-btn.active { color: #0d6efd; border-bottom-color: #0d6efd; }
+        .storico-item { border-left: 3px solid #0d6efd; padding-left: 12px; margin-bottom: 12px; }
+        .feedback-btn { cursor: pointer; opacity: 0.5; transition: opacity .2s; }
+        .feedback-btn:hover, .feedback-btn.active { opacity: 1; }
+        .profile-weight { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+        .profile-weight label { min-width: 130px; font-size: 0.82rem; }
+        .profile-weight input[type=range] { flex: 1; }
+        .profile-weight .val { min-width: 30px; text-align: right; font-weight: 600; font-size: 0.82rem; }
+        .rec-card { border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; margin-bottom: 10px; }
+        .rec-rank { width: 32px; height: 32px; border-radius: 50%; background: #0d6efd; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+        .hour-bar { display: inline-block; width: 16px; border-radius: 3px 3px 0 0; margin-right: 1px; transition: height .3s; }
+        .grid-cell { position: absolute; border: 1px solid rgba(0,0,0,.05); opacity: 0.6; border-radius: 2px; }
     </style>
 </head>
 <body>
+    <nav class="navbar navbar-dark bg-primary px-3">
+        <span class="navbar-brand fw-bold"><i class="bi bi-geo-alt-fill"></i> Student Urban Advisor — Bologna</span>
+    </nav>
 
-<div class="container-fluid p-0">
-    <div class="row g-0">
-        <div class="col-md-3 sidebar">
-            <h3 class="mb-4 text-primary">Urban Advisor</h3>
-            <p class="text-muted">Clicca su un punto qualsiasi della mappa per calcolare lo Student Accessibility Score.</p>
-            
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h5 class="card-title">Score Selezionato</h5>
-                    <h2 id="scoreDisplay" class="display-4 text-success">--</h2>
-                    <p id="scoreDettaglio" class="card-text">Nessun punto selezionato.</p>
+    <div class="container-fluid mt-3">
+        <div class="row g-3">
+            <!-- MAPPA -->
+            <div class="col-lg-8">
+                <div id="map"></div>
+                <div id="nearbyResults" class="sidebar mt-3 d-none">
+                    <h6><i class="bi bi-pin-map"></i> Servizi Vicini <span id="nearbyCount" class="badge bg-primary"></span></h6>
+                    <div id="nearbyList" style="max-height: 250px; overflow-y: auto;"></div>
                 </div>
             </div>
-            <hr>
-            <h5>Contesto Temporale</h5>
-            <div class="mb-3">
-                <label for="oraInput" class="form-label">Ora del giorno (0-23):</label>
-                <input type="number" class="form-control" id="oraInput" value="14" min="0" max="23">
-            </div>
 
-            <hr>
-            <h5>Filtri Layer</h5>
-            <div class="form-check form-switch">
-                <input class="form-check-input layer-toggle" type="checkbox" id="layerBiblioteche" data-layer="biblioteche" checked>
-                <label class="form-check-label" for="layerBiblioteche">📚 Biblioteche e Aule Studio</label>
-            </div>
-            <div class="form-check form-switch mt-2">
-                <input class="form-check-input layer-toggle" type="checkbox" id="layerResidenze" data-layer="residenze">
-                <label class="form-check-label" for="layerResidenze">🏠 Residenze Universitarie</label>
-            </div>
-            <div class="form-check form-switch mt-2">
-                <input class="form-check-input layer-toggle" type="checkbox" id="layerAreeVerdi" data-layer="areeverdi">
-                <label class="form-check-label" for="layerAreeVerdi">🌳 Aree Verdi e Parchi</label>
-            </div>
-            <div class="form-check form-switch mt-2">
-                <input class="form-check-input layer-toggle" type="checkbox" id="layerFermate" data-layer="fermate">
-                <label class="form-check-label" for="layerFermate">🚌 Fermate Autobus (TPER)</label>
-            </div>
-        </div>
+            <!-- SIDEBAR -->
+            <div class="col-lg-4">
+                <div class="mb-2 d-flex flex-wrap gap-0">
+                    <button class="tab-btn active" onclick="switchTab('layers',this)">Layers</button>
+                    <button class="tab-btn" onclick="switchTab('score',this)">Score</button>
+                    <button class="tab-btn" onclick="switchTab('profilo',this)">Profilo</button>
+                    <button class="tab-btn" onclick="switchTab('raccomandazioni',this)">Raccomandazioni</button>
+                    <button class="tab-btn" onclick="switchTab('analisi',this)">Analisi</button>
+                    <button class="tab-btn" onclick="switchTab('temporale',this)">Temporale</button>
+                    <button class="tab-btn" onclick="switchTab('storico',this)">Storico</button>
+                    <button class="tab-btn" onclick="switchTab('privacy',this)">Privacy</button>
+                    <button class="tab-btn" onclick="switchTab('clustering',this)">Clustering</button>
+                    <button class="tab-btn" onclick="switchTab('stats',this)">Stats</button>
+                </div>
 
-        <div class="col-md-9">
-            <div id="map"></div>
+                <!-- TAB: Layers -->
+                <div id="tab-layers" class="sidebar tab-panel">
+                    <h6 class="mb-3"><i class="bi bi-layers"></i> Layer sulla Mappa</h6>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-biblioteche" checked onchange="toggleLayer('biblioteche')">
+                        <span style="color:#e74c3c">●</span> Biblioteche
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-fermate" onchange="toggleLayer('fermate')">
+                        <span style="color:#3498db">●</span> Fermate Bus
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-areeverdi" onchange="toggleLayer('areeverdi')">
+                        <span style="color:#27ae60">●</span> Aree Verdi
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-residenze" onchange="toggleLayer('residenze')">
+                        <span style="color:#9b59b6">●</span> Residenze Universitarie
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-stazioni" onchange="toggleLayer('stazioni')">
+                        <span style="color:#f39c12">●</span> Stazioni Ferroviarie
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-heatmap" onchange="toggleHeatmap()">
+                        <span style="color:#ff6b6b">◉</span> <b>Heatmap Densità</b>
+                    </div>
+                    <hr>
+                    <h6 class="mb-2"><i class="bi bi-search"></i> Cerca Servizi Vicini</h6>
+                    <div class="mb-2">
+                        <label class="form-label small">Raggio (metri)</label>
+                        <input type="range" class="form-range" id="raggioCerca" min="200" max="3000" step="100" value="1000"
+                               oninput="document.getElementById('raggioVal').textContent=this.value+'m'">
+                        <span id="raggioVal" class="small fw-bold">1000m</span>
+                    </div>
+                    <div class="mb-2">
+                        <select class="form-select form-select-sm" id="categoriaCerca">
+                            <option value="">Tutte le categorie</option>
+                            <option value="biblioteche">Biblioteche</option>
+                            <option value="fermate">Fermate Bus</option>
+                            <option value="areeverdi">Aree Verdi</option>
+                            <option value="residenze">Residenze</option>
+                            <option value="stazioni">Stazioni</option>
+                        </select>
+                    </div>
+                    <small class="text-muted">Clicca sulla mappa per cercare i servizi vicini.</small>
+                </div>
+
+                <!-- TAB: Score -->
+                <div id="tab-score" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-speedometer2"></i> Accessibility Score</h6>
+                    <div class="mb-2">
+                        <label class="form-label small">Ora del giorno</label>
+                        <input type="range" class="form-range" id="oraInput" min="0" max="23" value="14"
+                               oninput="document.getElementById('oraVal').textContent=this.value+':00'">
+                        <span id="oraVal" class="fw-bold">14:00</span>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Profilo</label>
+                        <select class="form-select form-select-sm" id="profiloSelect"><option value="">Default (bilanciato)</option></select>
+                    </div>
+                    <p class="text-muted small">Clicca sulla mappa per calcolare lo score.</p>
+                    <div id="scoreResult" class="d-none">
+                        <div class="text-center mb-2">
+                            <span id="scoreValue" class="score-badge">--</span><span class="fs-5">/100</span>
+                            <div id="scoreFascia" class="small"></div>
+                            <div id="scoreProfilo" class="small text-muted"></div>
+                        </div>
+                        <div id="subscoresContainer" class="mb-3"></div>
+                        <div id="scoreMotivazione" class="small border rounded p-2 bg-light"></div>
+                    </div>
+                </div>
+
+                <!-- TAB: Profilo -->
+                <div id="tab-profilo" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-person-gear"></i> Gestione Profili</h6>
+                    <div class="mb-3">
+                        <select class="form-select form-select-sm" id="profiloEditSelect" onchange="loadProfiloEdit()">
+                            <option value="new">+ Crea nuovo profilo</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <input type="text" class="form-control form-control-sm" id="profiloNome" placeholder="Nome profilo">
+                    </div>
+                    <div class="profile-weight"><label>🚌 Trasporti</label><input type="range" min="0" max="100" value="50" id="w-trasporti" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
+                    <div class="profile-weight"><label>📚 Biblioteche</label><input type="range" min="0" max="100" value="50" id="w-biblioteche" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
+                    <div class="profile-weight"><label>🌳 Aree Verdi</label><input type="range" min="0" max="100" value="50" id="w-areeverdi" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
+                    <div class="profile-weight"><label>🚲 Mobilità Sost.</label><input type="range" min="0" max="100" value="50" id="w-mobilita" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
+                    <div class="profile-weight"><label>🏠 Residenze</label><input type="range" min="0" max="100" value="50" id="w-residenze" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
+                    <div class="d-flex gap-2 mt-3">
+                        <button class="btn btn-primary btn-sm flex-fill" onclick="salvaProfilo()"><i class="bi bi-save"></i> Salva</button>
+                        <button class="btn btn-outline-danger btn-sm" id="btnDeleteProfilo" onclick="eliminaProfilo()" style="display:none"><i class="bi bi-trash"></i></button>
+                    </div>
+                    <div id="profiloMsg" class="small mt-2"></div>
+                    <hr>
+                    <h6><i class="bi bi-arrow-left-right"></i> Confronta Profili</h6>
+                    <p class="small text-muted">Seleziona due profili e clicca sulla mappa.</p>
+                    <div class="d-flex gap-2 mb-2">
+                        <select class="form-select form-select-sm" id="confronto1"></select>
+                        <span class="align-self-center">vs</span>
+                        <select class="form-select form-select-sm" id="confronto2"></select>
+                    </div>
+                    <div id="confrontoResult" class="d-none small"></div>
+                </div>
+
+                <!-- TAB: Raccomandazioni -->
+                <div id="tab-raccomandazioni" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-stars"></i> Zone Raccomandate</h6>
+                    <p class="small text-muted">Le migliori zone di Bologna per la vita universitaria, calcolate con lo Student Accessibility Score.</p>
+                    <div class="mb-2">
+                        <label class="form-label small">Profilo</label>
+                        <select class="form-select form-select-sm" id="recProfiloSelect"><option value="">Default</option></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Ora</label>
+                        <input type="range" class="form-range" id="recOra" min="0" max="23" value="14"
+                               oninput="document.getElementById('recOraVal').textContent=this.value+':00'">
+                        <span id="recOraVal" class="small fw-bold">14:00</span>
+                    </div>
+                    <button class="btn btn-primary btn-sm w-100 mb-3" onclick="loadRaccomandazioni()">
+                        <i class="bi bi-search"></i> Calcola Raccomandazioni
+                    </button>
+                    <div id="recList"></div>
+                </div>
+
+                <!-- TAB: Analisi Spaziale -->
+                <div id="tab-analisi" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-grid-3x3"></i> Analisi Spaziale</h6>
+                    <div class="mb-2">
+                        <label class="form-label small">Profilo</label>
+                        <select class="form-select form-select-sm" id="gridProfiloSelect"><option value="">Default</option></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Ora</label>
+                        <input type="range" class="form-range" id="gridOra" min="0" max="23" value="14"
+                               oninput="document.getElementById('gridOraVal').textContent=this.value+':00'">
+                        <span id="gridOraVal" class="small fw-bold">14:00</span>
+                    </div>
+                    <button class="btn btn-success btn-sm w-100 mb-3" onclick="loadDensityGrid()">
+                        <i class="bi bi-grid-3x3-gap"></i> Mostra Griglia Densità
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm w-100 mb-3" onclick="clearGrid()">
+                        Nascondi Griglia
+                    </button>
+                    <div id="gridLegend" class="d-none">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Basso</span><span>Medio</span><span>Alto</span>
+                        </div>
+                        <div style="height:12px;border-radius:6px;background:linear-gradient(to right,#fee,#f66,#c00)"></div>
+                    </div>
+                    <div id="gridStats" class="mt-3 small"></div>
+                </div>
+
+                <!-- TAB: Temporale -->
+                <div id="tab-temporale" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-clock"></i> Analisi Temporale</h6>
+                    <div class="mb-2">
+                        <label class="form-label small">Giorno</label>
+                        <select class="form-select form-select-sm" id="tempGiorno">
+                            <option value="1">Lunedì</option><option value="2">Martedì</option>
+                            <option value="3">Mercoledì</option><option value="4">Giovedì</option>
+                            <option value="5">Venerdì</option><option value="6">Sabato</option>
+                            <option value="0">Domenica</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Ora</label>
+                        <input type="range" class="form-range" id="tempOra" min="0" max="23" value="14"
+                               oninput="document.getElementById('tempOraVal').textContent=this.value+':00'">
+                        <span id="tempOraVal" class="small fw-bold">14:00</span>
+                    </div>
+                    <button class="btn btn-info btn-sm w-100 mb-3 text-white" onclick="loadTemporale()">
+                        <i class="bi bi-bar-chart-steps"></i> Analizza Disponibilità
+                    </button>
+                    <div id="tempResult"></div>
+                    <hr>
+                    <h6 class="small fw-bold">Distribuzione Suggerimenti per Ora</h6>
+                    <div id="tempSugChart"></div>
+                </div>
+
+                <!-- TAB: Storico -->
+                <div id="tab-storico" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-clock-history"></i> Storico Suggerimenti</h6>
+                    <div class="mb-2">
+                        <select class="form-select form-select-sm" id="storicoProfiloFilter" onchange="loadStorico()">
+                            <option value="">Tutti i profili</option>
+                        </select>
+                    </div>
+                    <div id="storicoList" style="max-height: 500px; overflow-y: auto;"></div>
+                </div>
+
+                <!-- TAB: Privacy -->
+                <div id="tab-privacy" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-shield-lock"></i> Privacy Location-Aware</h6>
+                    <p class="small text-muted">Perturbazione gaussiana della posizione. Clicca sulla mappa, regola σ e confronta il risultato reale vs perturbato.</p>
+                    <div class="mb-2">
+                        <label class="form-label small">σ Perturbazione (metri)</label>
+                        <input type="range" class="form-range" id="privacySigma" min="0" max="2000" step="50" value="200"
+                               oninput="document.getElementById('sigmaVal').textContent=this.value+'m'">
+                        <span id="sigmaVal" class="small fw-bold">200m</span>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Ora</label>
+                        <input type="range" class="form-range" id="privacyOra" min="0" max="23" value="14"
+                               oninput="document.getElementById('privOraVal').textContent=this.value+':00'">
+                        <span id="privOraVal" class="small fw-bold">14:00</span>
+                    </div>
+                    <button class="btn btn-warning btn-sm w-100 mb-2" onclick="confrontoPrivacy()">
+                        <i class="bi bi-geo"></i> Confronta Reale vs Perturbata
+                    </button>
+                    <div id="privacyResult" class="small"></div>
+                    <hr>
+                    <h6 class="small fw-bold"><i class="bi bi-graph-up"></i> Trade-Off Privacy / Qualità</h6>
+                    <p class="small text-muted">Analisi su 7 livelli di σ: come la privacy impatta la qualità.</p>
+                    <button class="btn btn-outline-warning btn-sm w-100 mb-2" onclick="tradeoffPrivacy()">
+                        Calcola Trade-Off
+                    </button>
+                    <div id="tradeoffResult"></div>
+                </div>
+
+                <!-- TAB: Clustering -->
+                <div id="tab-clustering" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-diagram-3"></i> Clustering & Moran</h6>
+                    <p class="small text-muted">K-Means sulle zone urbane + autocorrelazione spaziale di Moran.</p>
+                    <div class="mb-2">
+                        <label class="form-label small">Numero di Cluster (K)</label>
+                        <select class="form-select form-select-sm" id="clusterK">
+                            <option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Ora</label>
+                        <input type="range" class="form-range" id="clusterOra" min="0" max="23" value="14"
+                               oninput="document.getElementById('clOraVal').textContent=this.value+':00'">
+                        <span id="clOraVal" class="small fw-bold">14:00</span>
+                    </div>
+                    <button class="btn btn-dark btn-sm w-100 mb-3" onclick="loadClustering()">
+                        <i class="bi bi-diagram-3"></i> Calcola Clustering
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm w-100 mb-3" onclick="clearClusters()">
+                        Nascondi Cluster
+                    </button>
+                    <div id="clusterResult"></div>
+                    <div id="moranResult" class="mt-3"></div>
+                </div>
+
+                <!-- TAB: Stats -->
+                <div id="tab-stats" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-bar-chart"></i> Statistiche di Utilizzo</h6>
+                    <div id="statsContent"><p class="text-muted small">Caricamento...</p></div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="app.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>

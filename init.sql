@@ -23,8 +23,7 @@ CREATE TABLE IF NOT EXISTS piste_ciclabili (
 );
 
 CREATE TABLE IF NOT EXISTS fermate_bus (
-    id SERIAL PRIMARY KEY,
-    codice_fermata VARCHAR(50),
+    codice_fermata VARCHAR(50) PRIMARY KEY,
     linea_bus VARCHAR(255),
     nome_fermata VARCHAR(255),
     geom GEOMETRY(Point, 4326)
@@ -130,14 +129,15 @@ FROM stg_piste;
 
 -- C) Fermate Bus (da stringa Coordinate "Lat, Lon")
 INSERT INTO fermate_bus (codice_fermata, linea_bus, nome_fermata, geom)
-SELECT 
+SELECT DISTINCT ON (codice_fermata)
     codice_fermata, linea_bus, nome_fermata, 
     ST_SetSRID(ST_MakePoint(
         NULLIF(TRIM(split_part(geopoint, ',', 2)), '')::FLOAT, -- Longitudine
         NULLIF(TRIM(split_part(geopoint, ',', 1)), '')::FLOAT  -- Latitudine
     ), 4326)
 FROM stg_fermate
-WHERE geopoint IS NOT NULL AND geopoint != '';
+WHERE geopoint IS NOT NULL AND geopoint != ''
+ON CONFLICT (codice_fermata) DO NOTHING;
 
 -- D) Aree Verdi (da GeoJSON Point)
 INSERT INTO aree_verdi (nome_area, tipologia, quartiere, ubicazione, geom)
@@ -177,3 +177,75 @@ CREATE INDEX IF NOT EXISTS idx_fermate_geom ON fermate_bus USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_aree_verdi_geom ON aree_verdi USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_residenze_geom ON residenze_universitarie USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_stazioni_geom ON stazioni_ferroviarie USING gist(geom);
+
+-- ============================================================================
+-- 6. TABELLE PER PROFILAZIONE E STORICO SUGGERIMENTI
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS profili_utente (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255) NOT NULL,
+    peso_trasporti INTEGER DEFAULT 50 CHECK (peso_trasporti BETWEEN 0 AND 100),
+    peso_biblioteche INTEGER DEFAULT 50 CHECK (peso_biblioteche BETWEEN 0 AND 100),
+    peso_aree_verdi INTEGER DEFAULT 50 CHECK (peso_aree_verdi BETWEEN 0 AND 100),
+    peso_mobilita_sostenibile INTEGER DEFAULT 50 CHECK (peso_mobilita_sostenibile BETWEEN 0 AND 100),
+    peso_residenze INTEGER DEFAULT 50 CHECK (peso_residenze BETWEEN 0 AND 100)
+);
+
+CREATE TABLE IF NOT EXISTS suggerimenti_storico (
+    id SERIAL PRIMARY KEY,
+    profilo_id INTEGER REFERENCES profili_utente(id) ON DELETE SET NULL,
+    lat DOUBLE PRECISION NOT NULL,
+    lon DOUBLE PRECISION NOT NULL,
+    ora INTEGER NOT NULL,
+    punteggio INTEGER NOT NULL,
+    fascia VARCHAR(50) NOT NULL,
+    motivazione TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    feedback VARCHAR(50) -- 'utile', 'non_utile', 'salvato', NULL
+);
+
+-- Profili di esempio: preferenze diverse -> ranking diversi
+INSERT INTO profili_utente (nome, peso_trasporti, peso_biblioteche, peso_aree_verdi, peso_mobilita_sostenibile, peso_residenze)
+VALUES
+    ('Studente Pendolare',     90, 60, 20, 30, 10),
+    ('Studente Eco-Friendly',  40, 50, 80, 95, 30),
+    ('Studente Fuori Sede',    70, 80, 40, 40, 90),
+    ('Profilo Bilanciato',     50, 50, 50, 50, 50);
+
+-- ============================================================================
+-- 7. ORARI SERVIZI (per Temporal Analytics)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS orari_servizi (
+    id SERIAL PRIMARY KEY,
+    categoria VARCHAR(50) NOT NULL,
+    nome_servizio VARCHAR(255),
+    giorno_settimana INTEGER NOT NULL CHECK (giorno_settimana BETWEEN 0 AND 6),
+    ora_apertura TIME NOT NULL,
+    ora_chiusura TIME NOT NULL
+);
+
+-- Orari realistici delle biblioteche di Bologna
+-- 0=Lunedì, 1=Martedì, ..., 5=Sabato, 6=Domenica
+INSERT INTO orari_servizi (categoria, nome_servizio, giorno_settimana, ora_apertura, ora_chiusura)
+SELECT 'biblioteche', nome, g.giorno,
+    CASE 
+        WHEN g.giorno BETWEEN 0 AND 4 THEN '08:30'::TIME  -- Lun-Ven
+        WHEN g.giorno = 5 THEN '09:00'::TIME               -- Sabato
+        ELSE '10:00'::TIME                                   -- Domenica
+    END,
+    CASE 
+        WHEN g.giorno BETWEEN 0 AND 4 THEN '19:00'::TIME
+        WHEN g.giorno = 5 THEN '13:00'::TIME
+        ELSE '13:00'::TIME
+    END
+FROM biblioteche, generate_series(0, 5) AS g(giorno)  -- Lun-Sab aperte
+WHERE nome IS NOT NULL;
+
+-- Fermate bus: orari indicativi del servizio TPER
+INSERT INTO orari_servizi (categoria, nome_servizio, giorno_settimana, ora_apertura, ora_chiusura)
+SELECT 'fermate', 'Servizio TPER', g.giorno,
+    CASE WHEN g.giorno <= 5 THEN '05:30'::TIME ELSE '06:30'::TIME END,
+    CASE WHEN g.giorno <= 4 THEN '00:30'::TIME WHEN g.giorno = 5 THEN '02:00'::TIME ELSE '23:00'::TIME END
+FROM generate_series(0, 6) AS g(giorno);

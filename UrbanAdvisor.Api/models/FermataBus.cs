@@ -7,12 +7,11 @@ namespace UrbanAdvisor.Api.Models
     [Table("fermate_bus")]
     public class FermataBus
     {
+        // Nella tabella PostGIS la chiave primaria è "codice_fermata" (VARCHAR),
+        // NON esiste una colonna "id": mappare un "id" fittizio faceva fallire EF.
         [Key]
-        [Column("id")]
-        public int Id { get; set; }
-
         [Column("codice_fermata")]
-        public string? CodiceFermata { get; set; }
+        public string CodiceFermata { get; set; } = null!;
 
         [Column("linea_bus")]
         public string? LineaBus { get; set; }
