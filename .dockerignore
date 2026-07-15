@@ -1,0 +1,9 @@
+**/bin/
+**/obj/
+**/.vs/
+**/*.user
+pgdata/
+.git/
+.gitignore
+README*.md
+RUN.md
