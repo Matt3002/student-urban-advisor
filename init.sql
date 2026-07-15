@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS piste_ciclabili (
 );
 
 CREATE TABLE IF NOT EXISTS fermate_bus (
-    codice_fermata VARCHAR(50) PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    codice_fermata VARCHAR(50),
     linea_bus VARCHAR(255),
     nome_fermata VARCHAR(255),
     geom GEOMETRY(Point, 4326)
