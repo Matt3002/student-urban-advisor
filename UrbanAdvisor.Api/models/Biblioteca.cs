@@ -1,3 +1,6 @@
+// ============================================================================
+// Biblioteca.cs - Modello dati per le biblioteche comunali
+// ============================================================================
 using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -21,7 +24,6 @@ namespace UrbanAdvisor.Api.Models
         [Column("postazioni_lettura")]
         public int? PostazioniLettura { get; set; }
 
-        // Ecco la magia di NetTopologySuite: mappa la geometria PostGIS!
         [Column("geom")]
         public MultiPoint? Geom { get; set; }
     }

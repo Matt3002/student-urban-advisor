@@ -1,3 +1,11 @@
+// ============================================================================
+// Program.cs - Student Urban Accessibility Advisor
+// Configurazione dell'applicazione .NET (Minimal API) e definizione di tutti
+// gli endpoint REST: lettura PoI, ricerca spaziale, scoring context-aware,
+// profilazione, analisi spaziale/temporale, privacy e clustering.
+// Il front-end statico e' servito dalla cartella Frontend (WebRootPath).
+// ============================================================================
+
 using Microsoft.EntityFrameworkCore;
 using UrbanAdvisor.Api.Data;
 using UrbanAdvisor.Api.Models;
@@ -37,10 +45,7 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// ==========================================
-// ENDPOINT BASE: Lettura PoI per categoria
-// ==========================================
-
+// Restituisce tutte le biblioteche con coordinate.
 app.MapGet("/api/biblioteche", async (UrbanAdvisorDbContext db) =>
 {
     var data = await db.Biblioteche
@@ -54,6 +59,7 @@ app.MapGet("/api/biblioteche", async (UrbanAdvisorDbContext db) =>
     return Results.Ok(data);
 }).WithName("GetBiblioteche");
 
+// Restituisce tutte le fermate bus TPER.
 app.MapGet("/api/fermate", async (UrbanAdvisorDbContext db) =>
 {
     return Results.Ok(await db.FermateBus
@@ -65,6 +71,7 @@ app.MapGet("/api/fermate", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync());
 });
 
+// Restituisce tutte le residenze universitarie.
 app.MapGet("/api/residenze", async (UrbanAdvisorDbContext db) =>
 {
     return Results.Ok(await db.ResidenzeUniversitarie
@@ -76,6 +83,7 @@ app.MapGet("/api/residenze", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync());
 });
 
+// Restituisce tutte le aree verdi.
 app.MapGet("/api/areeverdi", async (UrbanAdvisorDbContext db) =>
 {
     return Results.Ok(await db.AreeVerdi
@@ -87,6 +95,7 @@ app.MapGet("/api/areeverdi", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync());
 });
 
+// Restituisce tutte le stazioni ferroviarie.
 app.MapGet("/api/stazioni", async (UrbanAdvisorDbContext db) =>
 {
     return Results.Ok(await db.StazioniFerroviarie
@@ -98,6 +107,35 @@ app.MapGet("/api/stazioni", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync());
 });
 
+// Restituisce tutte le mense e i punti ristoro universitari.
+app.MapGet("/api/mense", async (UrbanAdvisorDbContext db) =>
+{
+    return Results.Ok(await db.Mense
+        .Select(m => new {
+            id = m.Id, nome = m.Nome,
+            tipo = m.Tipo == "mensa" ? "Mensa universitaria" : "Punto Ristoro",
+            indirizzo = m.Indirizzo, gestore = m.Gestore,
+            categoria = "mense",
+            lat = m.Geom != null ? m.Geom.Coordinate.Y : 0,
+            lon = m.Geom != null ? m.Geom.Coordinate.X : 0
+        }).ToListAsync());
+});
+
+// Restituisce tutte le sedi universitarie (dipartimenti, uffici, musei) - fonte: dati.unibo.it "Punti di interesse".
+app.MapGet("/api/sedi", async (UrbanAdvisorDbContext db) =>
+{
+    return Results.Ok(await db.SediUniversitarie
+        .Select(s => new {
+            id = s.Id, nome = s.Nome,
+            tipo = s.Tipo == "museo" ? "Museo" : "Dipartimento/Ufficio",
+            indirizzo = s.Indirizzo, url = s.Url,
+            categoria = "sedi",
+            lat = s.Geom != null ? s.Geom.Coordinate.Y : 0,
+            lon = s.Geom != null ? s.Geom.Coordinate.X : 0
+        }).ToListAsync());
+});
+
+// Restituisce tutte le piste ciclabili.
 app.MapGet("/api/piste", async (UrbanAdvisorDbContext db) =>
 {
     return Results.Ok(await db.PisteCiclabili
@@ -108,19 +146,13 @@ app.MapGet("/api/piste", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync());
 });
 
-// ==========================================
-// API NEARBY: PoI vicini con raggio e filtro
-// ==========================================
-
+// Restituisce i PoI entro un raggio da una posizione, ordinati per distanza.
 app.MapGet("/api/nearby", async (double lat, double lon, int raggio, string? categoria, UrbanAdvisorDbContext db) =>
 {
-    // Conversione raggio da metri a gradi (approssimazione: 1 grado ≈ 111km)
     double raggioGradi = raggio / 111000.0;
     var userPoint = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-
     var risultati = new List<object>();
 
-    // Biblioteche
     if (categoria == null || categoria == "biblioteche")
     {
         var items = await db.Biblioteche
@@ -134,7 +166,6 @@ app.MapGet("/api/nearby", async (double lat, double lon, int raggio, string? cat
         risultati.AddRange(items);
     }
 
-    // Fermate bus
     if (categoria == null || categoria == "fermate")
     {
         var items = await db.FermateBus
@@ -148,7 +179,6 @@ app.MapGet("/api/nearby", async (double lat, double lon, int raggio, string? cat
         risultati.AddRange(items);
     }
 
-    // Aree verdi
     if (categoria == null || categoria == "areeverdi")
     {
         var items = await db.AreeVerdi
@@ -162,7 +192,6 @@ app.MapGet("/api/nearby", async (double lat, double lon, int raggio, string? cat
         risultati.AddRange(items);
     }
 
-    // Residenze
     if (categoria == null || categoria == "residenze")
     {
         var items = await db.ResidenzeUniversitarie
@@ -176,7 +205,6 @@ app.MapGet("/api/nearby", async (double lat, double lon, int raggio, string? cat
         risultati.AddRange(items);
     }
 
-    // Stazioni
     if (categoria == null || categoria == "stazioni")
     {
         var items = await db.StazioniFerroviarie
@@ -190,15 +218,11 @@ app.MapGet("/api/nearby", async (double lat, double lon, int raggio, string? cat
         risultati.AddRange(items);
     }
 
-    // Ordina per distanza
     var ordinati = risultati.Cast<dynamic>().OrderBy(r => (int)r.distanzaMetri).ToList();
     return Results.Ok(new { totale = ordinati.Count, raggio_metri = raggio, risultati = ordinati });
 });
 
-// ==========================================
-// INDICATORI AGGREGATI PER AREA
-// ==========================================
-
+// Buffer analysis: conteggi e densita' dei PoI in un'area.
 app.MapGet("/api/area/indicatori", async (double lat, double lon, int raggio, UrbanAdvisorDbContext db) =>
 {
     double raggioGradi = raggio / 111000.0;
@@ -233,21 +257,20 @@ app.MapGet("/api/area/indicatori", async (double lat, double lon, int raggio, Ur
     });
 });
 
-// ==========================================
-// PROFILI UTENTE (CRUD)
-// ==========================================
-
+// Restituisce la lista dei profili utente.
 app.MapGet("/api/profili", async (UrbanAdvisorDbContext db) =>
 {
     return Results.Ok(await db.ProfiliUtente.ToListAsync());
 });
 
+// Restituisce un singolo profilo utente per id.
 app.MapGet("/api/profili/{id}", async (int id, UrbanAdvisorDbContext db) =>
 {
     var profilo = await db.ProfiliUtente.FindAsync(id);
     return profilo is not null ? Results.Ok(profilo) : Results.NotFound();
 });
 
+// Crea un nuovo profilo utente.
 app.MapPost("/api/profili", async (ProfiloUtente profilo, UrbanAdvisorDbContext db) =>
 {
     db.ProfiliUtente.Add(profilo);
@@ -255,6 +278,7 @@ app.MapPost("/api/profili", async (ProfiloUtente profilo, UrbanAdvisorDbContext 
     return Results.Created($"/api/profili/{profilo.Id}", profilo);
 });
 
+// Aggiorna un profilo utente esistente.
 app.MapPut("/api/profili/{id}", async (int id, ProfiloUtente input, UrbanAdvisorDbContext db) =>
 {
     var profilo = await db.ProfiliUtente.FindAsync(id);
@@ -270,6 +294,7 @@ app.MapPut("/api/profili/{id}", async (int id, ProfiloUtente input, UrbanAdvisor
     return Results.Ok(profilo);
 });
 
+// Elimina un profilo utente.
 app.MapDelete("/api/profili/{id}", async (int id, UrbanAdvisorDbContext db) =>
 {
     var profilo = await db.ProfiliUtente.FindAsync(id);
@@ -279,16 +304,12 @@ app.MapDelete("/api/profili/{id}", async (int id, UrbanAdvisorDbContext db) =>
     return Results.NoContent();
 });
 
-// ==========================================
-// RANKING PERSONALIZZATO CON PROFILO
-// ==========================================
-
+// Calcola lo Student Accessibility Score context-aware (posizione, ora, profilo) e lo salva nello storico.
 app.MapGet("/api/ranking", async (double lat, double lon, int ora, int? profiloId, UrbanAdvisorDbContext db) =>
 {
     var userPoint = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-    double raggioGradi = 1000.0 / 111000.0; // 1 km
+    double raggioGradi = 1000.0 / 111000.0;
 
-    // Carica profilo (o usa pesi bilanciati di default)
     ProfiloUtente? profilo = null;
     if (profiloId.HasValue)
         profilo = await db.ProfiliUtente.FindAsync(profiloId.Value);
@@ -299,7 +320,6 @@ app.MapGet("/api/ranking", async (double lat, double lon, int ora, int? profiloI
     int wMobilita = profilo?.PesoMobilitaSostenibile ?? 50;
     int wResidenze = profilo?.PesoResidenze ?? 50;
 
-    // Normalizza i pesi (somma = 1.0)
     double somma = wTrasporti + wBiblioteche + wAreeVerdi + wMobilita + wResidenze;
     if (somma == 0) somma = 1;
     double nT = wTrasporti / somma;
@@ -308,9 +328,6 @@ app.MapGet("/api/ranking", async (double lat, double lon, int ora, int? profiloI
     double nM = wMobilita / somma;
     double nR = wResidenze / somma;
 
-    // --- Calcolo sub-score per categoria (0-100 ciascuno) ---
-
-    // 1. Trasporti: distanza dalla fermata bus più vicina
     var fermataPiuVicina = await db.FermateBus
         .Where(f => f.Geom != null)
         .OrderBy(f => f.Geom!.Distance(userPoint))
@@ -319,44 +336,36 @@ app.MapGet("/api/ranking", async (double lat, double lon, int ora, int? profiloI
     int scoreTrasporti = distFermata <= 1000 ? (int)(100 - distFermata / 10) : 0;
     scoreTrasporti = Math.Clamp(scoreTrasporti, 0, 100);
 
-    // 2. Biblioteche: quante nel raggio
     int nBib = await db.Biblioteche.CountAsync(b => b.Geom != null && b.Geom.IsWithinDistance(userPoint, raggioGradi));
     int scoreBiblioteche = Math.Min(nBib * 25, 100);
 
-    // 3. Aree verdi: quante nel raggio
     int nVerde = await db.AreeVerdi.CountAsync(a => a.Geom != null && a.Geom.IsWithinDistance(userPoint, raggioGradi));
     int scoreVerdi = Math.Min(nVerde * 10, 100);
 
-    // 4. Mobilità sostenibile: piste ciclabili nel raggio
     int nPiste = await db.PisteCiclabili.CountAsync(p => p.Geom != null && p.Geom.IsWithinDistance(userPoint, raggioGradi));
     int scoreMobilita = Math.Min(nPiste * 15, 100);
 
-    // 5. Residenze: vicinanza
     int nRes = await db.ResidenzeUniversitarie.CountAsync(r => r.Geom != null && r.Geom.IsWithinDistance(userPoint, raggioGradi));
     int scoreResidenze = Math.Min(nRes * 30, 100);
 
-    // --- Contesto orario: bonus/malus ---
     bool isGiorno = ora >= 8 && ora < 20;
     if (!isGiorno)
     {
-        scoreBiblioteche = (int)(scoreBiblioteche * 0.3); // biblioteche chiuse
-        scoreTrasporti = (int)(scoreTrasporti * 1.3);     // trasporti più importanti
-        scoreResidenze = (int)(scoreResidenze * 1.5);      // residenze più importanti
+        scoreBiblioteche = (int)(scoreBiblioteche * 0.3);
+        scoreTrasporti = (int)(scoreTrasporti * 1.3);
+        scoreResidenze = (int)(scoreResidenze * 1.5);
     }
 
     scoreTrasporti = Math.Clamp(scoreTrasporti, 0, 100);
     scoreResidenze = Math.Clamp(scoreResidenze, 0, 100);
 
-    // --- Punteggio finale pesato ---
     double punteggioFinale = (scoreTrasporti * nT + scoreBiblioteche * nB +
                               scoreVerdi * nV + scoreMobilita * nM + scoreResidenze * nR);
     int punteggio = Math.Clamp((int)Math.Round(punteggioFinale), 0, 100);
 
-    // --- Motivazione strutturata ---
     string fascia = isGiorno ? "Diurna" : "Notturna";
     var motivazioni = new List<string>();
-    
-    // Ordina i fattori per contributo al punteggio
+
     var fattori = new List<(string nome, int score, double peso)>
     {
         ("Trasporti pubblici", scoreTrasporti, nT),
@@ -378,7 +387,6 @@ app.MapGet("/api/ranking", async (double lat, double lon, int ora, int? profiloI
                           $"Nel raggio di 1km: {nBib} biblioteche, {nVerde} aree verdi, {nPiste} piste ciclabili, {nRes} residenze. " +
                           string.Join(" | ", motivazioni);
 
-    // --- Salva nello storico ---
     var storico = new SuggerimentoStorico
     {
         ProfiloId = profiloId,
@@ -397,16 +405,13 @@ app.MapGet("/api/ranking", async (double lat, double lon, int ora, int? profiloI
         fascia,
         profilo = profilo?.Nome ?? "Default (bilanciato)",
         dettaglio = motivazione,
-        subscores = new { trasporti = scoreTrasporti, biblioteche = scoreBiblioteche, 
+        subscores = new { trasporti = scoreTrasporti, biblioteche = scoreBiblioteche,
                           aree_verdi = scoreVerdi, mobilita = scoreMobilita, residenze = scoreResidenze },
         storico_id = storico.Id
     });
 });
 
-// ==========================================
-// STORICO SUGGERIMENTI + FEEDBACK
-// ==========================================
-
+// Restituisce lo storico dei suggerimenti generati.
 app.MapGet("/api/suggerimenti", async (int? profiloId, int? limit, UrbanAdvisorDbContext db) =>
 {
     var query = db.SuggerimentiStorico.AsQueryable();
@@ -421,6 +426,7 @@ app.MapGet("/api/suggerimenti", async (int? profiloId, int? limit, UrbanAdvisorD
     return Results.Ok(risultati);
 });
 
+// Salva il feedback dell'utente su un suggerimento.
 app.MapPut("/api/suggerimenti/{id}/feedback", async (int id, FeedbackRequest req, UrbanAdvisorDbContext db) =>
 {
     var sug = await db.SuggerimentiStorico.FindAsync(id);
@@ -431,10 +437,7 @@ app.MapPut("/api/suggerimenti/{id}/feedback", async (int id, FeedbackRequest req
     return Results.Ok(sug);
 });
 
-// ==========================================
-// STATISTICHE AGGREGATE
-// ==========================================
-
+// Restituisce statistiche aggregate di utilizzo.
 app.MapGet("/api/statistiche", async (UrbanAdvisorDbContext db) =>
 {
     var totSuggerimenti = await db.SuggerimentiStorico.CountAsync();
@@ -460,10 +463,7 @@ app.MapGet("/api/statistiche", async (UrbanAdvisorDbContext db) =>
     });
 });
 
-// ==========================================
-// ANALISI SPAZIALE: HEATMAP
-// ==========================================
-
+// Restituisce i punti PoI pesati per la heatmap.
 app.MapGet("/api/heatmap", async (string? categoria, UrbanAdvisorDbContext db) =>
 {
     var punti = new List<object>();
@@ -507,21 +507,16 @@ app.MapGet("/api/heatmap", async (string? categoria, UrbanAdvisorDbContext db) =
     return Results.Ok(new { totale = punti.Count, punti });
 });
 
-// ==========================================
-// ANALISI SPAZIALE: GRIGLIA DENSITÀ
-// ==========================================
-
+// Density analysis: griglia NxN con score per cella.
 app.MapGet("/api/density/grid", async (int? celle, int? profiloId, int? ora, UrbanAdvisorDbContext db) =>
 {
-    int n = celle ?? 8; // griglia NxN
-    // Bounding box di Bologna (approssimativa)
+    int n = celle ?? 8;
     double minLat = 44.47, maxLat = 44.52;
     double minLon = 11.30, maxLon = 11.38;
     double stepLat = (maxLat - minLat) / n;
     double stepLon = (maxLon - minLon) / n;
-    double raggioGradi = 500.0 / 111000.0; // 500m
+    double raggioGradi = 500.0 / 111000.0;
 
-    // Profilo opzionale
     ProfiloUtente? profilo = null;
     if (profiloId.HasValue)
         profilo = await db.ProfiliUtente.FindAsync(profiloId.Value);
@@ -577,13 +572,10 @@ app.MapGet("/api/density/grid", async (int? celle, int? profiloId, int? ora, Urb
         profilo = profilo?.Nome ?? "Default", griglia });
 });
 
-// ==========================================
-// RECOMMENDATION ENGINE: TOP ZONE
-// ==========================================
-
+// Recommendation engine: le top-N zone urbane con motivazione.
 app.MapGet("/api/raccomandazioni", async (int? profiloId, int? ora, int? top, UrbanAdvisorDbContext db) =>
 {
-    int n = 10; // griglia 10x10
+    int n = 10;
     double minLat = 44.47, maxLat = 44.52;
     double minLon = 11.30, maxLon = 11.38;
     double stepLat = (maxLat - minLat) / n;
@@ -632,7 +624,6 @@ app.MapGet("/api/raccomandazioni", async (int? profiloId, int? ora, int? top, Ur
 
             double score = (sFer * wT + sBib * wB + sVer * wV + sPis * wM + sRes * wR) / somma;
 
-            // Genera motivazione
             var motivi = new List<string>();
             if (sBib >= 50) motivi.Add($"alta densità di biblioteche ({nBib})");
             if (sFer >= 50) motivi.Add($"ben collegata ({nFer} fermate)");
@@ -662,14 +653,10 @@ app.MapGet("/api/raccomandazioni", async (int? profiloId, int? ora, int? top, Ur
     });
 });
 
-// ==========================================
-// TEMPORAL ANALYTICS: DISPONIBILITÀ
-// ==========================================
-
+// Temporal analytics: servizi aperti/chiusi per giorno e ora.
 app.MapGet("/api/temporale/disponibilita", async (int? giorno, int? ora, UrbanAdvisorDbContext db) =>
 {
     int giornoVal = giorno ?? (int)DateTime.Now.DayOfWeek;
-    // .NET DayOfWeek: 0=Sun, 1=Mon... → convertiamo a 0=Lun, 6=Dom
     giornoVal = giornoVal == 0 ? 6 : giornoVal - 1;
     int oraVal = ora ?? DateTime.Now.Hour;
     var oraTime = new TimeOnly(oraVal, 0);
@@ -692,7 +679,6 @@ app.MapGet("/api/temporale/disponibilita", async (int? giorno, int? ora, UrbanAd
         })
         .ToList();
 
-    // Distribuzione oraria: quanti servizi aperti per ogni ora del giorno
     var distribuzioneOraria = Enumerable.Range(0, 24).Select(h =>
     {
         var t = new TimeOnly(h, 0);
@@ -713,10 +699,7 @@ app.MapGet("/api/temporale/disponibilita", async (int? giorno, int? ora, UrbanAd
     });
 });
 
-// ==========================================
-// TEMPORAL ANALYTICS: STATISTICHE SUGGERIMENTI PER ORA
-// ==========================================
-
+// Temporal analytics: distribuzione dei suggerimenti per ora.
 app.MapGet("/api/temporale/statistiche", async (UrbanAdvisorDbContext db) =>
 {
     var perOra = await db.SuggerimentiStorico
@@ -733,31 +716,21 @@ app.MapGet("/api/temporale/statistiche", async (UrbanAdvisorDbContext db) =>
     return Results.Ok(new { per_ora = perOra, per_fascia = perFascia });
 });
 
-// ==========================================
-// PRIVACY: CONFRONTO REALE vs PERTURBATA
-// ==========================================
-
+// Privacy: confronto tra posizione reale e posizione perturbata.
 app.MapGet("/api/privacy/confronto", async (double lat, double lon, int ora, double sigma, int? profiloId, UrbanAdvisorDbContext db) =>
 {
-    // sigma = deviazione standard in METRI della perturbazione gaussiana
     var rng = new Random();
     double sigmaGradi = sigma / 111000.0;
 
-    // Genera posizione perturbata (Gaussian noise)
-    double noiseLat = rng.NextDouble() * 2 - 1 + rng.NextDouble() * 2 - 1; // approssimazione Box-Muller semplificata
+    double noiseLat = rng.NextDouble() * 2 - 1 + rng.NextDouble() * 2 - 1;
     double noiseLon = rng.NextDouble() * 2 - 1 + rng.NextDouble() * 2 - 1;
     double pertLat = lat + noiseLat * sigmaGradi;
     double pertLon = lon + noiseLon * sigmaGradi;
 
-    // Calcola score posizione reale
     var realScore = await CalcolaScoreInterno(lat, lon, ora, profiloId, db);
-    // Calcola score posizione perturbata
     var pertScore = await CalcolaScoreInterno(pertLat, pertLon, ora, profiloId, db);
 
-    // Privacy Perturbation = distanza tra posizione reale e pubblicata (metri)
     double distanzaPerturbazione = Math.Sqrt(Math.Pow((pertLat - lat) * 111000, 2) + Math.Pow((pertLon - lon) * 111000 * Math.Cos(lat * Math.PI / 180), 2));
-
-    // Quality of Service = differenza di score
     int qualityLoss = Math.Abs(realScore.punteggio - pertScore.punteggio);
 
     return Results.Ok(new
@@ -774,15 +747,12 @@ app.MapGet("/api/privacy/confronto", async (double lat, double lon, int ora, dou
     });
 });
 
-// ==========================================
-// PRIVACY: TRADE-OFF ANALYSIS
-// ==========================================
-
+// Privacy: analisi del trade-off tra privacy e qualita' del servizio.
 app.MapGet("/api/privacy/tradeoff", async (double lat, double lon, int ora, int? profiloId, UrbanAdvisorDbContext db) =>
 {
-    var rng = new Random(42); // seed fisso per riproducibilità
-    var livelli = new[] { 0, 50, 100, 200, 500, 1000, 2000 }; // sigma in metri
-    int campioni = 5; // media su N perturbazioni per ogni sigma
+    var rng = new Random(42);
+    var livelli = new[] { 0, 50, 100, 200, 500, 1000, 2000 };
+    int campioni = 5;
 
     var risultati = new List<object>();
 
@@ -818,7 +788,7 @@ app.MapGet("/api/privacy/tradeoff", async (double lat, double lon, int ora, int?
     return Results.Ok(new { lat, lon, ora, risultati });
 });
 
-// Funzione helper per calcolo score (riusata da privacy e clustering)
+// Funzione helper: calcola score e sub-score per una posizione (riusata da privacy e clustering).
 static async Task<(int punteggio, object subscores)> CalcolaScoreInterno(
     double lat, double lon, int ora, int? profiloId, UrbanAdvisorDbContext db)
 {
@@ -847,20 +817,16 @@ static async Task<(int punteggio, object subscores)> CalcolaScoreInterno(
         new { trasporti = sT, biblioteche = sB, aree_verdi = sV, mobilita = sM, residenze = sR });
 }
 
-// ==========================================
-// CLUSTERING: K-MEANS + ANALISI
-// ==========================================
-
+// Analytics avanzata: clustering K-Means delle zone e indice di Moran.
 app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvisorDbContext db) =>
 {
     int numClusters = k ?? 4;
-    int n = 10; // griglia 10x10
+    int n = 10;
     double minLat = 44.47, maxLat = 44.52, minLon = 11.30, maxLon = 11.38;
     double stepLat = (maxLat - minLat) / n, stepLon = (maxLon - minLon) / n;
     double rGradi = 500.0 / 111000.0;
     int oraVal = ora ?? 14;
 
-    // Calcola feature per ogni cella
     var celle = new List<(double lat, double lon, double[] features, int score)>();
     for (int i = 0; i < n; i++)
     {
@@ -881,14 +847,12 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
         }
     }
 
-    // K-Means semplice
     int dim = 5;
     var centroids = celle.OrderByDescending(c => c.score).Take(numClusters).Select(c => (double[])c.features.Clone()).ToList();
     var assignments = new int[celle.Count];
 
     for (int iter = 0; iter < 20; iter++)
     {
-        // Assign
         for (int ci = 0; ci < celle.Count; ci++)
         {
             double minDist = double.MaxValue;
@@ -899,7 +863,7 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
                 if (dist < minDist) { minDist = dist; assignments[ci] = ki; }
             }
         }
-        // Update centroids
+
         for (int ki = 0; ki < numClusters; ki++)
         {
             var members = Enumerable.Range(0, celle.Count).Where(ci => assignments[ci] == ki).ToList();
@@ -909,7 +873,6 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
         }
     }
 
-    // Costruisci risultato
     string[] clusterLabels = { "Alta accessibilità", "Media accessibilità", "Bassa accessibilità", "Periferico" };
     var clusterGroups = Enumerable.Range(0, celle.Count)
         .GroupBy(ci => assignments[ci])
@@ -923,9 +886,6 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
             celle = g.Select(ci => new { lat = celle[ci].lat, lon = celle[ci].lon, score = celle[ci].score, cluster = idx }).ToList()
         });
 
-    // ==========================================
-    // MORAN'S I — Autocorrelazione spaziale dello score
-    // ==========================================
     int N = celle.Count;
     double mean = celle.Average(c => c.score);
     double denominator = celle.Sum(c => Math.Pow(c.score - mean, 2));
@@ -943,7 +903,7 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
         }
     }
     double moranI = denominator > 0 ? (N / W) * (numerator / denominator) : 0;
-    // Interpretazione: I > 0 = cluster (valori simili vicini), I ≈ 0 = random, I < 0 = disperso
+
     string moranInterpretazione = moranI > 0.3 ? "Forte clustering spaziale: zone simili tendono a essere vicine"
         : moranI > 0.1 ? "Clustering moderato: alcune aree simili sono raggruppate"
         : moranI > -0.1 ? "Distribuzione quasi casuale"
@@ -965,5 +925,5 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
 
 app.Run();
 
-// Record per deserializzare il body del feedback
+// Record per deserializzare il corpo della richiesta di feedback.
 record FeedbackRequest(string Feedback);

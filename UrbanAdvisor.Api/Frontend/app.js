@@ -1,3 +1,10 @@
+// ============================================================================
+// app.js - Student Urban Accessibility Advisor (front-end)
+// Logica della dashboard: mappa Leaflet multilayer, ricerca PoI vicini,
+// calcolo dello score, gestione profili, raccomandazioni, analisi spaziale,
+// temporale, privacy e clustering. Comunica con l'API via fetch su /api.
+// ============================================================================
+
 const API_BASE_URL = '/api';
 
 const map = L.map('map').setView([44.4949, 11.3426], 14);
@@ -7,7 +14,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const layers = {
     biblioteche: L.layerGroup().addTo(map), fermate: L.layerGroup(),
-    areeverdi: L.layerGroup(), residenze: L.layerGroup(), stazioni: L.layerGroup()
+    areeverdi: L.layerGroup(), residenze: L.layerGroup(), stazioni: L.layerGroup(),
+    mense: L.layerGroup(), sedi: L.layerGroup() 
 };
 
 const catConfig = {
@@ -15,15 +23,19 @@ const catConfig = {
     fermate:     { color: '#3498db', icon: '🚌', label: 'Fermata Bus' },
     areeverdi:   { color: '#27ae60', icon: '🌳', label: 'Area Verde' },
     residenze:   { color: '#9b59b6', icon: '🏠', label: 'Residenza' },
-    stazioni:    { color: '#f39c12', icon: '🚉', label: 'Stazione' }
+    stazioni:    { color: '#f39c12', icon: '🚉', label: 'Stazione' },
+    mense:       { color: '#ff5e5e', icon: '🍽️', label: 'Mensa/Ristoro' },
+    sedi:        { color: '#16a085', icon: '🏛️', label: 'Sede Universitaria' }
 };
 
 let userMarker = null, searchCircle = null, lastClickLat = null, lastClickLon = null;
 let heatLayer = null, gridLayer = null, recMarkers = null;
+let profiliCache = [];
+let privacyMarker = null;
+let clusterLayer = null;
+const clusterColors = ['#2ecc71', '#3498db', '#e67e22', '#e74c3c', '#9b59b6', '#1abc9c'];
 
-// ==========================================
-// LAYER
-// ==========================================
+// Carica e disegna sulla mappa i PoI di una categoria.
 async function loadLayer(name) {
     try {
         const res = await fetch(`${API_BASE_URL}/${name}`);
@@ -47,15 +59,14 @@ async function loadLayer(name) {
     } catch (e) { console.error(`Errore caricamento ${name}:`, e); }
 }
 
+// Attiva/disattiva un layer di categoria sulla mappa.
 function toggleLayer(name) {
     const chk = document.getElementById(`chk-${name}`);
     if (chk.checked) { loadLayer(name); map.addLayer(layers[name]); }
     else { map.removeLayer(layers[name]); }
 }
 
-// ==========================================
-// HEATMAP
-// ==========================================
+// Attiva/disattiva la heatmap di densita' dei servizi.
 async function toggleHeatmap() {
     const chk = document.getElementById('chk-heatmap');
     if (!chk.checked) { if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; } return; }
@@ -69,9 +80,7 @@ async function toggleHeatmap() {
     } catch (e) { console.error('Errore heatmap:', e); }
 }
 
-// ==========================================
-// MAP CLICK
-// ==========================================
+// Gestore del click sulla mappa: imposta il punto corrente e aggiorna la scheda attiva.
 map.on('click', async (e) => {
     lastClickLat = e.latlng.lat; lastClickLon = e.latlng.lng;
     if (userMarker) map.removeLayer(userMarker);
@@ -82,9 +91,7 @@ map.on('click', async (e) => {
     await cercaVicini();
 });
 
-// ==========================================
-// SCORE
-// ==========================================
+// Richiede lo score del punto selezionato e aggiorna il pannello.
 async function calcolaScore() {
     if (!lastClickLat) return;
     const ora = document.getElementById('oraInput').value;
@@ -116,9 +123,7 @@ async function calcolaScore() {
     } catch (e) { console.error('Errore score:', e); }
 }
 
-// ==========================================
-// NEARBY
-// ==========================================
+// Cerca i servizi vicini al punto selezionato entro il raggio scelto.
 async function cercaVicini() {
     if (!lastClickLat) return;
     const raggio = document.getElementById('raggioCerca').value;
@@ -142,9 +147,7 @@ async function cercaVicini() {
     } catch (e) { console.error('Errore nearby:', e); }
 }
 
-// ==========================================
-// TAB SWITCHING
-// ==========================================
+// Gestisce il cambio di scheda nella sidebar.
 function switchTab(name, btn) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('d-none'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -158,10 +161,7 @@ function switchTab(name, btn) {
     if (name === 'temporale') { loadTemporale(); loadTemporaleStats(); }
 }
 
-// ==========================================
-// PROFILI
-// ==========================================
-let profiliCache = [];
+// Carica i profili utente e popola i menu a tendina.
 async function loadProfili() {
     try {
         const res = await fetch(`${API_BASE_URL}/profili`);
@@ -180,6 +180,7 @@ async function loadProfili() {
     } catch (e) { console.error('Errore profili:', e); }
 }
 
+// Popola il form di modifica con i pesi del profilo selezionato.
 function loadProfiloEdit() {
     const id = document.getElementById('profiloEditSelect').value;
     const btn = document.getElementById('btnDeleteProfilo');
@@ -199,6 +200,7 @@ function loadProfiloEdit() {
     btn.style.display = 'block';
 }
 
+// Crea o aggiorna un profilo utente.
 async function salvaProfilo() {
     const selId = document.getElementById('profiloEditSelect').value;
     const body = { nome: document.getElementById('profiloNome').value || 'Nuovo Profilo',
@@ -215,12 +217,14 @@ async function salvaProfilo() {
     } catch (e) { document.getElementById('profiloMsg').innerHTML = '<span class="text-danger">❌ Errore</span>'; }
 }
 
+// Elimina il profilo selezionato.
 async function eliminaProfilo() {
     const id = document.getElementById('profiloEditSelect').value;
     if (id === 'new' || !confirm('Eliminare questo profilo?')) return;
     try { await fetch(`${API_BASE_URL}/profili/${id}`, { method: 'DELETE' }); document.getElementById('profiloEditSelect').value = 'new'; loadProfiloEdit(); await loadProfili(); } catch (e) { console.error(e); }
 }
 
+// Confronta due profili sullo stesso punto e mostra i risultati.
 async function confrontaProfili() {
     if (!lastClickLat) return;
     const id1 = document.getElementById('confronto1').value, id2 = document.getElementById('confronto2').value;
@@ -243,9 +247,7 @@ async function confrontaProfili() {
     } catch (e) { console.error('Errore confronto:', e); }
 }
 
-// ==========================================
-// RACCOMANDAZIONI
-// ==========================================
+// Richiede le zone raccomandate e le mostra su mappa e lista.
 async function loadRaccomandazioni() {
     const profiloId = document.getElementById('recProfiloSelect').value;
     const ora = document.getElementById('recOra').value;
@@ -268,7 +270,6 @@ async function loadRaccomandazioni() {
                 <small>📚${r.dettaglio.biblioteche} 🚌${r.dettaglio.fermate} 🌳${r.dettaglio.aree_verdi} 🚲${r.dettaglio.piste} 🏠${r.dettaglio.residenze}</small>
                 </div></div></div>`;
 
-            // Marker numerato sulla mappa
             const icon = L.divIcon({ html: `<div style="background:#0d6efd;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${r.posizione}</div>`, className: '', iconSize: [28, 28] });
             L.marker([r.lat, r.lon], { icon }).addTo(recMarkers)
                 .bindPopup(`<b>#${r.posizione} — Score ${r.student_accessibility_score}</b><br>${r.motivazione}`);
@@ -278,9 +279,7 @@ async function loadRaccomandazioni() {
     } catch (e) { console.error(e); document.getElementById('recList').innerHTML = '<p class="text-danger">Errore</p>'; }
 }
 
-// ==========================================
-// DENSITY GRID
-// ==========================================
+// Richiede e disegna la griglia di densita' sulla mappa.
 async function loadDensityGrid() {
     const profiloId = document.getElementById('gridProfiloSelect').value;
     const ora = document.getElementById('gridOra').value;
@@ -307,7 +306,6 @@ async function loadDensityGrid() {
 
         document.getElementById('gridLegend').classList.remove('d-none');
 
-        // Stats
         const avgScore = Math.round(scores.reduce((a, b) => a + b, 0) / scores.length);
         const best = data.griglia.reduce((a, b) => a.score > b.score ? a : b);
         document.getElementById('gridStats').innerHTML = `
@@ -318,15 +316,14 @@ async function loadDensityGrid() {
     } catch (e) { console.error(e); }
 }
 
+// Rimuove la griglia di densita' dalla mappa.
 function clearGrid() {
     if (gridLayer) { map.removeLayer(gridLayer); gridLayer = null; }
     document.getElementById('gridLegend').classList.add('d-none');
     document.getElementById('gridStats').innerHTML = '';
 }
 
-// ==========================================
-// TEMPORALE
-// ==========================================
+// Richiede la disponibilita' dei servizi per giorno e ora.
 async function loadTemporale() {
     const giorno = document.getElementById('tempGiorno').value;
     const ora = document.getElementById('tempOra').value;
@@ -343,7 +340,6 @@ async function loadTemporale() {
                 <small class="text-muted">Orario: ${s.orario_tipico}</small></div>`;
         });
 
-        // Grafico distribuzione oraria
         if (data.distribuzione_oraria) {
             const maxAperti = Math.max(...data.distribuzione_oraria.map(d => d.aperti), 1);
             html += `<div class="mt-3"><div class="fw-bold small mb-1">Servizi aperti per ora</div><div class="d-flex align-items-end" style="height:80px">`;
@@ -359,6 +355,7 @@ async function loadTemporale() {
     } catch (e) { console.error(e); }
 }
 
+// Mostra la distribuzione dei suggerimenti per ora.
 async function loadTemporaleStats() {
     try {
         const res = await fetch(`${API_BASE_URL}/temporale/statistiche`);
@@ -380,9 +377,7 @@ async function loadTemporaleStats() {
     } catch (e) { console.error(e); }
 }
 
-// ==========================================
-// STORICO
-// ==========================================
+// Carica lo storico dei suggerimenti con i pulsanti di feedback.
 async function loadStorico() {
     const profiloId = document.getElementById('storicoProfiloFilter').value;
     let url = `${API_BASE_URL}/suggerimenti?limit=30`;
@@ -398,13 +393,12 @@ async function loadStorico() {
     } catch (e) { console.error(e); }
 }
 
+// Invia il feedback dell'utente su un suggerimento.
 async function sendFeedback(id, tipo) {
     try { await fetch(`${API_BASE_URL}/suggerimenti/${id}/feedback`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ feedback: tipo }) }); loadStorico(); } catch (e) { console.error(e); }
 }
 
-// ==========================================
-// STATISTICHE
-// ==========================================
+// Carica e mostra le statistiche aggregate di utilizzo.
 async function loadStatistiche() {
     try {
         const res = await fetch(`${API_BASE_URL}/statistiche`); const data = await res.json();
@@ -415,11 +409,7 @@ async function loadStatistiche() {
     } catch (e) { console.error(e); }
 }
 
-// ==========================================
-// PRIVACY
-// ==========================================
-let privacyMarker = null;
-
+// Confronta score reale e perturbato per il sigma scelto.
 async function confrontoPrivacy() {
     if (!lastClickLat) { alert('Clicca prima un punto sulla mappa'); return; }
     const sigma = document.getElementById('privacySigma').value;
@@ -428,13 +418,11 @@ async function confrontoPrivacy() {
         const res = await fetch(`${API_BASE_URL}/privacy/confronto?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}&sigma=${sigma}`);
         const data = await res.json();
 
-        // Marker perturbato
         if (privacyMarker) map.removeLayer(privacyMarker);
         privacyMarker = L.circleMarker([data.posizione_perturbata.lat, data.posizione_perturbata.lon], {
             radius: 10, fillColor: '#ff6b6b', color: '#c00', weight: 2, fillOpacity: 0.5
         }).addTo(map).bindPopup(`🔒 Posizione perturbata (σ=${sigma}m)<br>Score: ${data.score_perturbato}`).openPopup();
 
-        // Linea tra reale e perturbata
         L.polyline([[lastClickLat, lastClickLon], [data.posizione_perturbata.lat, data.posizione_perturbata.lon]], {
             color: '#ff6b6b', dashArray: '5,10', weight: 2
         }).addTo(map);
@@ -467,6 +455,7 @@ async function confrontoPrivacy() {
     } catch (e) { console.error(e); }
 }
 
+// Calcola e mostra il trade-off privacy/qualita' su piu' livelli di sigma.
 async function tradeoffPrivacy() {
     if (!lastClickLat) { alert('Clicca prima un punto sulla mappa'); return; }
     const ora = document.getElementById('privacyOra').value;
@@ -489,7 +478,6 @@ async function tradeoffPrivacy() {
         });
         html += '</table>';
 
-        // Grafico visivo trade-off
         html += '<div class="mt-2"><div class="small fw-bold mb-1">📊 Trade-Off: Privacy ↑ vs Qualità ↓</div>';
         html += '<div class="d-flex align-items-end gap-1" style="height:60px">';
         data.risultati.forEach(r => {
@@ -504,12 +492,7 @@ async function tradeoffPrivacy() {
     } catch (e) { console.error(e); document.getElementById('tradeoffResult').innerHTML = '<p class="text-danger">Errore</p>'; }
 }
 
-// ==========================================
-// CLUSTERING & MORAN
-// ==========================================
-let clusterLayer = null;
-const clusterColors = ['#2ecc71', '#3498db', '#e67e22', '#e74c3c', '#9b59b6', '#1abc9c'];
-
+// Esegue il clustering delle zone e mostra cluster e indice di Moran.
 async function loadClustering() {
     const k = document.getElementById('clusterK').value;
     const ora = document.getElementById('clusterOra').value;
@@ -539,7 +522,6 @@ async function loadClustering() {
         });
         document.getElementById('clusterResult').innerHTML = html;
 
-        // Moran
         const m = data.moran;
         const moranColor = m.moran_i > 0.3 ? '#198754' : m.moran_i > 0.1 ? '#ffc107' : '#6c757d';
         document.getElementById('moranResult').innerHTML = `
@@ -554,13 +536,12 @@ async function loadClustering() {
     } catch (e) { console.error(e); document.getElementById('clusterResult').innerHTML = '<p class="text-danger">Errore</p>'; }
 }
 
+// Rimuove i cluster dalla mappa.
 function clearClusters() {
     if (clusterLayer) { map.removeLayer(clusterLayer); clusterLayer = null; }
     document.getElementById('clusterResult').innerHTML = '';
     document.getElementById('moranResult').innerHTML = '';
 }
 
-// ==========================================
-// INIT
-// ==========================================
+// Inizializzazione: carica il layer biblioteche e i profili all'avvio.
 document.addEventListener('DOMContentLoaded', () => { loadLayer('biblioteche'); loadProfili(); });

@@ -1,9 +1,16 @@
--- Abilitiamo l'estensione spaziale PostGIS se non è già attiva
-CREATE EXTENSION IF NOT EXISTS postgis;
+-- ============================================================================
+-- init.sql - Script di inizializzazione del database PostGIS
+-- Configurazione del DB:
+-- 1. Attivazione estensione PostGIS.
+-- 2. Creazione tabelle definitive con tipologie geometriche (Point, MultiLineString, MultiPoint).
+-- 3. Creazione tabelle di staging per parsing CSV.
+-- 4. Importazione dati massiva tramite comando COPY.
+-- 5. ETL spaziale: trasformazione dati grezzi in geometrie SRID 4326.
+-- 6. Creazione indici spaziali GiST per l'ottimizzazione delle query.
+-- 7. Popolamento tabelle di supporto: profili utente e orari servizi.
+-- ============================================================================
 
--- ============================================================================
--- 1. CREAZIONE TABELLE REALI (Definitive con indici spaziali)
--- ============================================================================
+CREATE EXTENSION IF NOT EXISTS postgis;
 
 CREATE TABLE IF NOT EXISTS biblioteche (
     id SERIAL PRIMARY KEY,
@@ -57,9 +64,53 @@ CREATE TABLE IF NOT EXISTS stazioni_ferroviarie (
     geom GEOMETRY(Point, 4326)
 );
 
--- ============================================================================
--- 2. CREAZIONE TABELLE DI STAGING (Temporanee, mappano i CSV al 100%)
--- ============================================================================
+CREATE TABLE IF NOT EXISTS sedi_universitarie (
+    id SERIAL PRIMARY KEY,
+    tipo VARCHAR(50),      -- 'unibo' (dipartimenti/uffici/laboratori) o 'museo' (Sistema Museale Ateneo)
+    nome TEXT,
+    indirizzo VARCHAR(255),
+    url TEXT,
+    geom GEOMETRY(Point, 4326)
+);
+
+CREATE TEMP TABLE stg_sedi_universitarie (
+    type TEXT, name TEXT, address TEXT, city TEXT, lat TEXT, lon TEXT, url TEXT, notes TEXT
+);
+
+COPY stg_sedi_universitarie FROM '/var/lib/postgresql/csv_data/mappe.csv' DELIMITER ',' CSV HEADER QUOTE '"';
+
+INSERT INTO sedi_universitarie (tipo, nome, indirizzo, url, geom)
+SELECT type, name, address, url,
+    ST_SetSRID(ST_MakePoint(NULLIF(lon,'')::FLOAT, NULLIF(lat,'')::FLOAT), 4326)
+FROM stg_sedi_universitarie
+WHERE city = 'Bologna'
+  AND NULLIF(lat,'')::FLOAT IS NOT NULL AND NULLIF(lat,'')::FLOAT != 0
+  AND NULLIF(lon,'')::FLOAT IS NOT NULL AND NULLIF(lon,'')::FLOAT != 0;
+
+CREATE INDEX IF NOT EXISTS idx_sedi_universitarie_geom ON sedi_universitarie USING gist(geom);
+
+CREATE TABLE IF NOT EXISTS mense (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255),
+    indirizzo VARCHAR(255),
+    tipo VARCHAR(50),       -- 'mensa' (pasto completo) o 'punto_ristoro' (self/microonde)
+    gestore VARCHAR(255),
+    geom GEOMETRY(Point, 4326)
+);
+
+INSERT INTO mense (nome, indirizzo, tipo, gestore, geom) VALUES
+('Mensa Irnerio', 'Piazza Puntoni, 1 - Bologna', 'mensa', 'Cimas srl (ER.GO)',
+    ST_SetSRID(ST_MakePoint(11.3536, 44.4973), 4326)),
+('Punto Ristoro Piazza Verdi', 'Via Petroni, ang. Piazza Verdi - Bologna', 'punto_ristoro', 'Unibo',
+    ST_SetSRID(ST_MakePoint(11.3520, 44.4957), 4326)),
+('Punto Ristoro Centro Polifunzionale Unione', 'Via Azzo Gardino, 33 - Bologna', 'punto_ristoro', 'Unibo',
+    ST_SetSRID(ST_MakePoint(11.3350, 44.5005), 4326)),
+('Punto Ristoro Residenza Umberto Eco', 'Via San Petronio Vecchio, 32 - Bologna', 'punto_ristoro', 'Unibo / ER.GO',
+    ST_SetSRID(ST_MakePoint(11.3560, 44.4935), 4326)),
+('Punto Ristoro Residenza Morgagni', 'Largo Trombetti, 1/2 - Bologna', 'punto_ristoro', 'Unibo / ER.GO',
+    ST_SetSRID(ST_MakePoint(11.3495, 44.4965), 4326));
+
+CREATE INDEX IF NOT EXISTS idx_mense_geom ON mense USING gist(geom);
 
 CREATE TEMP TABLE stg_biblioteche (
     biblioteca TEXT, tipologia TEXT, indirizzo TEXT, quartiere TEXT, rete_wifi TEXT, 
@@ -98,10 +149,6 @@ CREATE TEMP TABLE stg_stazioni (
     geopoint TEXT, zona_prossimita TEXT
 );
 
--- ============================================================================
--- 3. IMPORTAZIONE DEI DATI GREZZI DAI FILE CSV
--- ============================================================================
-
 COPY stg_biblioteche FROM '/var/lib/postgresql/csv_data/biblioteche-comunali-di-bologna.csv' DELIMITER ';' CSV HEADER QUOTE '"';
 COPY stg_piste FROM '/var/lib/postgresql/csv_data/piste-ciclopedonali.csv' DELIMITER ';' CSV HEADER QUOTE '"';
 COPY stg_fermate FROM '/var/lib/postgresql/csv_data/tper-fermate-autobus.csv' DELIMITER ';' CSV HEADER QUOTE '"';
@@ -109,78 +156,61 @@ COPY stg_aree_verdi FROM '/var/lib/postgresql/csv_data/aree-verdi_entrate_centro
 COPY stg_residenze FROM '/var/lib/postgresql/csv_data/residenze-universitarie.csv' DELIMITER ';' CSV HEADER QUOTE '"';
 COPY stg_stazioni FROM '/var/lib/postgresql/csv_data/stazioniferroviarie_20210401.csv' DELIMITER ';' CSV HEADER QUOTE '"';
 
--- ============================================================================
--- 4. ELABORAZIONE SPAZIALE E POPOLAMENTO TABELLE REALI (ETL)
--- ============================================================================
-
--- A) Biblioteche (da GeoJSON MultiPoint)
 INSERT INTO biblioteche (nome, indirizzo, quartiere, postazioni_lettura, geom)
 SELECT 
     biblioteca, indirizzo, quartiere, NULLIF(postazioni, '')::INTEGER, 
     ST_SetSRID(ST_GeomFromGeoJSON(geo_shape), 4326)
 FROM stg_biblioteche;
 
--- B) Piste Ciclabili (da GeoJSON MultiLineString)
 INSERT INTO piste_ciclabili (codice, lunghezza, utilizzo, geom)
 SELECT 
     codice, NULLIF(lunghezza, '')::NUMERIC, utilizzo, 
     ST_SetSRID(ST_GeomFromGeoJSON(geo_shape), 4326)
 FROM stg_piste;
 
--- C) Fermate Bus (da stringa Coordinate "Lat, Lon")
 INSERT INTO fermate_bus (codice_fermata, linea_bus, nome_fermata, geom)
 SELECT DISTINCT ON (codice_fermata)
     codice_fermata, linea_bus, nome_fermata, 
     ST_SetSRID(ST_MakePoint(
-        NULLIF(TRIM(split_part(geopoint, ',', 2)), '')::FLOAT, -- Longitudine
-        NULLIF(TRIM(split_part(geopoint, ',', 1)), '')::FLOAT  -- Latitudine
+        NULLIF(TRIM(split_part(geopoint, ',', 2)), '')::FLOAT,
+        NULLIF(TRIM(split_part(geopoint, ',', 1)), '')::FLOAT
     ), 4326)
 FROM stg_fermate
 WHERE geopoint IS NOT NULL AND geopoint != ''
 ON CONFLICT (codice_fermata) DO NOTHING;
 
--- D) Aree Verdi (da GeoJSON Point)
 INSERT INTO aree_verdi (nome_area, tipologia, quartiere, ubicazione, geom)
 SELECT 
     nome_area, tipologia_area, quartiere, ubicazione,
     ST_SetSRID(ST_GeomFromGeoJSON(geo_shape), 4326)
 FROM stg_aree_verdi;
 
--- E) Residenze Universitarie (da stringa Coordinate "Lat, Lon")
 INSERT INTO residenze_universitarie (id, nome, descrizione, indirizzo, posti_letto, quartiere, url, geom)
 SELECT 
     id, nome, descrizione, indirizzo, NULLIF(posti_letto, '')::INTEGER, quartiere, url,
     ST_SetSRID(ST_MakePoint(
-        NULLIF(TRIM(split_part(coordinate, ',', 2)), '')::FLOAT, -- Longitudine
-        NULLIF(TRIM(split_part(coordinate, ',', 1)), '')::FLOAT  -- Latitudine
+        NULLIF(TRIM(split_part(coordinate, ',', 2)), '')::FLOAT,
+        NULLIF(TRIM(split_part(coordinate, ',', 1)), '')::FLOAT
     ), 4326)
 FROM stg_residenze
 WHERE coordinate IS NOT NULL AND coordinate != '';
 
--- F) Stazioni Ferroviarie (da stringa Coordinate "Lat, Lon")
 INSERT INTO stazioni_ferroviarie (codice, denominazione, ubicazione, comune, geom)
 SELECT 
     codice, denominazione, ubicazione, comune,
     ST_SetSRID(ST_MakePoint(
-        NULLIF(TRIM(split_part(geopoint, ',', 2)), '')::FLOAT, -- Longitudine
-        NULLIF(TRIM(split_part(geopoint, ',', 1)), '')::FLOAT  -- Latitudine
+        NULLIF(TRIM(split_part(geopoint, ',', 2)), '')::FLOAT,
+        NULLIF(TRIM(split_part(geopoint, ',', 1)), '')::FLOAT
     ), 4326)
 FROM stg_stazioni
 WHERE geopoint IS NOT NULL AND geopoint != '';
 
--- ============================================================================
--- 5. OTTIMIZZAZIONE (Creazione Indici Spaziali GiST)
--- ============================================================================
 CREATE INDEX IF NOT EXISTS idx_biblioteche_geom ON biblioteche USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_piste_geom ON piste_ciclabili USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_fermate_geom ON fermate_bus USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_aree_verdi_geom ON aree_verdi USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_residenze_geom ON residenze_universitarie USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_stazioni_geom ON stazioni_ferroviarie USING gist(geom);
-
--- ============================================================================
--- 6. TABELLE PER PROFILAZIONE E STORICO SUGGERIMENTI
--- ============================================================================
 
 CREATE TABLE IF NOT EXISTS profili_utente (
     id SERIAL PRIMARY KEY,
@@ -202,20 +232,15 @@ CREATE TABLE IF NOT EXISTS suggerimenti_storico (
     fascia VARCHAR(50) NOT NULL,
     motivazione TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    feedback VARCHAR(50) -- 'utile', 'non_utile', 'salvato', NULL
+    feedback VARCHAR(50)
 );
 
--- Profili di esempio: preferenze diverse -> ranking diversi
 INSERT INTO profili_utente (nome, peso_trasporti, peso_biblioteche, peso_aree_verdi, peso_mobilita_sostenibile, peso_residenze)
 VALUES
     ('Studente Pendolare',     90, 60, 20, 30, 10),
     ('Studente Eco-Friendly',  40, 50, 80, 95, 30),
     ('Studente Fuori Sede',    70, 80, 40, 40, 90),
     ('Profilo Bilanciato',     50, 50, 50, 50, 50);
-
--- ============================================================================
--- 7. ORARI SERVIZI (per Temporal Analytics)
--- ============================================================================
 
 CREATE TABLE IF NOT EXISTS orari_servizi (
     id SERIAL PRIMARY KEY,
@@ -226,24 +251,21 @@ CREATE TABLE IF NOT EXISTS orari_servizi (
     ora_chiusura TIME NOT NULL
 );
 
--- Orari realistici delle biblioteche di Bologna
--- 0=Lunedì, 1=Martedì, ..., 5=Sabato, 6=Domenica
 INSERT INTO orari_servizi (categoria, nome_servizio, giorno_settimana, ora_apertura, ora_chiusura)
 SELECT 'biblioteche', nome, g.giorno,
     CASE 
-        WHEN g.giorno BETWEEN 0 AND 4 THEN '08:30'::TIME  -- Lun-Ven
-        WHEN g.giorno = 5 THEN '09:00'::TIME               -- Sabato
-        ELSE '10:00'::TIME                                   -- Domenica
+        WHEN g.giorno BETWEEN 0 AND 4 THEN '08:30'::TIME
+        WHEN g.giorno = 5 THEN '09:00'::TIME
+        ELSE '10:00'::TIME
     END,
     CASE 
         WHEN g.giorno BETWEEN 0 AND 4 THEN '19:00'::TIME
         WHEN g.giorno = 5 THEN '13:00'::TIME
         ELSE '13:00'::TIME
     END
-FROM biblioteche, generate_series(0, 5) AS g(giorno)  -- Lun-Sab aperte
+FROM biblioteche, generate_series(0, 5) AS g(giorno)
 WHERE nome IS NOT NULL;
 
--- Fermate bus: orari indicativi del servizio TPER
 INSERT INTO orari_servizi (categoria, nome_servizio, giorno_settimana, ora_apertura, ora_chiusura)
 SELECT 'fermate', 'Servizio TPER', g.giorno,
     CASE WHEN g.giorno <= 5 THEN '05:30'::TIME ELSE '06:30'::TIME END,
