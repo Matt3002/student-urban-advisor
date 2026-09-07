@@ -14,6 +14,8 @@ namespace UrbanAdvisor.Api.Data
         public DbSet<AreaVerde> AreeVerdi { get; set; }
         public DbSet<ResidenzaUniversitaria> ResidenzeUniversitarie { get; set; }
         public DbSet<StazioneFerroviaria> StazioniFerroviarie { get; set; }
+        public DbSet<SedeUniversitaria> SediUniversitarie { get; set; }
+        public DbSet<Mensa> Mense { get; set; }
         public DbSet<PistaCiclabile> PisteCiclabili { get; set; }
 
         public DbSet<ProfiloUtente> ProfiliUtente { get; set; }

@@ -14,7 +14,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 const layers = {
     biblioteche: L.layerGroup().addTo(map), fermate: L.layerGroup(),
-    areeverdi: L.layerGroup(), residenze: L.layerGroup(), stazioni: L.layerGroup()
+    areeverdi: L.layerGroup(), residenze: L.layerGroup(), stazioni: L.layerGroup(),
+    mense: L.layerGroup(), sedi: L.layerGroup() 
 };
 
 const catConfig = {
@@ -22,7 +23,9 @@ const catConfig = {
     fermate:     { color: '#3498db', icon: '🚌', label: 'Fermata Bus' },
     areeverdi:   { color: '#27ae60', icon: '🌳', label: 'Area Verde' },
     residenze:   { color: '#9b59b6', icon: '🏠', label: 'Residenza' },
-    stazioni:    { color: '#f39c12', icon: '🚉', label: 'Stazione' }
+    stazioni:    { color: '#f39c12', icon: '🚉', label: 'Stazione' },
+    mense:       { color: '#ff5e5e', icon: '🍽️', label: 'Mensa/Ristoro' },
+    sedi:        { color: '#16a085', icon: '🏛️', label: 'Sede Universitaria' }
 };
 
 let userMarker = null, searchCircle = null, lastClickLat = null, lastClickLon = null;

@@ -86,6 +86,14 @@
                         <span style="color:#f39c12">●</span> Stazioni Ferroviarie
                     </div>
                     <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-mense" onchange="toggleLayer('mense')">
+                        <span style="color:#ff5e5e">●</span> Mense e Punti Ristoro
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-sedi" onchange="toggleLayer('sedi')">
+                        <span style="color:#16a085">●</span> Sedi Universitarie
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
                         <input type="checkbox" id="chk-heatmap" onchange="toggleHeatmap()">
                         <span style="color:#ff6b6b">◉</span> <b>Heatmap Densità</b>
                     </div>
@@ -105,6 +113,8 @@
                             <option value="areeverdi">Aree Verdi</option>
                             <option value="residenze">Residenze</option>
                             <option value="stazioni">Stazioni</option>
+                            <option value="mense">Mense e Punti Ristoro</option>
+                            <option value="sedi">Sedi Universitarie</option>
                         </select>
                     </div>
                     <small class="text-muted">Clicca sulla mappa per cercare i servizi vicini.</small>

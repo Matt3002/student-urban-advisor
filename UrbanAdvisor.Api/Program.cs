@@ -107,6 +107,34 @@ app.MapGet("/api/stazioni", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync());
 });
 
+// Restituisce tutte le mense e i punti ristoro universitari.
+app.MapGet("/api/mense", async (UrbanAdvisorDbContext db) =>
+{
+    return Results.Ok(await db.Mense
+        .Select(m => new {
+            id = m.Id, nome = m.Nome,
+            tipo = m.Tipo == "mensa" ? "Mensa universitaria" : "Punto Ristoro",
+            indirizzo = m.Indirizzo, gestore = m.Gestore,
+            categoria = "mense",
+            lat = m.Geom != null ? m.Geom.Coordinate.Y : 0,
+            lon = m.Geom != null ? m.Geom.Coordinate.X : 0
+        }).ToListAsync());
+});
+
+// Restituisce tutte le sedi universitarie (dipartimenti, uffici, musei) - fonte: dati.unibo.it "Punti di interesse".
+app.MapGet("/api/sedi", async (UrbanAdvisorDbContext db) =>
+{
+    return Results.Ok(await db.SediUniversitarie
+        .Select(s => new {
+            id = s.Id, nome = s.Nome,
+            tipo = s.Tipo == "museo" ? "Museo" : "Dipartimento/Ufficio",
+            indirizzo = s.Indirizzo, url = s.Url,
+            categoria = "sedi",
+            lat = s.Geom != null ? s.Geom.Coordinate.Y : 0,
+            lon = s.Geom != null ? s.Geom.Coordinate.X : 0
+        }).ToListAsync());
+});
+
 // Restituisce tutte le piste ciclabili.
 app.MapGet("/api/piste", async (UrbanAdvisorDbContext db) =>
 {

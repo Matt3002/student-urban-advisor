@@ -64,6 +64,54 @@ CREATE TABLE IF NOT EXISTS stazioni_ferroviarie (
     geom GEOMETRY(Point, 4326)
 );
 
+CREATE TABLE IF NOT EXISTS sedi_universitarie (
+    id SERIAL PRIMARY KEY,
+    tipo VARCHAR(50),      -- 'unibo' (dipartimenti/uffici/laboratori) o 'museo' (Sistema Museale Ateneo)
+    nome TEXT,
+    indirizzo VARCHAR(255),
+    url TEXT,
+    geom GEOMETRY(Point, 4326)
+);
+
+CREATE TEMP TABLE stg_sedi_universitarie (
+    type TEXT, name TEXT, address TEXT, city TEXT, lat TEXT, lon TEXT, url TEXT, notes TEXT
+);
+
+COPY stg_sedi_universitarie FROM '/var/lib/postgresql/csv_data/mappe.csv' DELIMITER ',' CSV HEADER QUOTE '"';
+
+INSERT INTO sedi_universitarie (tipo, nome, indirizzo, url, geom)
+SELECT type, name, address, url,
+    ST_SetSRID(ST_MakePoint(NULLIF(lon,'')::FLOAT, NULLIF(lat,'')::FLOAT), 4326)
+FROM stg_sedi_universitarie
+WHERE city = 'Bologna'
+  AND NULLIF(lat,'')::FLOAT IS NOT NULL AND NULLIF(lat,'')::FLOAT != 0
+  AND NULLIF(lon,'')::FLOAT IS NOT NULL AND NULLIF(lon,'')::FLOAT != 0;
+
+CREATE INDEX IF NOT EXISTS idx_sedi_universitarie_geom ON sedi_universitarie USING gist(geom);
+
+CREATE TABLE IF NOT EXISTS mense (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255),
+    indirizzo VARCHAR(255),
+    tipo VARCHAR(50),       -- 'mensa' (pasto completo) o 'punto_ristoro' (self/microonde)
+    gestore VARCHAR(255),
+    geom GEOMETRY(Point, 4326)
+);
+
+INSERT INTO mense (nome, indirizzo, tipo, gestore, geom) VALUES
+('Mensa Irnerio', 'Piazza Puntoni, 1 - Bologna', 'mensa', 'Cimas srl (ER.GO)',
+    ST_SetSRID(ST_MakePoint(11.3536, 44.4973), 4326)),
+('Punto Ristoro Piazza Verdi', 'Via Petroni, ang. Piazza Verdi - Bologna', 'punto_ristoro', 'Unibo',
+    ST_SetSRID(ST_MakePoint(11.3520, 44.4957), 4326)),
+('Punto Ristoro Centro Polifunzionale Unione', 'Via Azzo Gardino, 33 - Bologna', 'punto_ristoro', 'Unibo',
+    ST_SetSRID(ST_MakePoint(11.3350, 44.5005), 4326)),
+('Punto Ristoro Residenza Umberto Eco', 'Via San Petronio Vecchio, 32 - Bologna', 'punto_ristoro', 'Unibo / ER.GO',
+    ST_SetSRID(ST_MakePoint(11.3560, 44.4935), 4326)),
+('Punto Ristoro Residenza Morgagni', 'Largo Trombetti, 1/2 - Bologna', 'punto_ristoro', 'Unibo / ER.GO',
+    ST_SetSRID(ST_MakePoint(11.3495, 44.4965), 4326));
+
+CREATE INDEX IF NOT EXISTS idx_mense_geom ON mense USING gist(geom);
+
 CREATE TEMP TABLE stg_biblioteche (
     biblioteca TEXT, tipologia TEXT, indirizzo TEXT, quartiere TEXT, rete_wifi TEXT, 
     fasciatoio TEXT, newsletter TEXT, telefono TEXT, email TEXT, pagina_web TEXT, 
