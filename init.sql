@@ -219,8 +219,13 @@ CREATE TABLE IF NOT EXISTS profili_utente (
     peso_biblioteche INTEGER DEFAULT 50 CHECK (peso_biblioteche BETWEEN 0 AND 100),
     peso_aree_verdi INTEGER DEFAULT 50 CHECK (peso_aree_verdi BETWEEN 0 AND 100),
     peso_mobilita_sostenibile INTEGER DEFAULT 50 CHECK (peso_mobilita_sostenibile BETWEEN 0 AND 100),
-    peso_residenze INTEGER DEFAULT 50 CHECK (peso_residenze BETWEEN 0 AND 100)
+    peso_residenze INTEGER DEFAULT 50 CHECK (peso_residenze BETWEEN 0 AND 100),
+    peso_mense INTEGER DEFAULT 50 CHECK (peso_mense BETWEEN 0 AND 100),
+    peso_sedi INTEGER DEFAULT 50 CHECK (peso_sedi BETWEEN 0 AND 100)
 );
+
+ALTER TABLE profili_utente ADD COLUMN IF NOT EXISTS peso_mense INTEGER DEFAULT 50 CHECK (peso_mense BETWEEN 0 AND 100);
+ALTER TABLE profili_utente ADD COLUMN IF NOT EXISTS peso_sedi INTEGER DEFAULT 50 CHECK (peso_sedi BETWEEN 0 AND 100);
 
 CREATE TABLE IF NOT EXISTS suggerimenti_storico (
     id SERIAL PRIMARY KEY,

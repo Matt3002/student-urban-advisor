@@ -112,7 +112,9 @@ async function calcolaScore() {
             { name: '📚 Biblioteche', val: data.subscores.biblioteche },
             { name: '🌳 Aree Verdi', val: data.subscores.aree_verdi },
             { name: '🚲 Mobilità', val: data.subscores.mobilita },
-            { name: '🏠 Residenze', val: data.subscores.residenze }
+            { name: '🏠 Residenze', val: data.subscores.residenze },
+            { name: '🍽️ Mense/Ristoro', val: data.subscores.mense },
+            { name: '🏛️ Sedi Univ.', val: data.subscores.sedi }
         ];
         items.forEach(it => {
             const color = it.val >= 70 ? '#198754' : it.val >= 40 ? '#ffc107' : '#dc3545';
@@ -197,6 +199,8 @@ function loadProfiloEdit() {
     document.getElementById('w-areeverdi').value = p.pesoAreeVerdi; document.getElementById('w-areeverdi').nextElementSibling.textContent = p.pesoAreeVerdi;
     document.getElementById('w-mobilita').value = p.pesoMobilitaSostenibile; document.getElementById('w-mobilita').nextElementSibling.textContent = p.pesoMobilitaSostenibile;
     document.getElementById('w-residenze').value = p.pesoResidenze; document.getElementById('w-residenze').nextElementSibling.textContent = p.pesoResidenze;
+    document.getElementById('w-mense').value = p.pesoMense; document.getElementById('w-mense').nextElementSibling.textContent = p.pesoMense;
+    document.getElementById('w-sedi').value = p.pesoSedi; document.getElementById('w-sedi').nextElementSibling.textContent = p.pesoSedi;
     btn.style.display = 'block';
 }
 
@@ -208,7 +212,10 @@ async function salvaProfilo() {
         pesoBiblioteche: parseInt(document.getElementById('w-biblioteche').value),
         pesoAreeVerdi: parseInt(document.getElementById('w-areeverdi').value),
         pesoMobilitaSostenibile: parseInt(document.getElementById('w-mobilita').value),
-        pesoResidenze: parseInt(document.getElementById('w-residenze').value) };
+        pesoResidenze: parseInt(document.getElementById('w-residenze').value),
+        pesoMense: parseInt(document.getElementById('w-mense').value),
+        pesoSedi: parseInt(document.getElementById('w-sedi').value)
+        }
     try {
         const res = selId === 'new'
             ? await fetch(`${API_BASE_URL}/profili`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -243,7 +250,9 @@ async function confrontaProfili() {
             <tr><td>📚 Biblioteche</td><td>${r1.subscores.biblioteche}</td><td>${r2.subscores.biblioteche}</td></tr>
             <tr><td>🌳 Aree Verdi</td><td>${r1.subscores.aree_verdi}</td><td>${r2.subscores.aree_verdi}</td></tr>
             <tr><td>🚲 Mobilità</td><td>${r1.subscores.mobilita}</td><td>${r2.subscores.mobilita}</td></tr>
-            <tr><td>🏠 Residenze</td><td>${r1.subscores.residenze}</td><td>${r2.subscores.residenze}</td></tr></table>`;
+            <tr><td>🏠 Residenze</td><td>${r1.subscores.residenze}</td><td>${r2.subscores.residenze}</td></tr>
+            <tr><td>🍽️ Mense</td><td>${r1.subscores.mense}</td><td>${r2.subscores.mense}</td></tr>
+            <tr><td>🏛️ Sedi</td><td>${r1.subscores.sedi}</td><td>${r2.subscores.sedi}</td></tr></table>`;
     } catch (e) { console.error('Errore confronto:', e); }
 }
 
@@ -267,7 +276,7 @@ async function loadRaccomandazioni() {
                 <div class="rec-rank">${r.posizione}</div>
                 <div class="flex-fill"><div class="fw-bold ${scoreClass}">Score: ${r.student_accessibility_score}/100</div>
                 <small class="text-muted">${r.motivazione}</small><br>
-                <small>📚${r.dettaglio.biblioteche} 🚌${r.dettaglio.fermate} 🌳${r.dettaglio.aree_verdi} 🚲${r.dettaglio.piste} 🏠${r.dettaglio.residenze}</small>
+                <small>📚${r.dettaglio.biblioteche} 🚌${r.dettaglio.fermate} 🌳${r.dettaglio.aree_verdi} 🚲${r.dettaglio.piste} 🏠${r.dettaglio.residenze} 🍽️${r.dettaglio.mense} 🏛️${r.dettaglio.sedi}</small>
                 </div></div></div>`;
 
             const icon = L.divIcon({ html: `<div style="background:#0d6efd;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${r.posizione}</div>`, className: '', iconSize: [28, 28] });
