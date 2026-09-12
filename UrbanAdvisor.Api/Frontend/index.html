@@ -78,6 +78,7 @@
                     <button class="tab-btn" onclick="switchTab('storico',this)">Storico</button>
                     <button class="tab-btn" onclick="switchTab('privacy',this)">Privacy</button>
                     <button class="tab-btn" onclick="switchTab('clustering',this)">Clustering</button>
+                    <button class="tab-btn" onclick="switchTab('mobilita',this)">Mobilità</button>
                     <button class="tab-btn" onclick="switchTab('stats',this)">Stats</button>
                 </div>
 
@@ -328,6 +329,45 @@
                     </button>
                     <div id="clusterResult"></div>
                     <div id="moranResult" class="mt-3"></div>
+                </div>
+                <div id="tab-mobilita" class="sidebar tab-panel d-none">
+                    <h6><i class="bi bi-signpost-split"></i> Mobility Analytics</h6>
+                    <p class="small text-muted">Tempo di percorrenza verso la sede universitaria più vicina, basato su dati GTFS reali TPER.</p>
+
+                    <div class="mb-2">
+                        <label class="form-label small">Modalità</label>
+                        <select class="form-select form-select-sm" id="mobModalita">
+                            <option value="trasporto_pubblico">🚌 Trasporto Pubblico</option>
+                            <option value="piedi">🚶 A Piedi</option>
+                            <option value="bici">🚲 Bici</option>
+                        </select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">Ora</label>
+                        <input type="range" class="form-range" id="mobOra" min="0" max="23" value="9"
+                            oninput="document.getElementById('mobOraVal').textContent=this.value+':00'">
+                        <span id="mobOraVal" class="small fw-bold">9:00</span>
+                    </div>
+                    <button class="btn btn-primary btn-sm w-100 mb-2" onclick="loadIsocrona()">
+                        <i class="bi bi-clock-history"></i> Calcola Isocrone
+                    </button>
+                    <button class="btn btn-outline-secondary btn-sm w-100 mb-3" onclick="clearIsocrona()">
+                        Nascondi Isocrone
+                    </button>
+
+                    <div id="isocronaLegend" class="d-none mb-2">
+                        <div class="d-flex justify-content-between small mb-1">
+                            <span>Veloce</span><span>Lento</span><span>N/D</span>
+                        </div>
+                        <div style="height:12px;border-radius:6px;background:linear-gradient(to right,#1a9850,#fee08b,#d73027,#999)"></div>
+                    </div>
+
+                    <div id="mobRaggiungibili"></div>
+
+                    <hr>
+                    <h6 class="small fw-bold"><i class="bi bi-geo-alt"></i> Punto Specifico</h6>
+                    <p class="small text-muted">Clicca sulla mappa per il dettaglio multimodale.</p>
+                    <div id="mobPuntoResult" class="small"></div>
                 </div>
 
                 <div id="tab-stats" class="sidebar tab-panel d-none">

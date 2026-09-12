@@ -146,6 +146,63 @@ app.MapGet("/api/piste", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync());
 });
 
+// Route assistant: tempo di percorrenza multimodale verso la sede universitaria più vicina.
+app.MapGet("/api/mobility/tempo-percorrenza", async (double lat, double lon, int? ora, UrbanAdvisorDbContext db) =>
+{
+    int oraVal = ora ?? 14;
+    var risultato = await CalcolaTempoMultimodale(lat, lon, oraVal, db);
+    return Results.Ok(risultato);
+});
+
+// Isocrone su griglia + top-5 aree più raggiungibili, per una modalità e fascia oraria date.
+app.MapGet("/api/mobility/isocrona", async (int? ora, string? modalita, UrbanAdvisorDbContext db) =>
+{
+    int oraVal = ora ?? 14;
+    string modalitaVal = (modalita ?? "trasporto_pubblico").ToLower();
+    if (modalitaVal != "piedi" && modalitaVal != "bici" && modalitaVal != "trasporto_pubblico")
+        modalitaVal = "trasporto_pubblico";
+
+    int n = 10;
+    double minLat = 44.47, maxLat = 44.52, minLon = 11.30, maxLon = 11.38;
+    double stepLat = (maxLat - minLat) / n, stepLon = (maxLon - minLon) / n;
+
+    var celle = new List<(double lat, double lon, bool disponibile, double? tempo, string? motivo)>();
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            double cLat = minLat + (i + 0.5) * stepLat;
+            double cLon = minLon + (j + 0.5) * stepLon;
+            var (disp, tempo, motivo) = await CalcolaTempoModalita(cLat, cLon, oraVal, modalitaVal, db);
+            celle.Add((cLat, cLon, disp, tempo, motivo));
+        }
+    }
+
+    var griglia = celle.Select(c => new
+    {
+        lat = c.lat, lon = c.lon, disponibile = c.disponibile,
+        tempo_minuti = c.disponibile ? Math.Round(c.tempo!.Value, 1) : (double?)null,
+        motivo = c.motivo
+    });
+
+    var areeRaggiungibili = celle
+        .Where(c => c.disponibile)
+        .OrderBy(c => c.tempo)
+        .Take(5)
+        .Select((c, idx) => new
+        {
+            posizione = idx + 1, lat = c.lat, lon = c.lon,
+            tempo_minuti = Math.Round(c.tempo!.Value, 1)
+        });
+
+    return Results.Ok(new
+    {
+        ora = oraVal, modalita = modalitaVal, celle = n,
+        griglia,
+        aree_piu_raggiungibili = areeRaggiungibili
+    });
+});
+
 // Restituisce i PoI entro un raggio da una posizione, ordinati per distanza.
 app.MapGet("/api/nearby", async (double lat, double lon, int raggio, string? categoria, UrbanAdvisorDbContext db) =>
 {
@@ -903,6 +960,146 @@ static async Task<(int punteggio, object subscores)> CalcolaScoreInterno(
     double score = (sT * wT + sB * wB + sV * wV + sM * wM + sR * wR + sMe * wMe + sS * wS) / somma;
     return (Math.Clamp((int)Math.Round(score), 0, 100),
         new { trasporti = sT, biblioteche = sB, aree_verdi = sV, mobilita = sM, residenze = sR, mense = sMe, sedi = sS });
+}
+
+// Calcola i tempi di percorrenza multimodali (piedi, bici, TPL) dalla posizione data
+// verso la sede universitaria più vicina. TPL usa la frequenza reale GTFS per stimare l'attesa.
+static async Task<object> CalcolaTempoMultimodale(double lat, double lon, int ora, UrbanAdvisorDbContext db)
+{
+    var origine = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
+
+    var sede = await db.SediUniversitarie
+        .Where(s => s.Geom != null)
+        .OrderBy(s => s.Geom!.Distance(origine))
+        .FirstOrDefaultAsync();
+
+    if (sede == null || sede.Geom == null)
+        return new { disponibile = false, motivo = "Nessuna sede universitaria trovata nel dataset" };
+
+    double distanzaDirettaMetri = origine.Distance(sede.Geom) * 111000;
+    const double fattoreDeviazione = 1.3;
+    double distanzaStradaleStimata = distanzaDirettaMetri * fattoreDeviazione;
+
+    double velocitaPiedi = 5000.0 / 60.0;
+    double tempoPiedi = distanzaStradaleStimata / velocitaPiedi;
+
+    double velocitaBici = 15000.0 / 60.0;
+    double tempoBici = distanzaStradaleStimata / velocitaBici;
+
+    var fermataPartenza = await db.GtfsFermate
+        .Where(f => f.Geom != null)
+        .OrderBy(f => f.Geom!.Distance(origine))
+        .FirstOrDefaultAsync();
+    var fermataArrivo = await db.GtfsFermate
+        .Where(f => f.Geom != null)
+        .OrderBy(f => f.Geom!.Distance(sede.Geom))
+        .FirstOrDefaultAsync();
+
+    object trasportoPubblico;
+    if (fermataPartenza?.Geom == null || fermataArrivo?.Geom == null)
+    {
+        trasportoPubblico = new { disponibile = false, motivo = "Nessuna fermata GTFS trovata" };
+    }
+    else
+    {
+        double distPartenzaFermata = origine.Distance(fermataPartenza.Geom) * 111000;
+        double distArrivoFermata = sede.Geom.Distance(fermataArrivo.Geom) * 111000;
+        double tempoPiediFermataPartenza = (distPartenzaFermata * fattoreDeviazione) / velocitaPiedi;
+        double tempoPiediFermataArrivo = (distArrivoFermata * fattoreDeviazione) / velocitaPiedi;
+
+        var freq = await db.GtfsFrequenzeFermata
+            .FirstOrDefaultAsync(g => g.StopId == fermataPartenza.StopId && g.FasciaOraria == ora);
+        int numeroCorse = freq?.NumeroCorse ?? 0;
+
+        if (numeroCorse == 0)
+        {
+            trasportoPubblico = new
+            {
+                disponibile = false,
+                motivo = $"Nessuna corsa rilevata alla fermata '{fermataPartenza.Nome}' nella fascia {ora}:00-{ora + 1}:00"
+            };
+        }
+        else
+        {
+            double headwayMinuti = 60.0 / numeroCorse;
+            double attesaMedia = headwayMinuti / 2.0;
+            double velocitaBus = 18000.0 / 60.0;
+            double distanzaTraFermate = fermataPartenza.Geom.Distance(fermataArrivo.Geom) * 111000;
+            double tempoABordo = (distanzaTraFermate * fattoreDeviazione) / velocitaBus;
+            double tempoTotale = tempoPiediFermataPartenza + attesaMedia + tempoABordo + tempoPiediFermataArrivo;
+
+            trasportoPubblico = new
+            {
+                disponibile = true,
+                tempo_totale_minuti = Math.Round(tempoTotale, 1),
+                dettaglio = new
+                {
+                    a_piedi_fino_fermata_min = Math.Round(tempoPiediFermataPartenza, 1),
+                    attesa_media_min = Math.Round(attesaMedia, 1),
+                    a_bordo_min = Math.Round(tempoABordo, 1),
+                    a_piedi_da_fermata_min = Math.Round(tempoPiediFermataArrivo, 1),
+                    fermata_partenza = fermataPartenza.Nome,
+                    fermata_arrivo = fermataArrivo.Nome,
+                    corse_ora = numeroCorse,
+                    headway_minuti = Math.Round(headwayMinuti, 1)
+                }
+            };
+        }
+    }
+
+    return new
+    {
+        disponibile = true,
+        sede_destinazione = sede.Nome,
+        distanza_diretta_metri = Math.Round(distanzaDirettaMetri, 0),
+        piedi = new { tempo_minuti = Math.Round(tempoPiedi, 1) },
+        bici = new { tempo_minuti = Math.Round(tempoBici, 1) },
+        trasporto_pubblico = trasportoPubblico
+    };
+}
+
+// Versione snella per calcolo su griglia: una sola modalità alla volta, evita di calcolare
+// piedi+bici+TPL quando la griglia ne richiede solo una, su 100 celle per richiesta.
+static async Task<(bool disponibile, double? tempoMinuti, string? motivo)> CalcolaTempoModalita(
+    double lat, double lon, int ora, string modalita, UrbanAdvisorDbContext db)
+{
+    var origine = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
+    var sede = await db.SediUniversitarie.Where(s => s.Geom != null)
+        .OrderBy(s => s.Geom!.Distance(origine)).FirstOrDefaultAsync();
+    if (sede == null || sede.Geom == null) return (false, null, "Nessuna sede trovata");
+
+    double distanzaDiretta = origine.Distance(sede.Geom) * 111000;
+    const double fattoreDeviazione = 1.3;
+    double distanzaStradale = distanzaDiretta * fattoreDeviazione;
+
+    if (modalita == "piedi")
+        return (true, distanzaStradale / (5000.0 / 60.0), null);
+
+    if (modalita == "bici")
+        return (true, distanzaStradale / (15000.0 / 60.0), null);
+
+    // trasporto_pubblico
+    var fermataPartenza = await db.GtfsFermate.Where(f => f.Geom != null)
+        .OrderBy(f => f.Geom!.Distance(origine)).FirstOrDefaultAsync();
+    var fermataArrivo = await db.GtfsFermate.Where(f => f.Geom != null)
+        .OrderBy(f => f.Geom!.Distance(sede.Geom)).FirstOrDefaultAsync();
+    if (fermataPartenza?.Geom == null || fermataArrivo?.Geom == null)
+        return (false, null, "Nessuna fermata GTFS trovata");
+
+    var freq = await db.GtfsFrequenzeFermata
+        .FirstOrDefaultAsync(g => g.StopId == fermataPartenza.StopId && g.FasciaOraria == ora);
+    int numeroCorse = freq?.NumeroCorse ?? 0;
+    if (numeroCorse == 0)
+        return (false, null, $"Nessuna corsa in fascia {ora}:00");
+
+    double velocitaPiedi = 5000.0 / 60.0;
+    double velocitaBus = 18000.0 / 60.0;
+    double tPiediPartenza = (origine.Distance(fermataPartenza.Geom) * 111000 * fattoreDeviazione) / velocitaPiedi;
+    double tPiediArrivo = (sede.Geom.Distance(fermataArrivo.Geom) * 111000 * fattoreDeviazione) / velocitaPiedi;
+    double attesa = (60.0 / numeroCorse) / 2.0;
+    double aBordo = (fermataPartenza.Geom.Distance(fermataArrivo.Geom) * 111000 * fattoreDeviazione) / velocitaBus;
+
+    return (true, tPiediPartenza + attesa + aBordo + tPiediArrivo, null);
 }
 
 // Analytics avanzata: clustering K-Means delle zone e indice di Moran.
