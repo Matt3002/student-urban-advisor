@@ -27,5 +27,11 @@ namespace UrbanAdvisor.Api.Models
 
         [Column("peso_residenze")]
         public int PesoResidenze { get; set; } = 50;
+
+        [Column("peso_mense")]
+        public int PesoMense { get; set; } = 50;
+
+        [Column("peso_sedi")]
+        public int PesoSedi { get; set; } = 50;
     }
 }
