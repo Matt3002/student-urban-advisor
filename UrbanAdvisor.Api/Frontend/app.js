@@ -89,6 +89,7 @@ map.on('click', async (e) => {
     if (!document.getElementById('tab-score').classList.contains('d-none')) await calcolaScore();
     if (!document.getElementById('tab-profilo').classList.contains('d-none')) await confrontaProfili();
     await cercaVicini();
+    await caricaIndicatoriArea();
 });
 
 // Richiede lo score del punto selezionato e aggiorna il pannello.
@@ -147,6 +148,29 @@ async function cercaVicini() {
         }
         document.getElementById('nearbyResults').classList.remove('d-none');
     } catch (e) { console.error('Errore nearby:', e); }
+}
+
+// Buffer analysis: indicatori aggregati e densita' nell'area selezionata.
+async function caricaIndicatoriArea() {
+    if (!lastClickLat) return;
+    const raggio = document.getElementById('raggioCerca').value;
+    try {
+        const res = await fetch(`${API_BASE_URL}/area/indicatori?lat=${lastClickLat}&lon=${lastClickLon}&raggio=${raggio}`);
+        const data = await res.json();
+        document.getElementById('indTotalePoi').textContent = data.totale_poi;
+        document.getElementById('indDensita').textContent = data.densita.servizi_per_km2;
+        const d = data.dettaglio;
+        document.getElementById('indDettaglio').innerHTML = `
+            <div class="d-flex justify-content-between border-bottom py-1"><span>📚 Biblioteche</span><b>${d.biblioteche}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🚌 Fermate Bus</span><b>${d.fermate_bus}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🌳 Aree Verdi</span><b>${d.aree_verdi}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🚲 Piste Ciclabili</span><b>${d.piste_ciclabili}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🏠 Residenze</span><b>${d.residenze}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🚉 Stazioni</span><b>${d.stazioni}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🍽️ Mense/Ristoro</span><b>${d.mense}</b></div>
+            <div class="d-flex justify-content-between py-1"><span>🏛️ Sedi Univ.</span><b>${d.sedi}</b></div>`;
+        document.getElementById('areaIndicatori').classList.remove('d-none');
+    } catch (e) { console.error('Errore indicatori area:', e); }
 }
 
 // Gestisce il cambio di scheda nella sidebar.

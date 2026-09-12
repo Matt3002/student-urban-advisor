@@ -259,8 +259,10 @@ app.MapGet("/api/area/indicatori", async (double lat, double lon, int raggio, Ur
     var nResidenze = await db.ResidenzeUniversitarie.CountAsync(r => r.Geom != null && r.Geom.IsWithinDistance(userPoint, raggioGradi));
     var nStazioni = await db.StazioniFerroviarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(userPoint, raggioGradi));
     var nPiste = await db.PisteCiclabili.CountAsync(p => p.Geom != null && p.Geom.IsWithinDistance(userPoint, raggioGradi));
+    var nMense = await db.Mense.CountAsync(m => m.Geom != null && m.Geom.IsWithinDistance(userPoint, raggioGradi));
+    var nSedi = await db.SediUniversitarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(userPoint, raggioGradi));
 
-    int totale = nBiblioteche + nFermate + nAreeVerdi + nResidenze + nStazioni + nPiste;
+    int totale = nBiblioteche + nFermate + nAreeVerdi + nResidenze + nStazioni + nPiste + nMense + nSedi;
 
     return Results.Ok(new
     {
@@ -273,7 +275,9 @@ app.MapGet("/api/area/indicatori", async (double lat, double lon, int raggio, Ur
             aree_verdi = nAreeVerdi,
             residenze = nResidenze,
             stazioni = nStazioni,
-            piste_ciclabili = nPiste
+            piste_ciclabili = nPiste,
+            mense = nMense,
+            sedi = nSedi
         },
         densita = new
         {
