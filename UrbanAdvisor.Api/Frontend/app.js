@@ -33,6 +33,7 @@ let heatLayer = null, gridLayer = null, recMarkers = null;
 let profiliCache = [];
 let privacyMarker = null;
 let clusterLayer = null;
+let isocronaLayer = null;
 const clusterColors = ['#2ecc71', '#3498db', '#e67e22', '#e74c3c', '#9b59b6', '#1abc9c'];
 
 // Carica e disegna sulla mappa i PoI di una categoria.
@@ -89,6 +90,8 @@ map.on('click', async (e) => {
     if (!document.getElementById('tab-score').classList.contains('d-none')) await calcolaScore();
     if (!document.getElementById('tab-profilo').classList.contains('d-none')) await confrontaProfili();
     await cercaVicini();
+    await caricaIndicatoriArea();
+    if (!document.getElementById('tab-mobilita').classList.contains('d-none')) await caricaTempoPercorrenza();
 });
 
 // Richiede lo score del punto selezionato e aggiorna il pannello.
@@ -149,6 +152,29 @@ async function cercaVicini() {
     } catch (e) { console.error('Errore nearby:', e); }
 }
 
+// Buffer analysis: indicatori aggregati e densita' nell'area selezionata.
+async function caricaIndicatoriArea() {
+    if (!lastClickLat) return;
+    const raggio = document.getElementById('raggioCerca').value;
+    try {
+        const res = await fetch(`${API_BASE_URL}/area/indicatori?lat=${lastClickLat}&lon=${lastClickLon}&raggio=${raggio}`);
+        const data = await res.json();
+        document.getElementById('indTotalePoi').textContent = data.totale_poi;
+        document.getElementById('indDensita').textContent = data.densita.servizi_per_km2;
+        const d = data.dettaglio;
+        document.getElementById('indDettaglio').innerHTML = `
+            <div class="d-flex justify-content-between border-bottom py-1"><span>📚 Biblioteche</span><b>${d.biblioteche}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🚌 Fermate Bus</span><b>${d.fermate_bus}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🌳 Aree Verdi</span><b>${d.aree_verdi}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🚲 Piste Ciclabili</span><b>${d.piste_ciclabili}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🏠 Residenze</span><b>${d.residenze}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🚉 Stazioni</span><b>${d.stazioni}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🍽️ Mense/Ristoro</span><b>${d.mense}</b></div>
+            <div class="d-flex justify-content-between py-1"><span>🏛️ Sedi Univ.</span><b>${d.sedi}</b></div>`;
+        document.getElementById('areaIndicatori').classList.remove('d-none');
+    } catch (e) { console.error('Errore indicatori area:', e); }
+}
+
 // Gestisce il cambio di scheda nella sidebar.
 function switchTab(name, btn) {
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('d-none'));
@@ -160,7 +186,8 @@ function switchTab(name, btn) {
     if (name === 'profilo') loadProfili();
     if (name === 'raccomandazioni') loadProfili();
     if (name === 'analisi') loadProfili();
-    if (name === 'temporale') { loadTemporale(); loadTemporaleStats(); }
+    if (name === 'temporale') { loadTemporale(); loadTemporaleStats();
+    if (name === 'mobilita' && lastClickLat) caricaTempoPercorrenza();}
 }
 
 // Carica i profili utente e popola i menu a tendina.
@@ -323,6 +350,96 @@ async function loadDensityGrid() {
             <div>Zona migliore: <b>${best.score}/100</b> (${best.totale_poi} PoI)</div>
             <div>Fascia: ${data.fascia} | Profilo: ${data.profilo}</div>`;
     } catch (e) { console.error(e); }
+}
+
+// Calcola e disegna la griglia di isocrone (tempo di percorrenza per cella) sulla mappa.
+async function loadIsocrona() {
+    const modalita = document.getElementById('mobModalita').value;
+    const ora = document.getElementById('mobOra').value;
+
+    document.getElementById('mobRaggiungibili').innerHTML = '<p class="text-muted small">Calcolo in corso (100 celle)...</p>';
+    try {
+        const res = await fetch(`${API_BASE_URL}/mobility/isocrona?ora=${ora}&modalita=${modalita}`);
+        const data = await res.json();
+
+        if (isocronaLayer) map.removeLayer(isocronaLayer);
+        isocronaLayer = L.layerGroup().addTo(map);
+
+        const tempiValidi = data.griglia.filter(c => c.disponibile).map(c => c.tempo_minuti);
+        const minT = Math.min(...tempiValidi), maxT = Math.max(...tempiValidi, minT + 1);
+
+        data.griglia.forEach(cell => {
+            let color;
+            if (!cell.disponibile) {
+                color = '#999999';
+            } else {
+                const t = (cell.tempo_minuti - minT) / (maxT - minT);
+                color = t < 0.5
+                    ? interpolaColore('#1a9850', '#fee08b', t * 2)
+                    : interpolaColore('#fee08b', '#d73027', (t - 0.5) * 2);
+            }
+            const stepLat = 0.05 / 10, stepLon = 0.08 / 10;
+            const bounds = [[cell.lat - stepLat/2, cell.lon - stepLon/2], [cell.lat + stepLat/2, cell.lon + stepLon/2]];
+            const label = cell.disponibile ? `${cell.tempo_minuti} min` : (cell.motivo || 'Non disponibile');
+            L.rectangle(bounds, { color: '#333', weight: 0.5, fillColor: color, fillOpacity: 0.55 })
+                .bindPopup(`<b>${label}</b>`)
+                .addTo(isocronaLayer);
+        });
+
+        document.getElementById('isocronaLegend').classList.remove('d-none');
+
+        let html = `<div class="fw-bold small mb-2">🏆 Top 5 Aree più raggiungibili</div>`;
+        data.aree_piu_raggiungibili.forEach(r => {
+            html += `<div class="d-flex justify-content-between align-items-center border-bottom py-1 small">
+                <span>#${r.posizione}</span><span class="fw-bold text-success">${r.tempo_minuti} min</span></div>`;
+        });
+        document.getElementById('mobRaggiungibili').innerHTML = html;
+    } catch (e) {
+        console.error('Errore isocrona:', e);
+        document.getElementById('mobRaggiungibili').innerHTML = '<p class="text-danger small">Errore</p>';
+    }
+}
+
+// Interpola linearmente tra due colori esadecimali (per la scala isocrone).
+function interpolaColore(hex1, hex2, t) {
+    const c1 = [1,3,5].map(i => parseInt(hex1.substr(i,2),16));
+    const c2 = [1,3,5].map(i => parseInt(hex2.substr(i,2),16));
+    const rgb = c1.map((v,i) => Math.round(v + (c2[i]-v)*t));
+    return `rgb(${rgb.join(',')})`;
+}
+
+// Rimuove il layer isocrone dalla mappa.
+function clearIsocrona() {
+    if (isocronaLayer) { map.removeLayer(isocronaLayer); isocronaLayer = null; }
+    document.getElementById('isocronaLegend').classList.add('d-none');
+}
+
+// Mostra il dettaglio multimodale (piedi/bici/TPL) per il punto cliccato.
+async function caricaTempoPercorrenza() {
+    if (!lastClickLat) return;
+    const ora = document.getElementById('mobOra').value;
+    try {
+        const res = await fetch(`${API_BASE_URL}/mobility/tempo-percorrenza?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}`);
+        const data = await res.json();
+        if (!data.disponibile) {
+            document.getElementById('mobPuntoResult').innerHTML = `<p class="text-muted">${data.motivo}</p>`;
+            return;
+        }
+        const sedeBreve = (data.sede_destinazione || '').split(';')[0].trim();
+        let html = `<div class="small text-muted mb-2">Verso: <b>${sedeBreve}</b> (${data.distanza_diretta_metri}m in linea d'aria)</div>`;
+        html += `<div class="d-flex justify-content-between border-bottom py-1"><span>🚶 A piedi</span><b>${data.piedi.tempo_minuti} min</b></div>`;
+        html += `<div class="d-flex justify-content-between border-bottom py-1"><span>🚲 Bici</span><b>${data.bici.tempo_minuti} min</b></div>`;
+        if (data.trasporto_pubblico.disponibile) {
+            const tp = data.trasporto_pubblico;
+            html += `<div class="d-flex justify-content-between py-1"><span>🚌 Trasporto Pubblico</span><b>${tp.tempo_totale_minuti} min</b></div>`;
+            html += `<div class="text-muted mt-1" style="font-size:0.7rem">
+                ${tp.dettaglio.fermata_partenza} → ${tp.dettaglio.fermata_arrivo}<br>
+                ${tp.dettaglio.corse_ora} corse/ora, attesa media ${tp.dettaglio.attesa_media_min} min</div>`;
+        } else {
+            html += `<div class="text-muted small py-1">🚌 Trasporto Pubblico: ${data.trasporto_pubblico.motivo}</div>`;
+        }
+        document.getElementById('mobPuntoResult').innerHTML = html;
+    } catch (e) { console.error('Errore tempo percorrenza:', e); }
 }
 
 // Rimuove la griglia di densita' dalla mappa.

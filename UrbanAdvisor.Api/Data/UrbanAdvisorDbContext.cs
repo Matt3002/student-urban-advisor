@@ -23,6 +23,9 @@ namespace UrbanAdvisor.Api.Data
 
         public DbSet<OrarioServizio> OrariServizi { get; set; }
 
+        public DbSet<GtfsFermata> GtfsFermate { get; set; }
+        public DbSet<GtfsFrequenzaFermata> GtfsFrequenzeFermata { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.HasPostgresExtension("postgis");

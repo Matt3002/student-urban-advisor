@@ -276,3 +276,67 @@ SELECT 'fermate', 'Servizio TPER', g.giorno,
     CASE WHEN g.giorno <= 5 THEN '05:30'::TIME ELSE '06:30'::TIME END,
     CASE WHEN g.giorno <= 4 THEN '00:30'::TIME WHEN g.giorno = 5 THEN '02:00'::TIME ELSE '23:00'::TIME END
 FROM generate_series(0, 6) AS g(giorno);
+
+-- ============================================================================
+-- GTFS TPER: fermate reali + frequenza corse per fascia oraria (giorno feriale tipo)
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS gtfs_fermate (
+    stop_id VARCHAR(50) PRIMARY KEY,
+    nome VARCHAR(255),
+    geom GEOMETRY(Point, 4326)
+);
+
+CREATE TABLE IF NOT EXISTS gtfs_frequenze_fermata (
+    id SERIAL PRIMARY KEY,
+    stop_id VARCHAR(50) REFERENCES gtfs_fermate(stop_id),
+    fascia_oraria INTEGER NOT NULL CHECK (fascia_oraria BETWEEN 0 AND 23),
+    numero_corse INTEGER NOT NULL,
+    UNIQUE(stop_id, fascia_oraria)
+);
+
+CREATE TEMP TABLE stg_gtfs_stops (
+    stop_id TEXT, stop_name TEXT, stop_lat TEXT, stop_lon TEXT, location_type TEXT, parent_station TEXT
+);
+CREATE TEMP TABLE stg_gtfs_trips (
+    route_id TEXT, service_id TEXT, trip_id TEXT, trip_headsign TEXT, direction_id TEXT, shape_id TEXT, trip_short_name TEXT
+);
+CREATE TEMP TABLE stg_gtfs_stop_times (
+    trip_id TEXT, arrival_time TEXT, departure_time TEXT, stop_id TEXT, stop_sequence TEXT
+);
+CREATE TEMP TABLE stg_gtfs_calendar (
+    service_id TEXT, monday TEXT, tuesday TEXT, wednesday TEXT, thursday TEXT, friday TEXT, saturday TEXT, sunday TEXT, start_date TEXT, end_date TEXT
+);
+
+COPY stg_gtfs_stops      FROM '/var/lib/postgresql/csv_data/gtfs/stops.txt'      DELIMITER ',' CSV HEADER QUOTE '"';
+COPY stg_gtfs_trips      FROM '/var/lib/postgresql/csv_data/gtfs/trips.txt'      DELIMITER ',' CSV HEADER QUOTE '"';
+COPY stg_gtfs_stop_times FROM '/var/lib/postgresql/csv_data/gtfs/stop_times.txt' DELIMITER ',' CSV HEADER QUOTE '"';
+COPY stg_gtfs_calendar   FROM '/var/lib/postgresql/csv_data/gtfs/calendar.txt'   DELIMITER ',' CSV HEADER QUOTE '"';
+
+-- Fermate con coordinate valide (location_type='0' = fermata reale, non stazione aggregata)
+INSERT INTO gtfs_fermate (stop_id, nome, geom)
+SELECT stop_id, stop_name,
+    ST_SetSRID(ST_MakePoint(NULLIF(stop_lon,'')::FLOAT, NULLIF(stop_lat,'')::FLOAT), 4326)
+FROM stg_gtfs_stops
+WHERE location_type = '0'
+  AND NULLIF(stop_lat,'') IS NOT NULL AND NULLIF(stop_lon,'') IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_gtfs_fermate_geom ON gtfs_fermate USING gist(geom);
+
+-- Service_id attivi tutti i 5 giorni lavorativi = "giorno feriale tipo"
+CREATE TEMP TABLE feriali AS
+SELECT service_id FROM stg_gtfs_calendar
+WHERE monday='1' AND tuesday='1' AND wednesday='1' AND thursday='1' AND friday='1';
+
+-- Numero di corse per fermata per ogni fascia oraria (0-23), giorno feriale tipo.
+-- NB: arrival_time GTFS può superare "24:00:00" (corse dopo mezzanotte sul servizio del giorno
+-- prima) quindi si usa %% 24 per normalizzare nella fascia corretta.
+INSERT INTO gtfs_frequenze_fermata (stop_id, fascia_oraria, numero_corse)
+SELECT st.stop_id,
+       (SPLIT_PART(st.arrival_time, ':', 1)::INT) % 24 AS fascia_oraria,
+       COUNT(DISTINCT st.trip_id) AS numero_corse
+FROM stg_gtfs_stop_times st
+JOIN stg_gtfs_trips t ON st.trip_id = t.trip_id
+JOIN feriali f ON t.service_id = f.service_id
+WHERE st.stop_id IN (SELECT stop_id FROM gtfs_fermate)
+GROUP BY st.stop_id, fascia_oraria;
