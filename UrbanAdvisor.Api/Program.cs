@@ -10,11 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using UrbanAdvisor.Api.Data;
 using UrbanAdvisor.Api.Models;
 
-var builder = WebApplication.CreateBuilder(new WebApplicationOptions
-{
-    Args = args,
-    WebRootPath = "Frontend"
-});
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
 {
@@ -37,8 +33,6 @@ builder.Services.AddDbContext<UrbanAdvisorDbContext>(options =>
 var app = builder.Build();
 
 app.UseCors("AllowAll");
-app.UseDefaultFiles();
-app.UseStaticFiles();
 
 if (app.Environment.IsDevelopment())
 {
