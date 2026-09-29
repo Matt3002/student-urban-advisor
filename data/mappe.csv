@@ -1,0 +1,1111 @@
+type,name,address,city,lat,lon,url,notes
+museo,MUSEO OFFICINA DELL'EDUCAZIONE - MOdE,Il MOdE è uno spazio museale di natura digitale,,44.4991,11.3557,https://sma.unibo.it/it/il-sistema-museale/mode/museo-officina-delleducazione-mode,
+museo,Museo di Palazzo Poggi,"Via Zamboni, 33 – 40126 Bologna",Bologna,44.4970,11.3526,https://sma.unibo.it/it/il-sistema-museale/museo-di-palazzo-poggi/museo-di-palazzo-poggi,
+museo,Museo della Specola,"Via Zamboni, 33 - 40126 Bologna",Bologna,44.4967,11.3525,https://sma.unibo.it/it/il-sistema-museale/museo-della-specola/museo-della-specola,
+museo,Orto Botanico ed Erbario,"Via Irnerio, 42 - 40126 Bologna",Bologna,44.4996,11.3526,https://sma.unibo.it/it/il-sistema-museale/orto-botanico-ed-erbario/orto-botanico-ed-erbario,
+museo,Collezione di Zoologia,"Via Selmi, 3 - 40126 Bologna",Bologna,44.4961,11.3543,https://sma.unibo.it/it/il-sistema-museale/collezione-di-zoologia/collezione-di-zoologia,
+museo,Museo Europeo degli Studenti - MEUS,"Via Zamboni, 33 - 40126 Bologna",Bologna,44.4969,11.3524,https://sma.unibo.it/it/il-sistema-museale/museo-europeo-degli-studenti-meus/museo-europeo-degli-studenti-meus,
+museo,Collezione di Anatomia Comparata,"Via Selmi, 3 - 40126 Bologna",Bologna,44.4961,11.3543,https://sma.unibo.it/it/il-sistema-museale/collezione-di-anatomia-comparata/collezione-di-anatomia-comparata,
+museo,Collezione di Antropologia,"Via Selmi, 3 - 40126 Bologna",Bologna,44.4961,11.3543,https://sma.unibo.it/it/il-sistema-museale/collezione-di-antropologia/collezione-di-antropologia,
+museo,"Collezione di Geologia ""Museo Giovanni Capellini""","Via Zamboni, 63 - 40126 Bologna",Bologna,44.4978,11.3553,https://sma.unibo.it/it/il-sistema-museale/collezione-di-geologia-giovanni-capellini/collezione-di-geologia-giovanni-capellini,
+museo,"Collezione di Mineralogia ""Museo Luigi Bombicci""","Piazza di Porta San Donato, 1 -
+40126 Bologna",Bologna,44.4982,11.3555,https://sma.unibo.it/it/il-sistema-museale/collezione-di-mineralogia-luigi-bombicci/collezione-di-mineralogia-luigi-bombicci,
+museo,"Collezione delle Cere Anatomiche ""Luigi Cattaneo""","Via Irnerio, 48 - 40126 Bologna",Bologna,44.4990,11.3550,https://sma.unibo.it/it/il-sistema-museale/collezione-delle-cere-anatomiche-l-cattaneo/collezione-delle-cere-anatomiche-l-cattaneo,
+museo,Collezione di Fisica,"Via Irnerio, 46 - 40126 Bologna",Bologna,44.4994,11.3538,https://sma.unibo.it/it/il-sistema-museale/collezione-di-fisica/collezione-di-fisica,
+museo,Collezione di Anatomia degli Animali Domestici,"Via Tolara di Sopra, 50 - 40064 Ozzano Emilia (BO)",Ozzano Emilia,44.4353,11.4854,https://sma.unibo.it/it/il-sistema-museale/collezione-di-anatomia-degli-animali-domestici/collezione-di-anatomia-degli-animali-domestici,
+museo,"Collezione di Anatomia Patologica e Teratologia Veterinaria ""Alessandrini - Ercolani""","Via Tolara di Sopra, 50 - 40064 Ozzano dell'Emilia (BO)",Ozzano dell'Emilia,44.4352,11.4853,https://sma.unibo.it/it/il-sistema-museale/collezione-di-anatomia-patologica-e-teratologia-veterinaria/collezione-di-anatomia-patologica-e-teratologia-veterinaria,
+museo,"Collezione di Chimica ""Giacomo Ciamician""","Via Selmi, 2 - 40126 Bologna",Bologna,44.4963,11.3540,https://sma.unibo.it/it/il-sistema-museale/collezione-di-chimica-giacomo-ciamician/collezione-di-chimica-giacomo-ciamician,
+unibo,"APOS - Area del Personale; 
+APOS - Settore Affari giuridici; 
+APOS - Settore Affari giuridici - Ufficio Affari generali per il personale dirigente, tecnico amministrativo e CEL; 
+APOS - Settore Affari giuridici - Ufficio Gestione orario di lavoro; 
+APOS - Settore Affari giuridici - Ufficio Stato giuridico del personale; 
+APOS - Settore Inserimento e sviluppo professionale; 
+APOS - Settore Inserimento e sviluppo professionale - Ufficio Assunzioni e gestione tipologie contrattuali; 
+APOS - Settore Inserimento e sviluppo professionale - Ufficio Inclusione e tutela lavorativa; 
+APOS - Settore Inserimento e sviluppo professionale - Ufficio Mobilità; 
+APOS - Settore Inserimento e sviluppo professionale - Ufficio Supporto di carriera in entrata e in uscita; 
+APOS - Settore Selezione e contratti; 
+APOS - Settore Selezione e contratti - Ufficio Reclutamento, contratti di lavoro flessibile e assegni di ricerca; 
+APOS - Settore Selezione e contratti - Ufficio Ricercatori a tempo determinato; 
+APOS - Settore Servizi Previdenziali; 
+APOS - Settore Sistemi informativi e documentali del personale; 
+APOS - Settore Staff e Progetti di Area; 
+APOS - Settore Stato Giuridico Docenti; 
+APOS - Settore Stato Giuridico Docenti - Ufficio Affari Generali; 
+APOS - Settore Stato Giuridico Docenti - Ufficio Carriere; 
+APOS - Settore Stato Giuridico Docenti - Ufficio Concorsi Docenti; 
+APOS - Ufficio per i procedimenti disciplinari; 
+APOS - Ufficio Programmazione del personale; 
+APOS - Unità di processo Relazioni sindacali",Piazza Verdi 3 - 40126 Bologna,Bologna,44.4962,11.3506,,
+unibo,Dipartimento di Beni Culturali,Via Ariani 1 Angolo via Diaz - 48100 Ravenna,Ravenna,44.4182,12.2022,,
+unibo,Dipartimento di Scienze Mediche e Chirurgiche,Via San Giacomo 14 - 40126 Bologna,Bologna,44.4965,11.3559,,
+unibo,"Area Benessere, Salute e Sicurezza; 
+Dipartimento di Scienze Mediche e Chirurgiche",Viale Berti Pichat 5 - 40127 Bologna,Bologna,44.4995,11.3563,,
+unibo,"CIRI FRAME (FONTI RINNOVABILI, AMBIENTE, MARE ED ENERGIA)",Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,,
+unibo,ATES - Settore Edilizia e manutenzione - Ufficio Gestione manutenzioni,Via Belmeloro 8/2 - 40126 Bologna,Bologna,44.4954,11.3547,,
+unibo,DISTAL - Servizi tecnici di laboratorio Specialistici e didattici Bologna Cadriano e Imola,Via Gandolfi 19 - Cadriano - 40057 Granarolo dell'Emilia,Granarolo dell'Emilia,44.5513,11.4012,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Selmi 3 - 40126 Bologna,Bologna,44.4962,11.3543,,
+unibo,DIMEC - Unità di laboratorio di Tossicologia forense e occupazionale,Via Pelagio Palagi 9 - 40138 Bologna,Bologna,44.4906,11.3663,,
+unibo,A.U.B. - Unità di laboratorio Stalla,Via Tolara di Sopra 73 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4184,11.4754,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna,Via Saragozza 8 - 40123 Bologna,Bologna,44.4903,11.3366,,
+unibo,"FRAME - Centro Interdipartimentale di Ricerca Industriale FRAME-Fonti Rinnovabili, Ambiente, Mare ed Energia",Via Sant'Alberto 163 - 48123 Ravenna,Ravenna,44.4346,12.1961,,
+unibo,AFORM - Settore Programmazione didattica - Ufficio Didattica e studenti - Imola,Palazzo dal Pero via Garibaldi 37 - 40026 Imola,Imola,0.0000,0.0000,,
+unibo,ACCE - Area di Campus di Cesena,Via dell' Università 50 - 47521 Cesena,Cesena,44.1477,12.2357,,
+unibo,"Area Benessere, Salute e Sicurezza; 
+Dipartimento di Scienze Mediche e Chirurgiche",Via Pelagio Palagi 9 - 40138 Bologna,Bologna,44.4906,11.3663,,
+unibo,SSRD - Unità professionale Internal audit,Via Zamboni 25 - 40126 Bologna,Bologna,44.4964,11.3511,,
+unibo,ATES - Settore Edilizia e manutenzione - Ufficio Distretto Cittadella - San Giacomo,Via Andreatta 8 - 40126 Bologna,Bologna,44.4950,11.3561,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Andreatta 8 - 40126 Bologna,Bologna,44.4950,11.3561,,
+unibo,"Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Scienze Biomediche e Neuromotorie; 
+Dipartimento di Scienze Mediche e Chirurgiche",Via Irnerio 48 - 40126 Bologna,Bologna,44.4991,11.3550,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Terracini 28 - 40131 Bologna,Bologna,44.5136,11.3184,,
+unibo,"Area Formazione e Dottorato; 
+Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Scienze Mediche e Chirurgiche",Via Irnerio 49 - 40126 Bologna,Bologna,44.4989,11.3538,,
+unibo,DEI - Unità di laboratorio LAB1,Viale Risorgimento 2 - 40134 Bologna,Bologna,44.4881,11.3284,,
+unibo,"ARPAC - Settore Biblioteca di Scienze dell'Educazione ""Mario Gattullo""",Via Filippo Re 6 - 40126 Bologna,Bologna,44.4999,11.3548,,
+unibo,DIBINEM - Dipartimento di Scienze Biomediche e Neuromotorie,Via Massarenti 9 - 40138 Bologna,Bologna,44.4930,11.3608,http://www.dibinem.unibo.it/,
+unibo,ARPAC - Settore Biblioteca di Ingegneria e Architettura,Via Terracini 28 - 40131 Bologna,Bologna,44.5136,11.3184,,
+unibo,DBC - Unità di laboratorio Polilaboratoriale,Via Ariani 1 Angolo via Diaz - 48100 Ravenna,Ravenna,44.4182,12.2022,,
+unibo,"Dipartimento di Psicologia ""Renzo Canestrari""",Viale Europa 115 - 47521 Cesena,Cesena,44.1456,12.2467,,
+unibo,Dipartimento di Scienze Biomediche e Neuromotorie,Via San Vitale 59 - 40125 Bologna,Bologna,44.4941,11.3540,,
+unibo,MAM - Centro Interdipartimentale di Ricerca Industriale su Meccanica Avanzata e Materiali,Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,DA - Servizi amministrativi,Via dell'Università 50 - 47522 Cesena,Cesena,44.1474,12.2355,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Gobetti 83 - 40129 Bologna,Bologna,44.5213,11.3377,,
+unibo,Area Innovazione,Largo Trombetti 1 - 40126 Bologna,Bologna,44.4965,11.3514,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Zamboni 25 - 40126 Bologna,Bologna,44.4964,11.3511,,
+unibo,DIMEC - Unità di laboratorio di Medicina traslazionale,Via Carlo Forlanini 34 - Pad. Valsalva dell'Ospedale Morgagni Pierantoni - 47121 Forlì,Forlì,0.0000,0.0000,,
+unibo,DAR - Servizi Amministrativi,Piazzetta G. Morandi 2 - 40125 Bologna,Bologna,44.4887,11.3548,,
+unibo,CIRI AEROSPAZIALE-AEROSPACE,Via Giorgio Zoli 63 - Gallerie Caproni - 47016 Predappio,Predappio,0.0000,0.0000,,
+unibo,"CILDIC - Centro Laboratori di didattica chimica; 
+CILDIC - Servizi amministrativi; 
+CILDIC - Servizi tecnici di laboratorio; 
+CILDIC - Unità di laboratorio Servizi tecnici di Struttura; 
+CILDIC - Unità di laboratorio Servizi tecnici laboratoriali",Via Gobetti 87 - 40129 Bologna,Bologna,44.5136,11.3391,,
+unibo,SSRD - Unità di progetto Cabina di regia aule cittadella,Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,,
+unibo,"ARPAC - Settore Biblioteca Universitaria di Bologna - BUB; 
+ARPAC - Settore Biblioteca Universitaria di Bologna - BUB - Ufficio Raccolte librarie antiche e collezioni speciali; 
+ARPAC - Settore Biblioteca Universitaria di Bologna - BUB - Ufficio Raccolte librarie moderne e correnti e deposito legale; 
+ARPAC - Unità di processo Servizi di staff e a supporto di SMA, BUB e Archivio Storico",Via Zamboni 35 - 40126 Bologna,Bologna,44.4973,11.3531,,
+unibo,"APPC - Settore Comunicazione; 
+APPC - Settore Comunicazione - Ufficio Comunicazione digitale e social media; 
+APPC - Settore Comunicazione - Ufficio Graphic design per la comunicazione; 
+APPC - Settore Portale e progetti web; 
+APPC - Settore Portale e progetti web - Ufficio Portale internet e intranet di Ateneo; 
+APPC - Settore Portale e progetti web - Ufficio Progettazione web; 
+APPC - Settore Portale e progetti web - Ufficio Siti web di Ateneo; 
+APPC - Unità professionale Brand strategist; 
+APPC - Unità professionale Consulente in proprietà industriale sezione marchi; 
+APPC - Unità professionale Responsabile campagna di comunicazione 5x1000 e comunicazione sostenibilità",Via Marsala 49 - 40126 Bologna,Bologna,44.4962,11.3487,,
+unibo,"FABIT - Servizi Amministrativi; 
+FABIT - Unità di laboratorio di Chimica e biologia",Via San Donato 15 - 40127 Bologna,Bologna,44.5025,11.3623,,
+unibo,Dipartimento di Scienze Giuridiche,Via Galliera 3 - 40121 Bologna,Bologna,44.4972,11.3418,,
+unibo,Dipartimento di Scienze Politiche e Sociali,Via dei Bersagleri 6 - 40125 Bologna,Bologna,44.4903,11.3528,,
+unibo,Assegnazione temporanea c/o Ministero delle Infrastrutture e dei Trasporti,Piazzale Porta Pia 1 - 00198 Roma,Roma,41.9096,12.5015,,
+unibo,Dipartimento di Interpretazione e Traduzione,C.so Repubblica 136 - 47100 Forlì,Forlì,44.2193,12.0472,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Filippo Re 4 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,Area Service Area Medica,Via San Giacomo 12 - 40126 Bologna,Bologna,44.4966,11.3550,,
+unibo,DBC - Dipartimento di Beni Culturali,Via degli Ariani 1 - 48100 Ravenna,Ravenna,44.4186,12.2021,http://www.beniculturali.unibo.it/,
+unibo,"ATES - Settore Contabilità per l'edilizia; 
+ATES - Settore Edilizia e manutenzione - Ufficio Gestione manutenzioni; 
+ATES - Settore Servizi di pulizia, verde e decoro; 
+ATES - Settore Servizi di pulizia, verde e decoro - Ufficio Presidio segnalazioni; 
+ATES - Settore Servizi di pulizia, verde e decoro - Ufficio Servizi per il decoro degli spazi",Largo Trombetti 4 - 40126 Bologna,Bologna,44.4961,11.3522,,
+unibo,"DIFA - Dipartimento di Fisica e Astronomia ""Augusto Righi""; 
+DIFA - Servizi amministrativi; 
+DIFA - Servizi tecnici dei laboratori specialistici; 
+DIFA - Unità di laboratorio Didattica; 
+DIFA - Unità di laboratorio Ricerca",Viale Berti Pichat 6/2 - 40127 Bologna,Bologna,44.5006,11.3565,,
+unibo,ACRA - Settore Distretto Campus,Via Pasolini 23 - 48121 Ravenna,Ravenna,44.3604,11.9356,,
+unibo,ACRN - Settore Servizi didattici - Ufficio Scienze qualità della vita,Corso D'Augusto 237 - 47921 Rimini,Rimini,44.0627,12.5648,,
+unibo,ATES - Settore Distretto Navile,Via Gobetti 93/2 - 40129 Bologna,Bologna,44.5216,11.3382,,
+unibo,ATES - Unità di processo Distretto Ozzano e Imola,Via Garibaldi 24 - 40026 Imola,Imola,44.3531,11.7110,,
+unibo,Dipartimento di Storia Culture Civiltà,Piazza S.Giovanni in Monte 4 - 40124 Bologna,Bologna,44.4908,11.3479,,
+unibo,"ACCE - Settore Servizi didattici - Ufficio CdS psicologia, agraria, veterinaria",Piazza Aldo Moro 90 - 47521 Cesena,Cesena,44.1444,12.2482,,
+unibo,CAST - Centro di Studi Avanzati sul Turismo/Center for Advanced Studies in Tourism,Via Anghera 22 - 47900 Rimini,Rimini,44.0620,12.5701,,
+unibo,CIRSA - Centro Interdipartimentale di Ricerca per le Scienze Ambientali,Via Sant'Alberto 163 - 48123 Ravenna,Ravenna,44.4346,12.1961,,
+unibo,"A.U.B. - Azienda Agraria; 
+A.U.B. - Servizi amministrativi; 
+A.U.B. - Unità di laboratorio I.N.F.A.",Viale Fanin 50 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,DEI - Servizi amministrativi,Viale Risorgimento 2 - 40121 Bologna,Bologna,44.4881,11.3284,,
+unibo,"DIBINEM - Servizi tecnici di laboratorio Area 1; 
+DIBINEM - Unità di laboratorio Tecnici di neurologia ed infermieri ospedale Bellaria",Via Altura 3 - 40139 Bologna,Bologna,44.4641,11.3904,,
+unibo,Dipartimento di Ingegneria Industriale,Via dei Colli 16 - 40136 Bologna,Bologna,44.4625,11.3263,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Acri 9/D - 40126 Bologna,Bologna,44.4952,11.3526,,
+unibo,Dipartimento di Ingegneria Industriale,Via Fontanelle 40 - 47100 Forlì,Forlì,44.2000,12.0642,,
+unibo,"CIRI FRAME (FONTI RINNOVABILI, AMBIENTE, MARE ED ENERGIA)",Viale Ciro Menotti 48 - 48122 Ravenna,Ravenna,44.4811,12.2730,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Filippo Re 8 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Filippo Re 6 - 40126 Bologna,Bologna,44.4999,11.3548,,
+unibo,"APOS - Settore Sviluppo organizzativo e formazione - Ufficio Progetti formativi; 
+APOS - Settore Sviluppo organizzativo e formazione - Ufficio Sistemi di valutazione delle posizioni e delle prestazioni individuali",Via Zamboni 26 - 40134 Bologna,Bologna,44.4962,11.3502,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna - Ufficio Accessibilità e utilizzo spazi per il Distretto Risorgimento Bertalia,Via Terracini 28 - 40131 Bologna,Bologna,44.5136,11.3184,,
+unibo,"ARPAC - Settore Biblioteca del Navile; 
+ARPAC - Settore Servizi amministrativo-contabili e generali",Via Gobetti 93/2 - 40129 Bologna,Bologna,44.5216,11.3382,,
+unibo,"DEI - Ufficio Approvvigionamenti; 
+DEI - Ufficio Gestione budget, compensi e missioni",Via dell'Università 50 - 47521 Cesena,Cesena,44.1474,12.2355,,
+unibo,"Collegio Superiore - Servizi amministrativi; 
+Unità professionale per la prevenzione della corruzione e la trasparenza",Via Marsala 26 - 40126 Bologna,Bologna,44.4965,11.3483,,
+unibo,CHIMIND - Servizi tecnici di laboratorio,Via Gobetti 87 - 40129 Bologna,Bologna,44.5136,11.3391,,
+unibo,"ATES - Settore Servizi di pulizia, verde e decoro - Ufficio Servizi in amministrazione diretta",Via Belmeloro 8/3 - 40126 Bologna,Bologna,44.4957,11.3557,,
+unibo,AFORM - Settore Servizi didattici Scienze della Formazione,Via Filippo Re 6 - 40126 Bologna,Bologna,44.4999,11.3548,,
+unibo,ARPAC - Unità di processo Progetti di Area e approvvigionamenti,Via Marsala 49 - 40126 Bologna,Bologna,44.4962,11.3487,,
+unibo,"ARIC - Settore Research development - Digital, Industrial and Green Transition; 
+ARIC - Settore Research development - Digital, Industrial and Green Transition - Ufficio Digital and Industrial Transition; 
+ARIC - Settore Research development - Digital, Industrial and Green Transition - Ufficio Green Transition; 
+ARIC - Settore Research development - Social Sciences and Humanities & Excellent Science; 
+ARIC - Unità di processo Programmi e progetti Interreg, LIFE, EMFAF, Cultura, COST",Via San Giacomo 5/2 - 40126 Bologna,Bologna,44.4968,11.3540,,
+unibo,"Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Scienze Biologiche, Geologiche e Ambientali; 
+Dipartimento di Scienze Biomediche e Neuromotorie; 
+Dipartimento di Scienze Dell'Educazione ""Giovanni Maria Bertin""; 
+Dipartimento di Scienze Mediche e Chirurgiche",Via S.Giacomo 12 - 40126 Bologna,Bologna,44.4967,11.3553,,
+unibo,SAM - Settore Personale,Via Ascari 17 - 40026 Imola,Imola,44.3410,11.7199,,
+unibo,"SSRD - Staff Rettore e Direttore Generale; 
+SSRD - Ufficio Segreteria del Direttore Generale; 
+SSRD - Unità di progetto Cabina di regia aule cittadella; 
+SSRD - Unità professionale Servizi legali; 
+SSRD - Unità professionale Supporto al Magnifico Rettore e ai Prorettori per i compiti istituzionali e di segreteria; 
+SSRD - Unità professionale Supporto e coordinamento dell'attività e delle strategie di internazionalizzazione",Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna - Ufficio Accessibilità e utilizzo spazi per il Distretto Filippo Re,Via Ranzani 14 - 40127 Bologna,Bologna,44.5012,11.3586,,
+unibo,"DICAM - Servizi amministrativi; 
+DICAM - Servizi tecnici di laboratorio; 
+DICAM - Ufficio Gestione budget e approvvigionamenti; 
+DICAM - Ufficio Gestione contratti e spese per il personale; 
+DICAM - Unità di laboratorio (LARIG - LAMC - LIDR - LAMAC - LABIOTEC - LABIC - LART - LADS); 
+DICAM - Unità di laboratorio (LISG - LAGIRN - LASTM - LAS)",Via Terracini 28 - 40131 Bologna,Bologna,44.5136,11.3184,,
+unibo,"CLA - Servizi Amministrativi; 
+CLA - Ufficio Sezione Bologna",Via Filippo Re 10 - 40126 Bologna,Bologna,44.4999,11.3547,,
+unibo,"Alma Mater Studiorum - Università di Bologna; 
+Alma Mater Studiorum - Università di Bologna; 
+Dipartimento di Storia Culture Civiltà",Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,Dipartimento di Ingegneria Industriale,Via Antonio Cicognani 5 7 - 47121 Forlì,Forlì,0.0000,0.0000,,
+unibo,"Area Benessere, Salute e Sicurezza",Viale Berti Pichat 6/2 - 40127 Bologna,Bologna,44.5006,11.3565,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,"ARAG - Area Finanza e Contabilità; 
+ARAG - Settore Bilancio; 
+ARAG - Settore Bilancio - Ufficio Configurazioni contabili e reportistica; 
+ARAG - Settore Bilancio - Ufficio Programmazione e bilancio; 
+ARAG - Settore Contabilità Didattica; 
+ARAG - Settore Fiscale; 
+ARAG - Settore Fiscale - Ufficio Compensi; 
+ARAG - Settore Fiscale - Ufficio Dichiarazioni e Servizi Telematici; 
+ARAG - Settore Fiscale - Ufficio IVA; 
+ARAG - Settore Gestione Ciclo Approvvigionamenti e Immobili; 
+ARAG - Settore Gestione Ciclo Passivo - Borse e Benefici Economici a Studenti; 
+ARAG - Settore Staff di Area; 
+ARAG - Settore Trattamenti Economici; 
+ARAG - Settore Trattamenti Economici - Ufficio Dichiarazioni Contributive e Contabilità del Personale Strutturato; 
+ARAG - Settore Trattamenti Economici - Ufficio Servizi per gli Stipendi e Compensi Accessori; 
+ARAG - Settore Trattamenti Economici - Ufficio Stipendi Personale Docente, Ricercatore e Collaboratore Linguistico; 
+ARAG - Settore Trattamenti Economici - Ufficio Stipendi Personale TA e Dirigenti; 
+ARAG - Unità di Processo Supporto al Ciclo Attivo: Crediti e Ricavi; 
+ARAG - Unità di Processo Supporto al ciclo di Bilancio delle Aree non in Service",Largo Trombetti 4 - 40126 Bologna,Bologna,44.4961,11.3522,,
+unibo,"DiSA - Dipartimento di Scienze Aziendali; 
+DiSA - Servizi amministrativi",Via Capo di Lucca 34 - 40126 Bologna,Bologna,44.5000,11.3476,http://www.sa.unibo.it/,
+unibo,ACCE - Settore Servizi agli studenti - Ufficio Tirocini e relazioni internazionali,Piazzale Solieri 1 - 47121 Forlì,Forlì,44.2193,12.0424,,
+unibo,"ARPAC - Settore Biblioteca di Matematica, Fisica e Informatica, e Biblioteca di Scienze Biologiche, Geologiche ed Ambientali; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Pubblicazioni scientifiche e archivi istituzionali per l'Open Access",Piazza di Porta San Donato 5 - 40126 Bologna,Bologna,44.4983,11.3558,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Filippo Re 10 - 40126 Bologna,Bologna,44.4999,11.3547,,
+unibo,Dipartimento di Scienze e Tecnologie Agro-Alimentari,Viale Fanin 42 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,ARPAC - Settore Biblioteca di Agraria,Viale Fanin 40 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,"ACFO - Settore Servizi didattici; 
+ACFO - Settore Servizi didattici - Ufficio Gestione CdS economia e management; 
+ACFO - Settore Servizi informatici",Piazzale della Vittoria 15 - 47121 Forlì,Forlì,44.2175,12.0506,,
+unibo,"DIN - Unità di laboratorio di Fisica tecnica; 
+DIN - Unità di laboratorio di Meccanica",Via dei Colli 16 C/O Lab. di Montecuccolino - 40136 Bologna,Bologna,0.0000,0.0000,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Viale Fanin 40-50 - 40127 Bologna,Bologna,0.0000,0.0000,,
+unibo,Dipartimento di Farmacia e Biotecnologie,Via San Donato 15 - 40127 Bologna,Bologna,44.5025,11.3623,,
+unibo,Centro Interdipartimentale di Ricerca Industriale su ICT,Via Baldassarre Carnaccini 12 - 47121 Forlì,Forlì,44.2004,12.0660,,
+unibo,"ARAG - Settore Informatico contabile; 
+ARAG - Settore Service contabile",Via Zamboni 72 - 40126 Bologna,Bologna,44.4975,11.3542,,
+unibo,ASES - Settore International Desk,Via Filippo Re 4 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,ABESS - Unità professionale Fisica sanitaria,Viale Berti Pichat 6/2 - 40127 Bologna,Bologna,44.5006,11.3565,,
+unibo,"ARPAC - Settore Biblioteca giuridica ""Antonio Cicu""; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Pubblicazioni scientifiche e archivi istituzionali per l'Open Access; 
+ARPAC - Unità di processo Gestione e sviluppo del catalogo italiano dei periodici - ACNP",Via Zamboni 27/29 - 40126 Bologna,Bologna,44.4966,11.3517,,
+unibo,"ATES - Settore Edilizia e manutenzione - Ufficio Distretto Cittadella - San Giacomo; 
+ATES - Settore Edilizia e manutenzione - Ufficio Interventi edilizi; 
+ATES - Settore per l'Energia",Via Acri 10 - 40126 Bologna,Bologna,44.4956,11.3527,,
+unibo,EC - Centro Interdipartimentale di Ricerca Industriale su Edilizia e Costruzioni,Via del Lazzaretto 15/5 - 40131 Bologna,Bologna,0.0000,0.0000,,
+unibo,"ARIN - Settore Job placement e tirocini; 
+ARIN - Settore Job placement e tirocini - Ufficio Career service; 
+ARIN - Settore Job placement e tirocini - Ufficio Job placement; 
+ARIN - Settore Partecipazione a enti per la ricerca e l'innovazione",Largo Trombetti 1 - 40126 Bologna,Bologna,44.4965,11.3514,,
+unibo,Centro Linguistico di Ateneo,Via Filippo Re 10 - 40126 Bologna,Bologna,44.4999,11.3547,,
+unibo,ATES - Settore Contabilità per l'edilizia,Viale Vespucci 2 - 47042 Cesenatico,Cesenatico,44.2064,12.3966,,
+unibo,"Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Scienze e Tecnologie Agro-Alimentari",Viale Fanin 40 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,CTL - Servizi amministrativi e gestionali,Via Zamboni 25 - 40126 Bologna,Bologna,44.4964,11.3511,,
+unibo,"ATES - Settore Edilizia e manutenzione - Ufficio Distretto Cittadella - Filippo Re; 
+ATES - Settore Edilizia e manutenzione - Ufficio Distretto Cittadella Zamboni - Poggi",Via Zamboni 38 - 40126 Bologna,Bologna,44.4970,11.3524,,
+unibo,"Dipartimento di Chimica ""Giacomo Ciamician""",Via Selmi 2 - 40126 Bologna,Bologna,44.4963,11.3541,http://www.chimica.unibo.it/,
+unibo,"DISTAL - Servizi tecnici di laboratorio Specialistici e didattici Bologna Cadriano e Imola; 
+DISTAL - Unità di laboratorio Agronomia, genetica, fisiologia e zootecnia; 
+DISTAL - Unità di laboratorio Cadriano; 
+DISTAL - Unità di laboratorio Camere e frigo congelatori; 
+DISTAL - Unità di laboratorio Colture arboree; 
+DISTAL - Unità di laboratorio Didattico progettazione CAD e gestione mobilità di dipartimento; 
+DISTAL - Unità di laboratorio Servizi tecnici e di campagna",Viale Fanin 46 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,Dipartimento di Scienze Mediche e Chirurgiche,Viale Filopanti 22 - 40126 Bologna,Bologna,44.4951,11.3572,,
+unibo,"Dipartimento di Chimica ""Giacomo Ciamician""",Via S. Giacomo 7 - 40126 Bologna,Bologna,44.4968,11.3543,,
+unibo,ARAG - Settore Trattamenti Economici - Ufficio Missioni e Compensi Aggiuntivi,Largo Trombetti 4 - 40125 Bologna,Bologna,44.4959,11.3528,,
+unibo,"ACFO - Settore Servizi didattici; 
+ACFO - Settore Servizi didattici - Ufficio Gestione CdS scienze politiche e sociali, sociologia e diritto dell'economia; 
+ACFO - Settore Servizi informatici",Via Giacomo della Torre 1 - 47121 Forlì,Forlì,44.2189,12.0421,,
+unibo,Dipartimento di Storia Culture Civiltà,Via Guerrazzi 20 - 40125 Bologna,Bologna,44.4908,11.3510,,
+unibo,Dipartimento di Scienze Biomediche e Neuromotorie,Via di Barbiano 1/10 - 40136 Bologna,Bologna,44.4760,11.3403,,
+unibo,AFORM - Settore Servizi didattici Scienze - Cittadella,Via Selmi .3 - 40126 Bologna,Bologna,0.0000,0.0000,,
+unibo,"SAM - Area Service Area Medica; 
+SAM - Settore Didattica e carriere studenti ambito medico; 
+SAM - Settore Distretto sanitario",Via Massarenti 9 - 40138 Bologna,Bologna,44.4930,11.3608,,
+unibo,"Dipartimento di Chimica ""Giacomo Ciamician""",Via Dario Campana 71 - 47922 Rimini,Rimini,44.0592,12.5541,,
+unibo,"ASES - Area Servizi Studenti; 
+ASES - Settore Attività e progetti di Area; 
+ASES - Settore Diritto allo studio; 
+ASES - Settore Diritto allo studio - Ufficio Borse di studio; 
+ASES - Settore Diritto allo studio - Ufficio Budget e promozione attività culturali; 
+ASES - Settore Diritto allo studio - Ufficio Contribuzioni studentesche; 
+ASES - Settore Diritto allo studio - Ufficio Convenzioni per il diritto allo studio; 
+ASES - Settore Diritto allo studio - Ufficio Servizi per gli studenti con disabilità e con DSA; 
+ASES - Settore Segreteria studenti internazionali; 
+ASES - Settore Segreterie studenti area scientifica; 
+ASES - Settore Segreterie studenti area scientifica - Ufficio Segreteria studenti farmacia, biotecnologie e scienze motorie; 
+ASES - Settore Segreterie studenti area scientifica - Ufficio Segreteria studenti ingegneria e architettura; 
+ASES - Settore Segreterie studenti area scientifica - Ufficio Segreteria studenti medicina veterinaria; 
+ASES - Settore Segreterie studenti area scientifica - Ufficio Segreteria studenti scienze; 
+ASES - Settore Segreterie studenti area umanistica e sociale; 
+ASES - Settore Segreterie studenti area umanistica e sociale - Ufficio Segreteria studenti economia management e statistica; 
+ASES - Settore Segreterie studenti area umanistica e sociale - Ufficio Segreteria studenti giurisprudenza; 
+ASES - Settore Segreterie studenti area umanistica e sociale - Ufficio Segreteria studenti scienze politiche",Via Marsala 49 - 40126 Bologna,Bologna,44.4962,11.3487,,
+unibo,CLA - Ufficio Sezione Romagna,Piazza Aldo Moro 90 - 47521 Cesena,Cesena,44.1444,12.2482,,
+unibo,Dipartimento di Farmacia e Biotecnologie,Via S.Giacomo 14 - 40126 Bologna,Bologna,44.4966,11.3558,,
+unibo,"Dipartimento di Informatica - Scienza e Ingegneria; 
+Dipartimento di Matematica",Via dell'Università 50 - 47521 Cesena,Cesena,44.1474,12.2355,,
+unibo,DIBINEM - Servizi tecnici di laboratorio Area 2,Via San Vitale 59 - 40125 Bologna,Bologna,44.4941,11.3540,,
+unibo,"ACFO - Settore Servizi bibliotecari; 
+ACFO - Settore Servizi bibliotecari - Ufficio Servizi al pubblico; 
+ACFO - Settore Servizi bibliotecari - Ufficio Supporto amministrativo",Via Caterina Sforza 45 - 47121 Forlì,Forlì,44.2191,12.0368,,
+unibo,ATES - Settore Distretto Sud Est e Nord Ovest - Ufficio Facility Nord Ovest,Via Azzo Gardino 33 - 40122 Bologna,Bologna,44.5020,11.3342,,
+unibo,Centro Linguistico di Ateneo,Piazza San Giovanni in Monte 4 - 40124 Bologna,Bologna,44.4908,11.3479,,
+unibo,ARPAC - Settore Biblioteca di Medicina,Via G. Massarenti 9 - 40138 Bologna,Bologna,44.4931,11.3604,,
+unibo,"DIBINEM - Servizi tecnici di laboratorio Area 1; 
+DIBINEM - Unità di laboratorio Donazione del corpo afferente al Centro ACChiSM sede di Anatomia umana; 
+DIBINEM - Unità di laboratorio Ricerca biomedica afferente al Centro ACChiSM sede di Anatomia umana; 
+DIBINEM - Unità di laboratorio Sede di biochimica",Via Irnerio 48 - 40126 Bologna,Bologna,44.4991,11.3550,,
+unibo,"ACCE - Settore Servizi bibliotecari - Ufficio Coordinamento sezioni decentrate; 
+ACCE - Settore Servizi didattici - Ufficio CdS psicologia, agraria, veterinaria",Piazza Goidanich 60 - 47521 Cesena,Cesena,44.1565,12.2428,,
+unibo,"DIFA - Unità di laboratorio Didattica; 
+DIFA - Unità di laboratorio Ricerca",Via S.Alberto 163 - 48123 Ravenna,Ravenna,44.4346,12.1961,,
+unibo,"ASES - Settore Orientamento - Ufficio Orientamento in ingresso; 
+ASES - Settore Orientamento - Ufficio Orientamento studenti internazionali",Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,"ARIC - Area Ricerca; 
+ARIC - Settore Coordinamento Servizi Ricerca e Progetti di Area; 
+ARIC - Settore Programmi e progetti Europei; 
+ARIC - Settore Programmi e progetti Nazionali e di Ateneo",Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,"Dipartimento di Psicologia ""Renzo Canestrari""",Piazza Aldo Moro 90 - 47023 Cesena,Cesena,44.1444,12.2482,,
+unibo,Dipartimento di Scienze e Tecnologie Agro-Alimentari,Viale Fanin 46 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,"LILEC - Dipartimento di Lingue, Letterature e Culture Moderne; 
+LILEC - Servizi amministrativi",Via Cartoleria 5 - 40124 Bologna,Bologna,44.4898,11.3491,http://www.lingue.unibo.it/,
+unibo,DIBINEM - Unità di laboratorio Anatomia patologica ospedale Bellaria,Via Altura 3 - 40138 Bologna,Bologna,44.4641,11.3904,,
+unibo,APPC - Settore Performance organizzativa,Piazza Verdi 3 - 40126 Bologna,Bologna,44.4962,11.3506,,
+unibo,QUVI - Unità gestionale di coordinamento dei servizi,Via del Pilastro 8 - 40127 Bologna,Bologna,44.5093,11.3899,,
+unibo,Unità professionale per la prevenzione della corruzione e la trasparenza,Via Zamboni 72 - 40126 Bologna,Bologna,44.4975,11.3542,,
+unibo,DIMEVET - Unità di laboratorio Servizio trasversale gestione animali,Via Tolara di Sopra 50 - Ozzano dell'Emilia - 40064 Bologna,Bologna,0.0000,0.0000,,
+unibo,"Dipartimento di Scienze Dell'Educazione ""Giovanni Maria Bertin""",Via Cartoleria 5 - 40124 Bologna,Bologna,44.4898,11.3491,,
+unibo,"ARPAC - Settore Biblioteca di Filosofia e Comunicazione e Biblioteca di Psicologia ""Silvana Contento""; 
+ARPAC - Settore Biblioteca di Storia Culture Civiltà",Via Zamboni 38 - 40126 Bologna,Bologna,44.4970,11.3524,,
+unibo,Dipartimento di Scienze Giuridiche,Via Belmeloro 12 - 40126 Bologna,Bologna,44.4952,11.3556,,
+unibo,Comando c/o INAIL - Direzione regionale Emilia-Romagna - sede territoriale di Bologna,Via Antonio Gramsci 4 - 40121 Bologna,Bologna,44.5029,11.3413,,
+unibo,"SSRD - Settore Progetti PNRR; 
+SSRD - Unità Professionale Presidio a supporto della gestione amministrativo-contabile dei progetti PNRR",Via A. Zanolini 41 - 40138 Bologna,Bologna,0.0000,0.0000,,
+unibo,"Dipartimento di Scienze Biomediche e Neuromotorie; 
+Dipartimento di Scienze Mediche e Chirurgiche",Via Belmeloro 8 - 40126 Bologna,Bologna,44.4955,11.3542,,
+unibo,"Dipartimento delle Arti; 
+Dipartimento di Farmacia e Biotecnologie",Corso D'Augusto 237 - 47921 Rimini,Rimini,44.0627,12.5648,,
+unibo,"Dipartimento di Architettura; 
+Dipartimento di Ingegneria dell'Energia Elettrica e dell'Informazione ""Guglielmo Marconi""",Via dell'Università 50 - 47522 Cesena,Cesena,44.1474,12.2355,,
+unibo,Dipartimento di Scienze Biomediche e Neuromotorie,Piazza di Porta San Donato 2 - 40127 Bologna,Bologna,44.4982,11.3566,,
+unibo,Dipartimento di Scienze Economiche,Piazza Scaravilli 2 - 40126 Bologna,Bologna,44.4970,11.3523,,
+unibo,DIT - Unità di laboratorio,Via Lombardini 5 - 47121 Forlì,Forlì,44.2179,12.0413,,
+unibo,"ARPAC - Settore Biblioteca di discipline economico-aziendali ""Walter Bigiavi""",Via Belle Arti 33 - 40126 Bologna,Bologna,44.4977,11.3519,,
+unibo,ABESS - Unità professionale Security,Via Zamboni 26 - 40126 Bologna,Bologna,44.4961,11.3500,,
+unibo,APPC - Settore Eventi di Ateneo,Via De' Chiari 25/A - 40124 Bologna,Bologna,44.4903,11.3480,,
+unibo,ATES - Settore Distretto Bertalia e Risorgimento,Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,,
+unibo,"ACRA - Settore Servizi didattici; 
+ACRA - Ufficio Affari generali e personale",Via degli Ariani 1 - 48121 Ravenna,Ravenna,44.4183,12.2022,,
+unibo,"ACRA - Settore Biblioteca centrale; 
+ACRA - Settore Servizi didattici; 
+ACRA - Settore Servizi informatici",Via Mariani 5 - 48121 Ravenna,Ravenna,44.4173,12.2019,,
+unibo,"Centro di Ricerca sui Sistemi Elettronici per l'Ingegneria dell'Informazione e delle Telecomunicazioni ""Ercole De Castro"" - ARCES (Advanced Research Center on Electronic System)",Via Cesare Pavese 50 - 47522 Cesena,Cesena,44.1473,12.2352,,
+unibo,DEI - Servizi tecnici di laboratorio,Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,"FILO - Servizi amministrativi; 
+FILO - Servizi tecnici di laboratorio",Via Azzo Gardino 23 - 40122 Bologna,Bologna,44.5009,11.3371,,
+unibo,ARIN - Settore Job placement e tirocini - Ufficio Tirocini area scientifica,Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,"Comando c/o Agenzia nazionale per la meteorologia e climatologia ""Italiameteo""",Viale Aldo Moro 44 - 40127 Bologna,Bologna,44.5077,11.3660,,
+unibo,Centro Interdipartimentale di Ricerca Industriale sull'Agroalimentare,Piazza Goidanich 60 - 47521 Cesena,Cesena,44.1565,12.2428,,
+unibo,"Area Service Area Medica; 
+Dipartimento di Scienze Biomediche e Neuromotorie",Via Pupilli 1 - 40136 Bologna,Bologna,44.4807,11.3427,,
+unibo,Dipartimento di Farmacia e Biotecnologie,Via S.Donato 19/2 - 40127 Bologna,Bologna,44.5287,11.4195,,
+unibo,"SSRD - Unità Professionale ""Protezione dei dati personali""",Viale Filopanti 3 - 40126 Bologna,Bologna,44.4969,11.3566,,
+unibo,"ABESS - Area Benessere, Salute e Sicurezza; 
+ABESS - Ufficio Formazione sicurezza; 
+ABESS - Unità di processo Disaster management; 
+ABESS - Unità di processo Servizi amministrativi-contabili e di staff; 
+ABESS - Unità professionale Gestione risorse e rifiuti; 
+ABESS - Unità professionale Prevenzione e protezione",Via Filippo Re 10 - 40126 Bologna,Bologna,44.4999,11.3547,,
+unibo,"Dipartimento di Chimica Industriale ""Toso Montanari""",Via Angherà 22 - 47921 Rimini,Rimini,44.0620,12.5699,,
+unibo,Centro Interdipartimentale Alma Mater Research Institute for Human-Centered Artificial Intelligence - (Alma AI),Via Galliera 3 - 40121 Bologna,Bologna,44.4972,11.3418,,
+unibo,"CHIM - Unità di laboratorio di Chimica inorganica - chimica fisica; 
+CHIM - Unità di laboratorio di Chimica organica - analitica",Via Gobetti 87 - 40129 Bologna,Bologna,44.5136,11.3391,,
+unibo,ARAG - Settore Tesoreria,Largo Trombetti 4 - 40123 Bologna,Bologna,44.4960,11.3527,,
+unibo,ARPAC - Settore Biblioteca delle Arti,Piazzetta G. Morandi 2 - 40125 Bologna,Bologna,44.4887,11.3548,,
+unibo,"ARPAC - Settore Biblioteca di Matematica, Fisica e Informatica, e Biblioteca di Scienze Biologiche, Geologiche ed Ambientali",Via Selmi 3 - 40126 Bologna,Bologna,44.4962,11.3543,,
+unibo,"DIBINEM - Servizi tecnici di laboratorio Area 1; 
+DIBINEM - Unità di laboratorio istituto ortopedico Rizzoli",Via Pupilli 1 - 40136 Bologna,Bologna,44.4807,11.3427,,
+unibo,DIN - Servizi tecnici di laboratorio,Viale Risorgimento 4 - 40136 Bologna,Bologna,44.4878,11.3289,,
+unibo,"Dipartimento di Matematica; 
+Dipartimento di Scienze Aziendali; 
+Dipartimento di Scienze Economiche; 
+Dipartimento di Sociologia e Diritto dell'Economia",Via Angherà 22 - 47900 Rimini,Rimini,44.0620,12.5699,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Viale Berti Pichat 5 - 40127 Bologna,Bologna,44.4995,11.3563,,
+unibo,"DAR - Servizi Amministrativi; 
+DAR - Servizi Tecnici di laboratorio",Piazzetta Pier Paolo Pasolini 5/B - 40122 Bologna,Bologna,44.5700,11.3021,,
+unibo,DISTAL - Unità di laboratorio Didattico progettazione CAD e gestione mobilità di dipartimento,Viale Fanin 48 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,"Dipartimento di Informatica - Scienza e Ingegneria; 
+Dipartimento di Ingegneria Industriale",Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,"Centro Interdipartimentale di Ricerca Industriale su Meccanica Avanzata e Materiali; 
+Dipartimento di Chimica Industriale ""Toso Montanari""",Viale del Risorgimento 4 - 40136 Bologna,Bologna,44.4878,11.3289,http://www.chimica-industriale.unibo.it/,
+unibo,FABIT - Servizi tecnici di laboratorio,Piazzale Giovanni dalle Bande Nere 11 - 40026 Imola,Imola,44.3533,11.7078,,
+unibo,DIN - Ufficio Gestione personale e supporto agli organi,Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,,
+unibo,"Dipartimento di Chimica Industriale ""Toso Montanari""",Via dei Mille 39 - 47921 Rimini,Rimini,44.0650,12.5680,,
+unibo,Dipartimento di Storia Culture Civiltà,Via S.Vitale 28 - Casa Traversari - 48100 Ravenna,Ravenna,44.4184,12.2035,,
+unibo,"ACRA - Settore Servizi didattici; 
+ACRA - Settore Servizi informatici",Via Sant'Alberto 163 - 48123 Ravenna,Ravenna,44.4346,12.1961,,
+unibo,"ARIN - Settore Alta formazione, formazione permanente e formazione co-progettata con Enti esterni; 
+ARIN - Settore Local and Global Engagement; 
+ARIN - Settore Local and Global Engagement - Ufficio Cooperazione allo sviluppo; 
+ARIN - Settore Local and Global Engagement - Ufficio Public engagement; 
+ARIN - Settore Rete alta tecnologia; 
+ARIN - Settore Rete alta tecnologia - Ufficio Budget, collaborazioni e missioni; 
+ARIN - Settore Rete alta tecnologia - Ufficio Contratti, progetti e acquisti; 
+ARIN - Unità di processo Knowledge Transfer Office - nuova imprenditorialità",Via Ugo Foscolo 7 - 40123 Bologna,Bologna,44.4918,11.3300,,
+unibo,ATES - Settore Distretto Fanin,Viale Fanin 40-50 - 40127 Bologna,Bologna,0.0000,0.0000,,
+unibo,"Centro di Ricerca sui Sistemi Elettronici per l'Ingegneria dell'Informazione e delle Telecomunicazioni ""Ercole De Castro"" - ARCES (Advanced Research Center on Electronic System)",Viale Carlo Pepoli 3/2 - 40123 Bologna,Bologna,44.4925,11.3295,,
+unibo,"Dipartimento di Chimica ""Giacomo Ciamician""",Via S.Giacomo 11 - 40126 Bologna,Bologna,44.4962,11.3561,,
+unibo,"FABIT - Servizi tecnici di laboratorio; 
+FABIT - Unità di laboratorio di Chimica e biologia",Via Selmi 3 - 40126 Bologna,Bologna,44.4962,11.3543,,
+unibo,DIFA - Servizi amministrativi,Via Petroni 26 - 40126 Bologna,Bologna,44.4955,11.3511,,
+unibo,DISI - Servizi amministrativi,Via Galliera 3 - 40121 Bologna,Bologna,44.4972,11.3418,,
+unibo,"DIMEC - Servizi tecnici di laboratorio di Area biomedica; 
+DIMEC - Unità di laboratorio di Istologia e Patologia sperimentale",Via San Giacomo 12 - 40126 Bologna,Bologna,44.4966,11.3550,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Gobetti 85 - 40129 Bologna,Bologna,44.5210,11.3370,,
+unibo,DIBINEM - Servizi tecnici di laboratorio Area 1,Via Altura 3 - Unità Neuromet - 40139 Bologna,Bologna,0.0000,0.0000,,
+unibo,"ATES - Settore Appalti ed esecuzione - Ufficio Servizi e forniture; 
+ATES - Settore Servizi di pulizia, verde e decoro - Ufficio Servizi per il decoro degli spazi; 
+ATES - Settore Servizi di staff e affari generali; 
+ATES - Unità professionale Responsabili di progetto",Via Angherà 22 - 47921 Rimini,Rimini,44.0620,12.5699,,
+unibo,"ARIN - Settore Job placement e tirocini - Ufficio Tirocini area scientifica; 
+ARIN - Settore Job placement e tirocini - Ufficio Tirocini area sociale",Via Filippo Re 8 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,ARPAC - Settore Biblioteca delle Arti,Via Barberia 4 - 40123 Bologna,Bologna,44.4915,11.3392,,
+unibo,"ARPAC - Settore Biblioteca Umanistica ""Ezio Raimondi""; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Pubblicazioni scientifiche e archivi istituzionali per l'Open Access",Via Zamboni 36 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,"FILO - Servizi amministrativi; 
+FILO - Servizi tecnici di laboratorio",Via Zamboni 38 - 40100 Bologna,Bologna,44.4970,11.3524,,
+unibo,DIN - Unità di laboratorio di Meccanica e aeronautica di Forlì,Via Antonio Cicognani 5 7 - 47121 Forlì,Forlì,0.0000,0.0000,,
+unibo,Dipartimento di Storia Culture Civiltà,Piazza S.Giovanni in Monte 2 - 40124 Bologna,Bologna,44.4912,11.3485,,
+unibo,CHIM - Servizi Tecnici di laboratorio,Via Guaccimanni 42 - 48100 Ravenna,Ravenna,44.4157,12.2026,,
+unibo,"Area Benessere, Salute e Sicurezza; 
+Dipartimento di Scienze Mediche Veterinarie",Via Tolara di Sopra 50 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4357,11.4877,,
+unibo,"SAM - Settore Didattica e carriere studenti ambito medico; 
+SAM - Settore Didattica e carriere studenti ambito medico - Ufficio Corsi di studio; 
+SAM - Settore Didattica e carriere studenti ambito medico - Ufficio Dottorato e post-laurea; 
+SAM - Settore Didattica e carriere studenti ambito medico - Ufficio Procedure di ammissione e relazioni esterne; 
+SAM - Settore Didattica e carriere studenti ambito medico - Ufficio Progettazione e programmazione didattica; 
+SAM - Settore Didattica e carriere studenti ambito medico - Ufficio Scuole di specializzazione; 
+SAM - Settore Didattica e carriere studenti ambito medico - Ufficio Segreteria studenti area medica; 
+SAM - Settore Didattica e carriere studenti ambito medico - Ufficio Servizi agli studenti; 
+SAM - Settore Medici in formazione specialistica; 
+SAM - Settore Medici in formazione specialistica - Ufficio Carriere medici in formazione specialistica; 
+SAM - Settore Medici in formazione specialistica - Ufficio Servizi e presenze medici in formazione specialistica",Via Massarenti 9 - Polo Murri - 40138 Bologna,Bologna,0.0000,0.0000,,
+unibo,"Centro Interdipartimentale di Ricerca Industriale su Meccanica Avanzata e Materiali; 
+Dipartimento di Ingegneria Industriale",Via Terracini 24 - 40131 Bologna,Bologna,44.5151,11.3201,,
+unibo,CRBA - Unità di laboratorio di Patologia sperimentale,Via Belmeloro 8 - 40126 Bologna,Bologna,44.4955,11.3542,,
+unibo,"Centro Interdipartimentale di Ricerca Industriale su Edilizia e Costruzioni; 
+Dipartimento di Ingegneria Industriale",Via Terracini 34 - 40131 Bologna,Bologna,44.5159,11.3208,,
+unibo,Azienda Agraria - A.U.B.,Via Gandolfi 19 - Cadriano - 40057 Granarolo dell'Emilia,Granarolo dell'Emilia,44.5513,11.4012,,
+unibo,"DiSCi - Dipartimento di Storia Culture Civiltà; 
+DiSCi - Servizi Amministrativi",Piazza San Giovanni in Monte 2 - 40124 Bologna,Bologna,44.4912,11.3485,http://www.storia-culture-civilta.unibo.it/,
+unibo,"ATES - Settore Appalti ed esecuzione - Ufficio Lavori pubblici; 
+ATES - Settore Appalti ed esecuzione - Ufficio Partenariati e conferenze di servizi; 
+ATES - Settore Appalti ed esecuzione - Ufficio Servizi e forniture",Via dell'Università 50 - 47522 Cesena,Cesena,44.1474,12.2355,,
+unibo,PSI - Servizi amministrativi,Piazza Aldo Moro 90 - 47521 Cesena,Cesena,44.1444,12.2482,,
+unibo,"Dipartimento di Scienze Giuridiche; 
+Dipartimento di Scienze Giuridiche",Via Zamboni 27/29 - 40126 Bologna,Bologna,44.4966,11.3517,,
+unibo,"Dipartimento di Fisica e Astronomia ""Augusto Righi""",Via Irnerio 46 - 40126 Bologna,Bologna,44.4990,11.3536,,
+unibo,"ACCE - Settore Affari generali e personale; 
+ACCE - Settore Servizi contabili e amministrativi; 
+ACCE - Settore Servizi contabili e amministrativi - Ufficio Contabilità; 
+ACCE - Settore Servizi contabili e amministrativi - Ufficio Contratti e approvvigionamenti; 
+ACCE - Settore Servizi didattici; 
+ACCE - Settore Servizi didattici -Ufficio CdS ingegneria, scienze e architettura; 
+ACCE - Settore Servizi informatici; 
+ACCE - Settore Servizi informatici - Ufficio Assistenza informatica; 
+ACCE - Settore Servizi informatici - Ufficio Reti e telefonia; 
+ACCE - Settore Servizi informatici - Ufficio Servizi informatici per la didattica e la ricerca; 
+ACCE - Settore Servizi informatici - Ufficio Sistemi",Via dell'Università 50 - 47521 Cesena,Cesena,44.1474,12.2355,,
+unibo,"Area Innovazione; 
+Area Patrimonio Culturale; 
+Area Pianificazione, Programmazione e Comunicazione",Via Marsala 49 - 40126 Bologna,Bologna,44.4962,11.3487,,
+unibo,"DIMEC - Unità di laboratorio di Genetica; 
+DIMEC - Unità di laboratorio di Tossicologia forense e occupazionale",Via Irnerio 49 - 40126 Bologna,Bologna,44.4989,11.3538,,
+unibo,CHIMIND - Servizi tecnici di laboratorio,Via dei Mille 39 - 47921 Rimini,Rimini,44.0650,12.5680,,
+unibo,"Dipartimento di Architettura; 
+Dipartimento di Matematica",Via Saragozza 8 - 40123 Bologna,Bologna,44.4903,11.3366,,
+unibo,"Dipartimento di Chimica ""Giacomo Ciamician""; 
+Dipartimento di Fisica e Astronomia ""Augusto Righi""; 
+Dipartimento di Scienze Biologiche, Geologiche e Ambientali",Via S.Alberto 163 - 48100 Ravenna,Ravenna,44.4346,12.1961,,
+unibo,"APAP - Area Appalti e Approvvigionamenti; 
+APAP - Settore Acquisti e supporto alla razionalizzazione degli approvvigionamenti di beni e servizi; 
+APAP - Settore Gare sopra soglia lavori e servizi tecnici; 
+APAP - Settore Giuridico e procedimenti per l'approvvigionamento di beni e servizi; 
+APAP - Settore Supporto alla progettazione; 
+APAP - Ufficio Staff affari generali e coordinamento programmazione",Largo Trombetti 4 - 40126 Bologna,Bologna,44.4961,11.3522,,
+unibo,AERO - Centro Interdipartimentale di Ricerca Industriale Aerospaziale-Aerospace,Via Baldassarre Carnaccini 12 - 47121 Forlì,Forlì,44.2004,12.0660,,
+unibo,Dipartimento di Ingegneria Industriale,Via Montaspro 97 - 47121 Forlì,Forlì,44.2007,12.0637,,
+unibo,APPC - Settore Comunicazione - Ufficio Relazioni con il pubblico,Largo Trombetti 1 - 40126 Bologna,Bologna,44.4965,11.3514,,
+unibo,"ACRN - Settore Servizi didattici; 
+ACRN - Settore Servizi didattici - Ufficio Scienze qualità della vita",Via dei Mille 39 - 47921 Rimini,Rimini,44.0650,12.5680,,
+unibo,"ARIC - Settore Research development - Digital, Industrial and Green Transition - Ufficio Green Transition; 
+ARIC - Settore Research development - Life and Health Sciences; 
+ARIC - Settore Research development - Social Sciences and Humanities & Excellent Science",Via San Giacomo 7 - 40126 Bologna,Bologna,44.4968,11.3543,,
+unibo,"STAT - Dipartimento di Scienze Statistiche ""Paolo Fortunati""; 
+STAT - Servizi Amministrativi",Via Belle Arti 41 - 40126 Bologna,Bologna,44.4977,11.3523,http://www.stat.unibo.it/,
+unibo,Area Formazione e Dottorato,Via Filippo Re 4 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,BiGeA - Servizi tecnici di laboratorio Ravenna,Via S. Alberto 163 - 48123 Ravenna,Ravenna,44.4346,12.1961,,
+unibo,"ACFO - Area di Campus di Forlì; 
+ACFO - Settore Affari generali e personale; 
+ACFO - Settore Affari generali e personale - Ufficio Affari generali; 
+ACFO - Settore Affari generali e personale - Ufficio Personale e incarichi; 
+ACFO - Settore Servizi agli studenti; 
+ACFO - Settore Servizi agli studenti - Ufficio Orientamento, placement e relazioni con pubblico - URP; 
+ACFO - Settore Servizi agli studenti - Ufficio Relazioni internazionali; 
+ACFO - Settore Servizi agli studenti - Ufficio Segreteria studenti; 
+ACFO - Settore Servizi agli studenti - Ufficio Tirocini; 
+ACFO - Settore Servizi contabili e amministrativi; 
+ACFO - Settore Servizi contabili e amministrativi - Ufficio Contabilità; 
+ACFO - Settore Servizi contabili e amministrativi - Ufficio Contratti e approvvigionamenti; 
+ACFO - Settore Servizi contabili e amministrativi - Ufficio Progetti; 
+ACFO - Settore Servizi informatici",Piazzale Solieri 1 - 47121 Forlì,Forlì,44.2193,12.0424,,
+unibo,"Dipartimento di Psicologia ""Renzo Canestrari""",Via Filippo Re 6 - 40126 Bologna,Bologna,44.4999,11.3548,,
+unibo,CHIMIND - Servizi tecnici di laboratorio,Via Granarolo 62 - 48018 Faenza,Faenza,44.3093,11.8971,,
+unibo,"ATES - Settore Distretto Sud Est e Nord Ovest - Ufficio Facility Nord Ovest; 
+ATES - Settore Distretto Sud Est e Nord Ovest - Ufficio Facility Sud Est",Strada Maggiore 45 - 40125 Bologna,Bologna,44.4913,11.3540,,
+unibo,Dipartimento di Scienze per la Qualità della Vita,Via del Pilastro 8 - 40127 Bologna,Bologna,44.5093,11.3899,,
+unibo,"A.U.B. - Unità di laboratorio I.N.F.A.; 
+Azienda Agraria - A.U.B.",Via Gandolfi 16 - Cadriano - 40057 Granarolo dell'Emilia,Granarolo dell'Emilia,44.5513,11.4013,,
+unibo,"Dipartimento di Scienze Biologiche, Geologiche e Ambientali",Via Zamboni 67 - 40126 Bologna,Bologna,44.4978,11.3552,,
+unibo,"ARPAC - Settore Biblioteca di Scienze Politiche e Sociali ""Nicola Matteucci"" e Biblioteca di Sociologia e Diritto dell'Economia",Strada Maggiore 45 - 40125 Bologna,Bologna,44.4913,11.3540,,
+unibo,"ARPAC - Settore Biblioteca di Lingue, Letterature e Culture Moderne",Via Cartoleria 5 - 40124 Bologna,Bologna,44.4898,11.3491,,
+unibo,Area di Campus di Rimini,Via Vittime Civili di Guerra 5 - 47921 Rimini,Rimini,44.0637,12.5693,,
+unibo,Dipartimento di Scienze Mediche Veterinarie,Viale Vespucci 2 - 47042 Cesenatico,Cesenatico,44.2064,12.3966,,
+unibo,DISI - Servizi tecnici di laboratorio,Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,Dipartimento di Farmacia e Biotecnologie,Via Gobetti 87 - 40129 Bologna,Bologna,44.5136,11.3391,,
+unibo,CRBA - Unità di laboratorio di Patologia sperimentale,Via Massarenti 9 - 40138 Bologna,Bologna,44.4930,11.3608,,
+unibo,"DIT - Dipartimento di Interpretazione e Traduzione; 
+DIT - Servizi amministrativi",Corso della Repubblica 136 - 47121 Forlì,Forlì,44.2193,12.0472,http://www.disitlec.unibo.it/,
+unibo,"ACFO - Settore Servizi didattici - Ufficio Gestione CdS scienze politiche e sociali, sociologia e diritto dell'economia",Piazza Aldo Moro 90 - 47521 Cesena,Cesena,44.1444,12.2482,,
+unibo,ACRA - Settore Servizi didattici,Via Guaccimanni 42 - 48121 Ravenna,Ravenna,44.4157,12.2026,,
+unibo,"ARPAC - Settore Biblioteca Umanistica ""Ezio Raimondi""",Via Zamboni 32 - 40126 Bologna,Bologna,44.4965,11.3512,,
+unibo,"ACRA - Settore Servizi agli studenti e comunicazione - Ufficio Orientamento tirocini e relazioni internazionali; 
+ACRA - Settore Servizi didattici; 
+ACRA - Settore Servizi informatici",Via Tombesi dall'Ova 55 - 48121 Ravenna,Ravenna,44.4150,12.2030,,
+unibo,DIBINEM - Servizi tecnici di laboratorio Area 1,Via San Giacomo 12 - 40126 Bologna,Bologna,44.4966,11.3550,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Zamboni 38 - 40126 Bologna,Bologna,44.4970,11.3524,,
+unibo,"ARPAC - Settore Biblioteca di Filosofia e Comunicazione e Biblioteca di Psicologia ""Silvana Contento""",Via Filippo Re 10 - 40126 Bologna,Bologna,44.4999,11.3547,,
+unibo,"ARPAC - Settore Biblioteca di Matematica, Fisica e Informatica, e Biblioteca di Scienze Biologiche, Geologiche ed Ambientali",Via Irnerio 46 - 40126 Bologna,Bologna,44.4990,11.3536,,
+unibo,DIBINEM - Servizi tecnici di laboratorio Area 1,Viale Randi 5 - 48121 Ravenna,Ravenna,44.4108,12.1887,,
+unibo,"Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Scienze Mediche e Chirurgiche; 
+Dipartimento di Scienze Mediche e Chirurgiche; 
+Dipartimento di Scienze Mediche e Chirurgiche; 
+Dipartimento di Scienze per la Qualita' della Vita",Via Massarenti 9 - 40138 Bologna,Bologna,44.4930,11.3608,,
+unibo,"AFORM - Settore Accordi e mobilità Erasmus+ ""UE""; 
+AFORM - Settore Accordi e mobilità Erasmus+ ""UE"" - Ufficio Coordinamento Blended Intensive Programme e processi di mobilità; 
+AFORM - Settore Accordi e mobilità Erasmus+ ""UE"" - Ufficio Mobilità per studio; 
+AFORM - Settore Accordi e mobilità Erasmus+ ""UE"" - Ufficio Mobilità per tirocinio e mobilità docenti e personale TA; 
+AFORM - Settore Accordi e mobilità extra UE; 
+AFORM - Settore Accordi e mobilità extra UE - Ufficio Accordi internazionali; 
+AFORM - Settore Accordi e mobilità extra UE - Ufficio Mobilità extra UE; 
+AFORM - Settore Offerta formativa congiunta nazionale e internazionale - Ufficio Offerta formativa congiunta internazionale; 
+AFORM - Unità di processo Servizi trasversali di Area",Via Filippo Re 4 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,"ARIC - Settore Accordi e partnership strategiche per la ricerca; 
+ARIC - Unità di processo Programmi e progetti regionali e locali",Via Zamboni 25 - 40126 Bologna,Bologna,44.4964,11.3511,,
+unibo,SAM - Settore Distretto sanitario,Via Irnerio 49 - 40126 Bologna,Bologna,44.4989,11.3538,,
+unibo,APPC - Settore Affari istituzionali,Viale Filopanti 5 - 40126 Bologna,Bologna,44.4956,11.3565,,
+unibo,"ATES - Settore Contabilità per l'edilizia; 
+ATES - Settore Edilizia e manutenzione - Ufficio Interventi edilizi; 
+ATES - Settore Supporto tecnico, innovazione digitale e sostenibilità - Ufficio Fascicolo del fabbricato e supporto tecnico; 
+ATES - Unità professionale Responsabili di progetto",Via Tombesi dall'Ova 57 - 48121 Ravenna,Ravenna,44.4149,12.2035,,
+unibo,"ACCE - Settore Servizi bibliotecari; 
+ACCE - Settore Servizi bibliotecari - Ufficio Coordinamento sezioni decentrate; 
+ACCE - Settore Servizi bibliotecari - Ufficio Sezione biblioteca centrale",Via Quasimodo 431 - 47522 Cesena,Cesena,44.1471,12.2352,,
+unibo,ARPAC - Settore Servizi amministrativo-contabili e generali,Via delle Belle Arti 33 - 40126 Bologna,Bologna,44.4977,11.3518,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Piazza di Porta San Donato 1 - 40126 Bologna,Bologna,44.4982,11.3557,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Garibaldi 24 - 40026 Imola,Imola,44.3531,11.7110,,
+unibo,FABIT - Unità di laboratorio di Chimica e biologia,Via Belmeloro 6 - 40126 Bologna,Bologna,44.4959,11.3530,,
+unibo,"ARIN - Settore Knowledge Transfer Office - Valorizzazione della conoscenza; 
+ARIN - Settore Knowledge Transfer Office - Valorizzazione della conoscenza - Ufficio Knowledge Transfer Office - bioeconomia e ingegneria (KTO - BEI); 
+ARIN - Settore Knowledge Transfer Office - Valorizzazione della conoscenza - Ufficio Knowledge Transfer Office - life sciences, scienze sociali e umane, varietà vegetali (KTO - LSV); 
+ARIN - Settore Local and Global Engagement - Ufficio Divulgazione scientifica; 
+ARIN - Settore Partecipazione a enti per la ricerca e l'innovazione; 
+ARIN - Settore Rapporti con le Imprese; 
+ARIN - Settore Staff e affari generali; 
+ARIN - Unità di processo Coordinamento fundraising e sponsorizzazioni; 
+ARIN - Unità di progetto Almae Matris Alumni; 
+ARIN - Unità professionale Servizio giuridico",Via Marsala 49 - 40126 Bologna,Bologna,44.4962,11.3487,,
+unibo,"ASES - Settore Orientamento; 
+ASES - Settore Orientamento - Ufficio Orientamento in ingresso; 
+ASES - Settore Orientamento - Ufficio Orientamento in itinere; 
+ASES - Settore Orientamento - Ufficio Orientamento in uscita",Via Zamboni 25 - 40126 Bologna,Bologna,44.4964,11.3511,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna - Ufficio Accessibilità e utilizzo spazi per il Distretto Filippo Re,Via Ranzani 1 - 40127 Bologna,Bologna,44.4997,11.3592,,
+unibo,Centro Interdipartimentale di Ricerca Industriale su Edilizia e Costruzioni,Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna - Ufficio Accessibilità e utilizzo spazi per il Distretto Filippo Re,Viale Berti Pichat 10 - 40127 Bologna,Bologna,44.5005,11.3564,,
+unibo,ATES - Settore Distretto Sud Est e Nord Ovest - Ufficio Facility Sud Est,Via Cartoleria 5 - 40124 Bologna,Bologna,44.4898,11.3491,,
+unibo,Dipartimento di Informatica - Scienza e Ingegneria,Mura Anteo Zamboni 7 - 40127 Bologna,Bologna,44.4973,11.3561,,
+unibo,"ACFO - Settore Servizi bibliotecari - Ufficio Servizi al pubblico; 
+ACFO - Settore Servizi contabili e amministrativi - Ufficio Contratti e approvvigionamenti; 
+ACFO - Settore Servizi didattici - Ufficio Gestione CdS ingegneria; 
+ACFO - Settore Servizi informatici",Via Montaspro 97 - 47121 Forlì,Forlì,44.2007,12.0637,,
+unibo,"AFORM - Settore Servizi didattici Ingegneria-Architettura; 
+AFORM - Settore Servizi didattici Ingegneria-Architettura - Ufficio Servizi di supporto alla didattica e ai Corsi di Studio; 
+AFORM - Settore Servizi didattici Ingegneria-Architettura - Ufficio Servizi di supporto per l'offerta formativa e la programmazione didattica",Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,,
+unibo,"BiGeA - Dipartimento di Scienze Biologiche, Geologiche e Ambientali",Piazza di Porta S.Donato 1 - 40126 Bologna,Bologna,44.4982,11.3554,,
+unibo,"FABIT - Servizi tecnici di laboratorio; 
+FABIT - Unità di laboratorio di Biochimica e farmacologia",Via Irnerio 48 - 40126 Bologna,Bologna,44.4991,11.3550,,
+unibo,ATES - Unità di processo Distretto Ozzano e Imola,Via Tolara di Sopra 50/58 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4357,11.4877,,
+unibo,STAT - Servizi Amministrativi,Piazzetta Teatini 10 - 47921 Rimini,Rimini,44.0604,12.5699,,
+unibo,ARPAC - Settore Biblioteca di Storia Culture Civiltà,Via San Vitale 28 Casa Traversari - 48121 Ravenna,Ravenna,0.0000,0.0000,,
+unibo,BiGeA - Servizi tecnici di laboratorio Bologna-Fano,Via Zamboni 67 - 40126 Bologna,Bologna,44.4978,11.3552,,
+unibo,DSG - Ufficio Servizi di supporto amministrativo gestionale per SPISA e Redenti,Via Belmeloro 10 - 40126 Bologna,Bologna,44.4954,11.3548,,
+unibo,"Centro Interdipartimentale di Ricerca Industriale FRAME-Fonti Rinnovabili, Ambiente, Mare ed Energia","Via Selmi 2 C/O Dipartimento di Chimica ""Giacomo Ciamician"" - 40126 Bologna",Bologna,44.4964,11.3540,,
+unibo,SSRD - Unità di progetto Cabina di regia aule cittadella,Via Zamboni 34 - 40126 Bologna,Bologna,44.4967,11.3514,,
+unibo,"DISTAL - Unità di laboratorio Cadriano; 
+DISTAL - Unità di laboratorio Meccanica agraria Cadriano",Via Gandolfi 19 - Cadriano - 40057 Bologna,Bologna,44.5484,11.4124,,
+unibo,Area Service Area Medica,Via Massarenti 9 - Pad. 11 - 40138 Bologna,Bologna,0.0000,0.0000,,
+unibo,ATES - Settore Distretto Sud Est e Nord Ovest - Ufficio Facility Nord Ovest,Via Ugo Foscolo 7 - 40123 Bologna,Bologna,44.4918,11.3300,,
+unibo,"CIRI FRAME (FONTI RINNOVABILI, AMBIENTE, MARE ED ENERGIA)",Via Irnerio 42 - 40126 Bologna,Bologna,44.4991,11.3528,,
+unibo,"CESIA - Unità di processo Gestione acquisti e contabilizzazione attrezzature e servizi informatici e gestione servizi di staff; 
+CESIA - Unità di progetto Nuovo sistema di telefonia fissa",Viale Filopanti 3 - 40123 Bologna,Bologna,44.4970,11.3565,,
+unibo,"Centro Interdipartimentale di Ricerca Industriale FRAME-Fonti Rinnovabili, Ambiente, Mare ed Energia",Via Terracini 28 - 40131 Bologna,Bologna,44.5136,11.3184,,
+unibo,Area del Patrimonio,Via Garibaldi 24 - 40026 Imola,Imola,44.3531,11.7110,,
+unibo,"ACCE - Settore Servizi agli studenti; 
+ACCE - Settore Servizi didattici - Ufficio CdS psicologia, agraria, veterinaria; 
+ACCE - Settore Servizi informatici - Ufficio Assistenza informatica",Viale Magrini 31 - 47042 Cesenatico,Cesenatico,44.2035,12.3957,,
+unibo,AGRO - Centro Interdipartimentale di Ricerca Industriale sull'Agroalimentare,Via Quinto Bucci 336 - 47521 Cesena,Cesena,44.1578,12.2457,,
+unibo,ICT - Centro Interdipartimentale di Ricerca Industriale su ICT,Via Quinto Bucci 336 - 47521 Cesena,Cesena,44.1578,12.2457,,
+unibo,DA - Dipartimento di Architettura,Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,http://www.dapt.unibo.it/,
+unibo,Centro Interdipartimentale di Ricerca Industriale su ICT,Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Zamboni 67 - 40126 Bologna,Bologna,44.4978,11.3552,,
+unibo,DSE - Servizi amministrativi,Via Belmeloro 10 - 40126 Bologna,Bologna,44.4954,11.3548,,
+unibo,DA - Servizi amministrativi,Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,"Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Scienze Biologiche, Geologiche e Ambientali; 
+Dipartimento di Scienze Biomediche e Neuromotorie",Via Selmi 3 - 40126 Bologna,Bologna,44.4962,11.3543,http://www.bigea.unibo.it/,
+unibo,APOS - Settore Inserimento e sviluppo professionale,Largo Trombetti 3 - 40126 Bologna,Bologna,44.4958,11.3526,,
+unibo,Dipartimento di Ingegneria Industriale,Via Baldassarre Carnaccini 10 12 - 47121 Forlì,Forlì,44.2000,12.0657,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Gobetti 87 - 40129 Bologna,Bologna,44.5136,11.3391,,
+unibo,"ACCE - Settore Servizi agli studenti; 
+ACCE - Settore Servizi agli studenti - Ufficio Orientamento, placement e relazioni con pubblico - URP; 
+ACCE - Settore Servizi agli studenti - Ufficio Segreteria studenti; 
+ACCE - Settore Servizi agli studenti - Ufficio Tirocini e relazioni internazionali",Via Montalti 69 - 47521 Cesena,Cesena,44.1402,12.2443,,
+unibo,Centro Interdipartimentale di Ricerca Industriale sull'Agroalimentare,Viale Fanin 40 - 50 - 40127 Bologna,Bologna,44.4902,11.2561,,
+unibo,"ARPAC - Settore Biblioteca di Ingegneria e Architettura; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Archiviazione dati della ricerca; 
+ARPAC - Settore Servizi amministrativo-contabili e generali",Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,Area di Campus di Ravenna,Via Pasolini 23 - 48121 Ravenna,Ravenna,44.3604,11.9356,,
+unibo,"Area Service Area Medica; 
+Dipartimento di Scienze Biomediche e Neuromotorie; 
+Dipartimento di Scienze Mediche e Chirurgiche",Via Altura 3 - 40139 Bologna,Bologna,44.4641,11.3904,,
+unibo,"ATES - Area Tecnica, Edilizia e Sostenibilità; 
+ATES - Settore Appalti ed esecuzione; 
+ATES - Settore Appalti ed esecuzione - Ufficio Lavori pubblici; 
+ATES - Settore Appalti ed esecuzione - Ufficio Partenariati e conferenze di servizi; 
+ATES - Settore Appalti ed esecuzione - Ufficio Servizi e forniture; 
+ATES - Settore Contabilità per l'edilizia; 
+ATES - Settore Distretto Navile; 
+ATES - Settore Edilizia e manutenzione; 
+ATES - Settore Edilizia e manutenzione - Ufficio Interventi edilizi; 
+ATES - Settore Grandi opere; 
+ATES - Settore per l'Energia; 
+ATES - Settore Servizi di pulizia, verde e decoro - Ufficio Servizi per il decoro degli spazi; 
+ATES - Settore Servizi di staff e affari generali; 
+ATES - Settore Supporto tecnico, innovazione digitale e sostenibilità; 
+ATES - Settore Supporto tecnico, innovazione digitale e sostenibilità - Ufficio Digitalizzazione e sostenibilità; 
+ATES - Settore Supporto tecnico, innovazione digitale e sostenibilità - Ufficio Fascicolo del fabbricato e supporto tecnico; 
+ATES - Unità di processo per progetti strategici; 
+ATES - Unità professionale Affari giuridici e legali; 
+ATES - Unità Professionale Programmazione e controllo di gestione; 
+ATES - Unità professionale Responsabili di progetto",Largo Trombetti 3 - 40126 Bologna,Bologna,44.4958,11.3526,,
+unibo,Dipartimento di Scienze e Tecnologie Agro-Alimentari,Piazza Goidanich 60 - 47023 Cesena,Cesena,44.1565,12.2428,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna - Ufficio Accessibilità e utilizzo spazi per il Distretto Zamboni,Via Zamboni 38 - 40126 Bologna,Bologna,44.4970,11.3524,,
+unibo,"SMA - Servizi tecnici di gestione, cura e conservazione dell'Orto botanico e dell'Erbario",Via Irnerio 42 - 40126 Bologna,Bologna,44.4991,11.3528,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Irnerio 42 - 40126 Bologna,Bologna,44.4991,11.3528,,
+unibo,"CRBA - Servizi tecnici di laboratorio; 
+CRBA - Unità di laboratorio di Biologia cellulare e molecolare; 
+CRBA - Unità di laboratorio di Microscopia avanzata e tecniche omiche; 
+CRBA - Unità di laboratorio di Patologia sperimentale",Via San Giacomo 14 - 40126 Bologna,Bologna,44.4965,11.3559,,
+unibo,SDE - Servizi Amministrativi,Strada Maggiore - 45 - 40125 Bologna,Bologna,44.4913,11.3540,,
+unibo,"DIN - Servizi tecnici di laboratorio; 
+DIN - Unità di laboratorio di Meccanica",Via Terracini 24 - 40131 Bologna,Bologna,44.5151,11.3201,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Piazza Scaravilli 2 - 40126 Bologna,Bologna,44.4970,11.3523,,
+unibo,ASES - Settore Segreterie studenti area scientifica - Ufficio Segreteria studenti agraria,Viale Fanin 50 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,CLA - Ufficio Sezione Romagna,Via Oberdan 1 - 48121 Ravenna,Ravenna,44.4160,12.1953,,
+unibo,DIBINEM - Servizi tecnici di laboratorio Area 2,Piazza di Porta San Donato 2 - 40125 Bologna,Bologna,0.0000,0.0000,,
+unibo,"AFORM - Settore Servizi didattici ambito sociale - Hercolani; 
+AFORM - Settore Servizi didattici ambito sociale - Scaravilli",Piazza Scaravilli 2 - 40126 Bologna,Bologna,44.4970,11.3523,,
+unibo,Dipartimento di Scienze Politiche e Sociali,Via Giacomo della Torre 1 - 47100 Forlì,Forlì,44.2189,12.0421,,
+unibo,FICLIT - Servizi amministrativi,Via Zamboni 32 - 40125 Bologna,Bologna,44.4965,11.3512,,
+unibo,"ACRA - Area di Campus di Ravenna; 
+ACRA - Settore Servizi agli studenti e comunicazione; 
+ACRA - Settore Servizi agli studenti e comunicazione - Ufficio Orientamento tirocini e relazioni internazionali; 
+ACRA - Settore Servizi agli studenti e comunicazione - Ufficio Relazioni con il pubblico - URP; 
+ACRA - Settore Servizi agli studenti e comunicazione - Ufficio Segreteria studenti; 
+ACRA - Settore Servizi contabili e amministrativi; 
+ACRA - Settore Servizi contabili e amministrativi - Ufficio Budget e approvvigionamenti; 
+ACRA - Settore Servizi contabili e amministrativi - Ufficio Contratti, missioni e compensi, patrimonio; 
+ACRA - Settore Servizi didattici; 
+ACRA - Ufficio Affari generali e personale",Via Baccarini 27 - 48121 Ravenna,Ravenna,44.4133,12.2003,,
+unibo,ACRA - Settore Distretto Campus,Via Angherà 22 - 47921 Rimini,Rimini,44.0620,12.5699,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Azzogardino 33 33/2 - 40122 Bologna,Bologna,0.0000,0.0000,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna,Via Andreatta 8 - 40126 Bologna,Bologna,44.4950,11.3561,,
+unibo,ACRA - Settore Distretto Campus,Via dell'Università 50 - 47522 Cesena,Cesena,44.1474,12.2355,,
+unibo,"DIN - Servizi amministrativi; 
+DIN - Servizi tecnici di laboratorio; 
+DIN - Ufficio Gestione budget e acquisti",Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,ASES - Settore Orientamento - Ufficio Orientamento in uscita,Largo Trombetti 1 - 40126 Bologna,Bologna,44.4965,11.3514,,
+unibo,Centro Interdipartimentale di Ricerca Industriale su Edilizia e Costruzioni,Via del Lazzaretto 15/5 - 40131 Bologna,Bologna,0.0000,0.0000,,
+unibo,Area del Personale,Via Zamboni 26 - 40126 Bologna,Bologna,44.4961,11.3500,,
+unibo,ACRA - Settore Servizi didattici,Via Granarolo 62 - 48018 Faenza,Faenza,44.3093,11.8971,,
+unibo,SSRD - Unità di progetto Cabina di regia aule cittadella,Via Massarenti 9 - Polo Murri - 40138 Bologna,Bologna,0.0000,0.0000,,
+unibo,Area Service Area Medica,Via Massarenti 9 U.O. Anatomia Patologica - 40138 Bologna,Bologna,0.0000,0.0000,,
+unibo,ASES - Settore Segreterie studenti area scientifica - Ufficio Segreteria studenti medicina veterinaria,Via Tolara di Sopra 50 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4357,11.4877,,
+unibo,"DIMEC - Unità di laboratorio di Istologia e Patologia sperimentale; 
+DIMEC - Unità di laboratorio di Medicina traslazionale",Via San Giacomo 14 - 40126 Bologna,Bologna,44.4965,11.3559,,
+unibo,ARPAC - Settore Biblioteca di Medicina,Viale Pepoli 5 - 40123 Bologna,Bologna,44.4925,11.3288,,
+unibo,"Dipartimento delle Arti; 
+Dipartimento di Filosofia",Via Azzo Gardino 23 - 40122 Bologna,Bologna,44.5009,11.3371,http://www.dfc.unibo.it/,
+unibo,"PSI - Dipartimento di Psicologia ""Renzo Canestrari""; 
+PSI - Servizi amministrativi",Viale Berti Pichat 5 - 40127 Bologna,Bologna,44.4995,11.3563,,
+unibo,"Dipartimento di Scienze Economiche; 
+Dipartimento di Sociologia e Diritto dell'Economia",Strada Maggiore 45 - 40125 Bologna,Bologna,44.4913,11.3540,,
+unibo,"Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Scienze Biologiche, Geologiche e Ambientali",Via Irnerio 42 - 40126 Bologna,Bologna,44.4991,11.3528,,
+unibo,"EDU - Dipartimento di Scienze Dell'Educazione ""Giovanni Maria Bertin""; 
+EDU - Servizi amministrativi",Via Filippo Re 6 - 40126 Bologna,Bologna,44.4999,11.3548,http://www.scedu.unibo.it/,
+unibo,FILO - Dipartimento di Filosofia,Via Zamboni 38 - 40126 Bologna,Bologna,44.4970,11.3524,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna,Via Gobetti 93/2 - 40129 Bologna,Bologna,44.5216,11.3382,,
+unibo,DISI - Servizi tecnici di laboratorio,Via dell'Università 50 - 47522 Cesena,Cesena,44.1474,12.2355,,
+unibo,ATES - Settore Distretto Sud Est e Nord Ovest,Via San Vitale 59 - 40125 Bologna,Bologna,44.4941,11.3540,,
+unibo,"DISTAL - Ufficio Gestione budget e approvigionamenti; 
+DISTAL - Unità di laboratorio Qualità prodotti di origine animale Ozzano",Via del Florio 2 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4301,11.4777,,
+unibo,APAP - Settore Acquisti e supporto alla razionalizzazione degli approvvigionamenti di beni e servizi,Via Acri 8 - 40126 Bologna,Bologna,44.4955,11.3527,,
+unibo,ARIN - Area Innovazione,Via Zamboni 25 - 40126 Bologna,Bologna,44.4964,11.3511,,
+unibo,"SPS - Dipartimento di Scienze Politiche e Sociali; 
+SPS - Servizi amministrativi; 
+SPS - Ufficio Approvvigionamenti; 
+SPS - Ufficio Gestione budget; 
+SPS - Unità di laboratorio Servizi tecnici di laboratorio",Strada Maggiore 45 - 40125 Bologna,Bologna,44.4913,11.3540,http://www.dsps.unibo.it/,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via della Beverara 123 - 40131 Bologna,Bologna,44.5221,11.3315,,
+unibo,"ARCES - Centro di Ricerca sui Sistemi Elettronici per l'Ingegneria dell'Informazione e delle Telecomunicazioni ""Ercole De Castro"" - ARCES (Advanced Research Center on Electronic System)",Via Toffano 2/2 - 40125 Bologna,Bologna,44.4897,11.3568,,
+unibo,"DSE - Dipartimento di Scienze Economiche; 
+DSE - Servizi amministrativi",Piazza Scaravilli 2 - 40126 Bologna,Bologna,44.4970,11.3523,,
+unibo,FABIT - Servizi tecnici di laboratorio,Via San Donato 15 - 40126 Bologna,Bologna,44.4983,11.3558,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Zamboni 34 - 40126 Bologna,Bologna,44.4967,11.3514,,
+unibo,"Dipartimento di Farmacia e Biotecnologie; 
+Dipartimento di Scienze e Tecnologie Agro-Alimentari",Viale Fanin 44 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,"DIMEVET - Dipartimento di Scienze Mediche Veterinarie; 
+DIMEVET - Servizi amministrativi contabili; 
+DIMEVET - Servizi per la Didattica; 
+DIMEVET - Servizi tecnici Macro area coordinamento di diagnostica applicata alle scienze medico veterinarie; 
+DIMEVET - Servizi tecnici Macro area di coordinamento di biologia e chimica applicate alle scienze medico veterinarie; 
+DIMEVET - Servizi tecnici Macro area di coordinamento farmacia centralizzata; 
+DIMEVET - Ufficio Amministrativo; 
+DIMEVET - Ufficio Approvvigionamenti; 
+DIMEVET - Ufficio Contabile; 
+DIMEVET - Ufficio Ricerca; 
+DIMEVET - Unità di laboratorio Coordinamento delle attività cliniche e professionalizzanti",Via Tolara di Sopra 50 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4357,11.4877,http://www.scienzemedicheveterinarie.unibo.it/,
+unibo,A.U.B. - Unità di laboratorio Erbacee Cadriano e Ozzano,Via Gandolfi 19 - Cadriano - 40027 Granarolo dell'Emilia,Granarolo dell'Emilia,44.5513,11.4012,,
+unibo,AFORM - Settore Servizi didattici Scienze - Navile,Via P. Gobetti 85 - 40129 Bologna,Bologna,0.0000,0.0000,,
+unibo,BiGeA - Servizi tecnici di laboratorio Bologna-Fano,Viale Adriatico 1/N - 61032 Fano,Fano,43.8494,13.0199,,
+unibo,"APPC - Area Pianificazione, Programmazione e Comunicazione; 
+APPC - Settore Programmazione di Ateneo e analisi dati; 
+APPC - Settore Programmazione di Ateneo e analisi dati - Ufficio DataWarehouse di Ateneo; 
+APPC - Settore Programmazione di Ateneo e analisi dati - Ufficio Elaborazione indicatori; 
+APPC - Settore Programmazione di Ateneo e analisi dati - Ufficio Rilevazioni ministeriali e supporto qualità; 
+APPC - Settore Rapporti con gli Organi Accademici",Largo Trombetti 4 - 40126 Bologna,Bologna,44.4961,11.3522,,
+unibo,DIBINEM - Servizi tecnici di laboratorio Area 1,Via Belmeloro 8 - 40126 Bologna,Bologna,44.4955,11.3542,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Gobetti 93/2 - 40129 Bologna,Bologna,44.5216,11.3382,,
+unibo,AFORM - Settore Servizi didattici Scienze - Navile,Viale Berti Pichat 10 - 40127 Bologna,Bologna,44.5005,11.3564,,
+unibo,DIBINEM - Unità di laboratorio Fisiologia,Piazza di Porta S. Donato 2 - 40125 Bologna,Bologna,44.4850,11.3563,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Zamboni 27-29 - 40126 Bologna,Bologna,44.4958,11.3494,,
+unibo,"FABIT - Servizi tecnici di laboratorio; 
+FABIT - Unità di laboratorio Biotecnologico e biomedico",Via della Beverara 123 - 40131 Bologna,Bologna,44.5221,11.3315,,
+unibo,"AFORM - Settore Servizi didattici ambito giuridico; 
+AFORM - Settore Servizi didattici ambito sociale - Hercolani; 
+AFORM - Settore Servizi didattici Scienze della Formazione",Via Filippo Re 8 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,"MAT - Dipartimento di Matematica; 
+MAT - Servizi amministrativi; 
+MAT - Unità laboratorio di calcolo",Piazza di Porta San Donato 5 - 40126 Bologna,Bologna,44.4983,11.3558,http://www.matematica.unibo.it/,
+unibo,Dipartimento di Matematica,Piazza di Porta S.Donato 5 - 40126 Bologna,Bologna,44.4982,11.3559,,
+unibo,"ASES - Settore Segreterie studenti area umanistica e sociale; 
+ASES - Settore Segreterie studenti area umanistica e sociale - Ufficio Segreteria studenti lettere; 
+ASES - Settore Segreterie studenti area umanistica e sociale - Ufficio Segreteria studenti scienze formazione e lingue e letterature straniere",Viale Filopanti 1 - 40126 Bologna,Bologna,44.4976,11.3565,,
+unibo,"ARIN - Settore Job placement e tirocini - Ufficio Tirocini area scientifica; 
+ARIN - Settore Job placement e tirocini - Ufficio Tirocini area umanistica",Via Filippo Re 10 - 40126 Bologna,Bologna,44.4999,11.3547,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Tolara di Sopra 50 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4357,11.4877,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Belle Arti 41 - 40126 Bologna,Bologna,44.4977,11.3523,,
+unibo,AFORM - Settore Servizi didattici ambito giuridico,Via Zamboni 22 - 40125 Bologna,Bologna,44.4958,11.3492,,
+unibo,ARPAC - Settore Biblioteca di Agraria,Palazzo Vespignani - via Garibaldi 24 - 40026 Imola,Imola,0.0000,0.0000,,
+unibo,Dipartimento di Scienze Biomediche e Neuromotorie,Via Ugo Foscolo 7 - 40123 Bologna,Bologna,44.4918,11.3300,,
+unibo,"CIRI AEROSPAZIALE-AEROSPACE; 
+CIRI SCIENZE DELLA VITA E TECNOLOGIE PER LA SALUTE",Via Selmi 2 - 40126 Bologna,Bologna,44.4963,11.3541,,
+unibo,ACRA - Settore Distretto Campus,Piazza Aldo Moro 90 - 47521 Cesena,Cesena,44.1444,12.2482,,
+unibo,DISTAL - Unità di laboratorio Serre,Via Ascari 17 - 40026 Imola,Imola,44.3410,11.7199,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via della Beverara 123/1 - 40131 Bologna,Bologna,44.5226,11.3346,,
+unibo,"BIGEA - Ufficio Affari generali e gestione del personale; 
+BIGEA - Ufficio Approvvigionamenti; 
+BIGEA - Ufficio Gestione budget e ricerca",Piazza di Porta San Donato 1 - 40126 Bologna,Bologna,44.4982,11.3557,,
+unibo,"DICAM - Servizi Amministrativi; 
+DICAM - Servizi tecnici di laboratorio; 
+DICAM - Ufficio Gestione budget e approvvigionamenti; 
+DICAM - Ufficio Gestione contratti e spese per il personale; 
+DICAM - Unità di laboratorio (LARIG - LAMC - LIDR - LAMAC - LABIOTEC - LABIC - LART - LADS); 
+DICAM - Unità di laboratorio (LISG - LAGIRN - LASTM - LAS)",Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,"ACRN - Area di Campus di Rimini; 
+ACRN - Settore Personale e affari generali; 
+ACRN - Settore Personale e affari generali - Ufficio Affari generali e supporto agli organi; 
+ACRN - Settore Personale e affari generali - Ufficio Servizi al personale; 
+ACRN - Settore Servizi contabili e amministrativi; 
+ACRN - Settore Servizi contabili e amministrativi - Ufficio Acquisti e gestione patrimonio; 
+ACRN - Settore Servizi contabili e amministrativi - Ufficio Contabilità; 
+ACRN - Settore Servizi didattici - Ufficio Scienze economiche, aziendali e sociali; 
+ACRN - Settore Servizi didattici - Ufficio Scienze qualità della vita; 
+ACRN - Settore Servizi informatici",Via Angherà 22 - 47921 Rimini,Rimini,44.0620,12.5699,,
+unibo,"ARPAC - Settore Gestione e sviluppo del catalogo del Polo Bolognese; 
+ARPAC - Settore Gestione e sviluppo della Biblioteca delle risorse elettroniche - AlmaRE; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Archiviazione dati della ricerca; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Pubblicazioni scientifiche e archivi istituzionali per l'Open Access; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Servizi editoriali istituzionali in Open Access - Alma Diamond; 
+ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Servizi per la valorizzazione del patrimonio culturale digitale; 
+ARPAC - Settore Servizi amministrativo-contabili e generali; 
+ARPAC - Unità di processo Gestione e sviluppo del catalogo italiano dei periodici - ACNP; 
+ARPAC - Unità di processo Progetti di Area e approvvigionamenti; 
+ARPAC - Unità Professionale Information Literacy; 
+ARPAC - Unità professionale Presidio Giuridico di Area",Via dei Bersaglieri 4 - 40125 Bologna,Bologna,44.4905,11.3530,,
+unibo,"DEI - Dipartimento di Ingegneria dell'Energia Elettrica e dell'Informazione ""Guglielmo Marconi""; 
+DEI - Ufficio Approvvigionamenti; 
+DEI - Ufficio Gestione budget, compensi e missioni; 
+DEI - Ufficio Ricerca e Terza missione; 
+DEI - Ufficio Staff e contratti al personale",Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,http://www.dei.unibo.it/,
+unibo,DIMEC - Unità di laboratorio di Istologia e Patologia sperimentale,Via Massarenti 9 - 40126 Bologna,Bologna,44.4927,11.3594,,
+unibo,ATES - Settore Edilizia e manutenzione - Ufficio Distretto Cittadella - Filippo Re,Viale Berti Pichat 10 - 40127 Bologna,Bologna,44.5005,11.3564,,
+unibo,"DISI - Dipartimento di Informatica - Scienza e Ingegneria; 
+DISI - Servizi amministrativi; 
+DISI - Servizi tecnici di laboratorio",Mura Anteo Zamboni 7 - 40126 Bologna,Bologna,44.4971,11.3560,http://www.informatica.unibo.it/,
+unibo,BiGeA - Servizi tecnici di laboratorio Bologna-Fano,Via Irnerio 42 - 40126 Bologna,Bologna,44.4991,11.3528,,
+unibo,"Dipartimento di Chimica ""Giacomo Ciamician""",Via Guaccimanni 42 - 48121 Ravenna,Ravenna,44.4157,12.2026,,
+unibo,ARPAC - Settore Biblioteca di Scienze Statistiche,Via Belle Arti 41 - 40126 Bologna,Bologna,44.4977,11.3523,,
+unibo,Area Service Area Medica,Via Massarenti 9 U.O. Urologia - 40138 Bologna,Bologna,0.0000,0.0000,,
+unibo,Dipartimento di Scienze Mediche e Chirurgiche,Via Massarenti 1 - 40138 Bologna,Bologna,44.4940,11.3573,,
+unibo,SDV - Centro Interdipartimentale di Ricerca Industriale su Scienze della Vita e Tecnologie per la Salute,Via Tolara di Sopra 41/E - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4355,11.4878,,
+unibo,"CHIMIND - Dipartimento di Chimica Industriale ""Toso Montanari""; 
+CHIMIND - Servizi amministrativi; 
+CHIMIND - Servizi tecnici di laboratorio",Via Piero Gobetti 85 - 40129 Bologna,Bologna,44.5219,11.3376,,
+unibo,"DISTAL - Dipartimento di Scienze e Tecnologie Agro-Alimentari; 
+DISTAL - Servizi tecnici di laboratorio Specialistici e didattici Bologna Cadriano e Imola; 
+DISTAL - Unità di laboratorio Agronomia, genetica, fisiologia e zootecnia; 
+DISTAL - Unità di laboratorio di Economia, ingegneria e idraulica",Viale Fanin 50 - 40127 Bologna,Bologna,44.5140,11.4054,http://www.distal.unibo.it/,
+unibo,CENTRO DI INTERESSE STRATEGICO DI ATENEO ALMA MATER INSTITUTE ON HEALTHY PLANET,Via Massarenti 11 - Pad. 13 - 40138 Bologna,Bologna,0.0000,0.0000,,
+unibo,SSRD - Unità di progetto Cabina di regia aule cittadella,Via Selmi 3 - 40126 Bologna,Bologna,44.4962,11.3543,,
+unibo,Dipartimento di Scienze e Tecnologie Agro-Alimentari,Viale Fanin 48 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,"DISTAL - Servizi tecnici di laboratorio Specialistici e didattici Bologna Cadriano e Imola; 
+DISTAL - Unità di laboratorio Difesa e produzioni vegetali",Viale Fanin 42 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,CLA - Ufficio Sezione Romagna,Via Lombardini 5 - 47121 Forlì,Forlì,44.2179,12.0413,,
+unibo,DIBINEM - Unità di laboratorio Clinica odontoiatrica,Via San Vitale 59 - 40126 Bologna,Bologna,44.4941,11.3540,,
+unibo,"DIN - Servizi tecnici di laboratorio; 
+DIN - Unità di laboratorio di Fisica tecnica",Via Terracini 34 - 40131 Bologna,Bologna,44.5159,11.3208,,
+unibo,CLA - Ufficio Sezione Romagna,Via Angherà 22 - 47921 Rimini,Rimini,44.0620,12.5699,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Piazzetta Morandi 2 - 40125 Bologna,Bologna,44.4887,11.3550,,
+unibo,"Centro Interdipartimentale di Ricerca Industriale sull'Agroalimentare; 
+Dipartimento di Chimica Industriale ""Toso Montanari""; 
+Dipartimento di Ingegneria Civile, Chimica, Ambientale e dei Materiali; 
+Dipartimento di Scienze Aziendali",Via Terracini 28 - 40131 Bologna,Bologna,44.5136,11.3184,,
+unibo,SDE - Dipartimento di Sociologia e Diritto dell'Economia,Strada Maggiore 45 - 40125 Bologna,Bologna,44.4913,11.3540,http://www.sde.unibo.it/,
+unibo,ACFO - Settore Servizi contabili e amministrativi - Ufficio Progetti,Viale Corridoni 20 - 47121 Forlì,Forlì,44.2185,12.0432,,
+unibo,SAM - Settore Distretto sanitario,Via San Vitale 59 - 40125 Bologna,Bologna,44.4941,11.3540,,
+unibo,"AFORM - Settore Servizi didattici ambito sociale - Hercolani; 
+AFORM - Settore Servizi didattici ambito sociale - Scaravilli; 
+AFORM - Unità di processo Servizi trasversali di Area",Strada Maggiore 45 - 40125 Bologna,Bologna,44.4913,11.3540,,
+unibo,"Dipartimento di Fisica e Astronomia ""Augusto Righi""",Viale Berti Pichat 8 - 40127 Bologna,Bologna,44.5003,11.3565,,
+unibo,"ATES - Settore Appalti ed esecuzione - Ufficio Lavori pubblici; 
+ATES - Settore Edilizia e manutenzione - Ufficio Interventi edilizi; 
+ATES - Settore Grandi opere; 
+ATES - Settore Supporto tecnico, innovazione digitale e sostenibilità - Ufficio Digitalizzazione e sostenibilità",Piazzale Solieri 1 - 47121 Forlì,Forlì,44.2193,12.0424,,
+unibo,A.U.B. - Unità di laboratorio Erbacee Cadriano e Ozzano,Via Sant'Andrea 53 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4403,11.4765,,
+unibo,Dipartimento di Scienze Economiche,Via San Giacomo 3 - 40126 Bologna,Bologna,44.4970,11.3537,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna - Ufficio Accessibilità e utilizzo spazi per il Distretto Risorgimento Bertalia,Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,"Dipartimento di Matematica; 
+Dipartimento di Scienze Statistiche ""Paolo Fortunati""",Viale Filopanti 5 - 40126 Bologna,Bologna,44.4956,11.3565,,
+unibo,"ATES - Settore Edilizia e manutenzione - Ufficio Interventi edilizi; 
+ATES - Settore Grandi opere; 
+ATES - Settore Supporto tecnico, innovazione digitale e sostenibilità - Ufficio Digitalizzazione e sostenibilità; 
+ATES - Settore Supporto tecnico, innovazione digitale e sostenibilità - Ufficio Fascicolo del fabbricato e supporto tecnico; 
+ATES - Unità professionale Responsabili di progetto",Via dell'Università 50 - 47521 Cesena,Cesena,44.1474,12.2355,,
+unibo,"Area Service Area Medica; 
+Dipartimento di Scienze Mediche e Chirurgiche",Via Massarenti 11 - 40138 Bologna,Bologna,44.4925,11.3618,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Piazza di Porta S. Donato 5 - 40126 Bologna,Bologna,44.4983,11.3558,,
+unibo,"DAR - Dipartimento delle Arti; 
+DAR - Servizi Amministrativi; 
+DAR - Servizi Tecnici di laboratorio",Via Barberia 4 - 40123 Bologna,Bologna,44.4915,11.3392,,
+unibo,FABIT - Servizi tecnici di laboratorio,Via Bastioni Settentrionali 43 - 47921 Rimini,Rimini,44.0639,12.5654,,
+unibo,"FICLIT - Dipartimento di Filologia Classica e Italianistica; 
+FICLIT - Ufficio Contabilità e approvvigionamenti; 
+FICLIT - Ufficio Ricerca",Via Zamboni 32 - 40126 Bologna,Bologna,44.4965,11.3512,http://www.ficlit.unibo.it/,
+unibo,DISI - Servizi amministrativi,Via dell'Università 50 - 47521 Cesena,Cesena,44.1474,12.2355,,
+unibo,"Dipartimento di Scienze Biomediche e Neuromotorie; 
+Dipartimento di Scienze Mediche e Chirurgiche",Viale C.Pepoli 5 - 40123 Bologna,Bologna,44.4931,11.3290,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna - Ufficio Accessibilità e utilizzo spazi per il Distretto Sud Est,Strada Maggiore 45 - 40125 Bologna,Bologna,44.4913,11.3540,,
+unibo,ARPAC - Settore Biblioteca di Veterinaria,Via Tolara di Sopra 50/58 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4357,11.4877,,
+unibo,Centro Interdipartimentale di Ricerca Industriale su ICT,Via dell'Università 50 - 47522 Cesena,Cesena,44.1474,12.2355,,
+unibo,DSG - Ufficio Servizi di supporto amministrativo gestionale per SPISA e Redenti,Via Andreatta 4 - 40126 Bologna,Bologna,44.4952,11.3562,,
+unibo,EDU - Servizi amministrativi,Via Angherà 22 - 47921 Rimini,Rimini,44.0620,12.5699,,
+unibo,"DIMEC - Unità di laboratorio di Genetica; 
+DIMEC - Unità di laboratorio di Medicina specialistica",Via Massarenti 11 - 40138 Bologna,Bologna,44.4925,11.3618,,
+unibo,"DISTAL - Servizi tecnici di laboratorio Cesena e Ozzano; 
+DISTAL - Ufficio Gestione budget e approvvigionamenti; 
+DISTAL - Unità di laboratorio Cesena",Piazza Goidanich 60 - 47521 Cesena,Cesena,44.1565,12.2428,,
+unibo,"DIFA - Ufficio Gestione budget e approvvigionamenti; 
+DIFA - Ufficio Gestione del personale, affari generali e ricerca",Viale Berti Pichat 6/2 - 40126 Bologna,Bologna,44.5006,11.3565,,
+unibo,ARPAC - Settore Gestione e sviluppo della biblioteca digitale d'Ateneo - AlmaDL - Ufficio Pubblicazioni scientifiche e archivi istituzionali per l'Open Access,Via Massarenti 9 - 40138 Bologna,Bologna,44.4930,11.3608,,
+unibo,Dipartimento di Scienze Giuridiche,Via Zamboni 22 - 40126 Bologna,Bologna,44.4956,11.3489,,
+unibo,"Dipartimento di Matematica; 
+Dipartimento di Scienze Aziendali; 
+Dipartimento di Sociologia e Diritto dell'Economia",Piazzale della Vittoria 15 - 47100 Forlì,Forlì,44.2175,12.0506,,
+unibo,"APAT - Settore Coordinamento servizi agli spazi sede di Bologna; 
+APAT - Settore Coordinamento servizi agli spazi sede di Bologna - Ufficio Gestione servizi e spazi; 
+APAT - Settore Servizi amministrativi, contabili e fiscali del patrimonio - Ufficio Contratti e acquisti di Area",Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna,Via Garibaldi 24 - 40026 Imola,Imola,44.3531,11.7110,,
+unibo,"CHIM - Dipartimento di Chimica ""Giacomo Ciamician""; 
+CHIM - Servizi amministrativi; 
+CHIM - Servizi tecnici di laboratorio; 
+CHIM - Unità di laboratorio di Chimica inorganica - chimica fisica; 
+CHIM - Unità di laboratorio di Chimica organica - analitica",Via Gobetti 85 - 40129 Bologna,Bologna,44.5210,11.3370,,
+unibo,ACRA - Settore Distretto Campus,Piazzale Solieri 1 - 47121 Forlì,Forlì,44.2193,12.0424,,
+unibo,"Dipartimento di Interpretazione e Traduzione; 
+Dipartimento di Scienze Politiche e Sociali",Via G. della Torre 5 - 47100 Forlì,Forlì,44.2232,12.0407,,
+unibo,DBC - Servizi Amministrativi,Via degli Ariani 1 - 48121 Ravenna,Ravenna,44.4183,12.2022,,
+unibo,DISI - Servizi Amministrativi,Viale Risorgimento 2 - 40134 Bologna,Bologna,44.4881,11.3284,,
+unibo,Dipartimento di Scienze e Tecnologie Agro-Alimentari,Via del Florio 2 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4301,11.4777,,
+unibo,"AFORM - Area Formazione e Dottorato; 
+AFORM - Settore Affari Generali - Ufficio Pianificazione e acquisti; 
+AFORM - Settore Affari Generali - Ufficio Protocollo e personale; 
+AFORM - Settore Offerta formativa congiunta nazionale e internazionale; 
+AFORM - Settore Offerta formativa congiunta nazionale e internazionale - Ufficio Offerta formativa congiunta internazionale; 
+AFORM - Settore Offerta formativa congiunta nazionale e internazionale - Ufficio Offerta formativa congiunta nazionale; 
+AFORM - Settore Progettazione Didattica; 
+AFORM - Settore Progettazione Didattica - Ufficio Attivazione e regolamentazione corsi di specializzazione; 
+AFORM - Settore Progettazione Didattica - Ufficio Attivazione e regolamentazione corsi di studio; 
+AFORM - Settore Programmazione didattica; 
+AFORM - Settore Programmazione didattica - Ufficio Contratti di insegnamento e tutorato; 
+AFORM - Settore Servizi didattici ambito sociale - Scaravilli; 
+AFORM - Settore Servizi didattici Ingegneria-Architettura - Ufficio Servizi di supporto alla didattica e ai Corsi di Studio; 
+AFORM - Unità di processo Servizi trasversali di Area",Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,"ARPAC - Settore Biblioteca di Filosofia e Comunicazione e Biblioteca di Psicologia ""Silvana Contento""",Via Azzo Gardino 23 - 40122 Bologna,Bologna,44.5009,11.3371,,
+unibo,"BiGeA - Servizi amministrativi; 
+BiGeA - Servizi tecnici di laboratorio Bologna-Fano",Piazza di Porta San Donato 1 - 40126 Bologna,Bologna,44.4982,11.3557,,
+unibo,DIN - Dipartimento di Ingegneria Industriale,Viale del Risorgimento 2 - 40132 Bologna,Bologna,44.4881,11.3284,http://www.ingegneriaindustriale.unibo.it/,
+unibo,"ACFO - Settore Servizi didattici; 
+ACFO - Settore Servizi didattici - Ufficio Gestione CdS interpretazione e traduzione",Corso della Repubblica 136 - 47121 Forlì,Forlì,44.2193,12.0472,,
+unibo,"Dipartimento di Scienze Biologiche, Geologiche e Ambientali",Viale Adriatico 1/N - 61032 Fano,Fano,43.8494,13.0199,,
+unibo,"Dipartimento di Scienze Statistiche ""Paolo Fortunati""",Piazzetta Teatini 10 - 47921 Rimini,Rimini,44.0604,12.5699,,
+unibo,ABESS - Unità professionale Benessere animale,Via Tolara di Sopra 50 - 40064 Ozzano dell'Emilia,Ozzano dell'Emilia,44.4357,11.4877,,
+unibo,ABESS - Unità di processo Progetti innovativi e trasversali all'Area,Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,CIRI SCIENZE DELLA VITA E TECNOLOGIE PER LA SALUTE,Via Belmeloro 6 - 40126 Bologna,Bologna,44.4959,11.3530,,
+unibo,"DIMEC - Dipartimento di Scienze Mediche e Chirurgiche; 
+DIMEC - Servizi tecnici di laboratorio di Area specialistica, diagnostica e traslazionale; 
+DIMEC - Unità di laboratorio di Genetica; 
+DIMEC - Unità di laboratorio di Medicina diagnostica; 
+DIMEC - Unità di laboratorio di Medicina specialistica; 
+DIMEC - Unità di laboratorio di Medicina traslazionale",Via Massarenti 9 - 40138 Bologna,Bologna,44.4930,11.3608,http://www.dimec.unibo.it/,
+unibo,Dipartimento delle Arti,Piazzetta Pier Paolo Pasolini 5/B - 40122 Bologna,Bologna,44.5700,11.3021,,
+unibo,"Dipartimento di Scienze Economiche; 
+Dipartimento di Sociologia e Diritto dell'Economia",Via Giacomo della Torre 1 - 47121 Forlì,Forlì,44.2189,12.0421,,
+unibo,"QUVI - Dipartimento di Scienze per la Qualità della Vita; 
+QUVI - Unità gestionale di coordinamento dei servizi",Corso D'Augusto 237 - 47921 Rimini,Rimini,44.0627,12.5648,http://www.scienzequalitavita.unibo.it/,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Viale Risorgimento 2 - 40136 Bologna,Bologna,44.4882,11.3283,,
+unibo,"Dipartimento di Ingegneria dell'Energia Elettrica e dell'Informazione ""Guglielmo Marconi""; 
+Dipartimento di Scienze Aziendali; 
+Dipartimento di Scienze e Tecnologie Agro-Alimentari",Padiglione Melandri - Piazzale Solieri 1 - 47121 Forlì,Forlì,44.2193,12.0424,,
+unibo,BiGeA - Servizi tecnici di laboratorio Bologna-Fano,Via Selmi 3 - 40126 Bologna,Bologna,44.4962,11.3543,,
+unibo,ATES - Settore Distretto Bertalia e Risorgimento,Via Terracini 28 - 40131 Bologna,Bologna,44.5136,11.3184,,
+unibo,"APPC - Settore Qualità e valutazione; 
+APPC - Settore Qualità e valutazione - Ufficio Assicurazione della qualità dei corsi di studio e di dottorato; 
+APPC - Settore Qualità e valutazione - Ufficio Assicurazione della qualità dei dipartimenti; 
+APPC - Settore Qualità e valutazione - Ufficio Valutazione della ricerca e della terza missione; 
+APPC - Ufficio Supporto al Nucleo di Valutazione",Via Zamboni 25 - 40126 Bologna,Bologna,44.4964,11.3511,,
+unibo,"ARPAC - Settore Archivio storico; 
+ARPAC - Settore Biblioteca di Storia Culture Civiltà; 
+ARPAC - Unità di processo Servizi di staff e a supporto di SMA, BUB e Archivio Storico",Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,"AFORM - Settore Servizi didattici Lettere-Lingue; 
+AFORM - Settore Servizi didattici Lettere-Lingue - Ufficio Servizi di supporto alla didattica e ai Corsi di Studio; 
+AFORM - Settore Servizi didattici Lettere-Lingue - Ufficio Servizi di supporto per l'offerta formativa e la programmazione didattica",Via Zamboni 34 - 40126 Bologna,Bologna,44.4967,11.3514,,
+unibo,Amministrazione Generale,Via Zamboni 33 - 40012 Bologna,Bologna,44.4969,11.3524,,
+unibo,DEI - Unità di laboratorio Informatica,Via dell'Università 50 - 47522 Cesena,Cesena,44.1474,12.2355,,
+unibo,Dipartimento di Scienze Giuridiche,Via Belmeloro 10 - 40126 Bologna,Bologna,44.4954,11.3548,,
+unibo,ARPAC - Ufficio Patrimonio fotografico e servizi di fototeca,Piazzetta Giorgio Morandi 2 - 40125 Bologna,Bologna,44.4885,11.3547,,
+unibo,Centro Interdipartimentale di Ricerca Industriale su Meccanica Avanzata e Materiali,Viale Carlo Berti Pichat 6/2 - 40127 Bologna,Bologna,44.5004,11.3573,,
+unibo,ARPAC - Settore Biblioteca di Ingegneria e Architettura,Viale Risorgimento 4 - 40136 Bologna,Bologna,44.4878,11.3289,,
+unibo,"DISTAL - Unità di laboratorio Agronomia, genetica, fisiologia e zootecnia; 
+DISTAL - Unità di laboratorio Camere e frigo congelatori; 
+DISTAL - Unità di laboratorio di Chimica e analisi degli alimenti; 
+DISTAL - Unità di laboratorio Difesa e produzioni vegetali",Viale Fanin 40 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,"Area Tecnica, Edilizia e Sostenibilità",Via Acri 10 - 40126 Bologna,Bologna,44.4956,11.3527,,
+unibo,Area Innovazione,Via Acri 3 - 40126 Bologna,Bologna,44.4950,11.3525,,
+unibo,"ARPAC - Area Patrimonio Culturale; 
+ARPAC - Unità di processo Servizi di staff e a supporto di SMA, BUB e Archivio Storico; 
+ARPAC - Unità di processo Supporto allo sviluppo della Rete del Patrimonio Culturale di Ateneo",Via Marsala 26 - 40126 Bologna,Bologna,44.4965,11.3483,,
+unibo,ABESS - Unità professionale Medicina del lavoro,Via Pelagio Palagi 9 - 40138 Bologna,Bologna,44.4906,11.3663,,
+unibo,AFORM - Settore Servizi didattici Lettere-Lingue - Ufficio Servizi di supporto alla didattica e ai Corsi di Studio,Piazza San Giovanni in Monte 2 - 40124 Bologna,Bologna,44.4912,11.3485,,
+unibo,CHIM - Servizi tecnici di laboratorio,Via S. Alberto 163 - 48123 Ravenna,Ravenna,44.4346,12.1961,,
+unibo,FABIT - Unità di Laboratorio di Chimica e Biologia,Via San Donato 19 - 40127 Bologna,Bologna,44.4991,11.3579,,
+unibo,"APPC - Settore Comunicazione; 
+APPC - Settore Eventi di Ateneo",Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,"APAT - Area del Patrimonio; 
+APAT - Settore Coordinamento servizi agli spazi sede di Bologna; 
+APAT - Settore Gestione del patrimonio mobiliare e immobiliare; 
+APAT - Settore Gestione del patrimonio mobiliare e immobiliare - Ufficio Gestione del patrimonio immobiliare; 
+APAT - Settore Gestione del patrimonio mobiliare e immobiliare - Ufficio Gestione tecnica; 
+APAT - Settore Gestione del patrimonio mobiliare e immobiliare - Ufficio Inventari; 
+APAT - Settore Servizi amministrativi, contabili e fiscali del patrimonio; 
+APAT - Ufficio Staff di Area, supporto attività sportiva e rapporti Fondazioni patrimoniali; 
+APAT- Settore Servizi amministrativi, contabili e fiscali del patrimonio - Ufficio Gestione contratti assicurativi",Via Acri 3 - 40126 Bologna,Bologna,44.4950,11.3525,,
+unibo,"DSG - Dipartimento di Scienze Giuridiche; 
+DSG - Servizi Amministrativi; 
+DSG - Ufficio Affari generali; 
+DSG - Ufficio Contabilità",Via Zamboni 27/29 - 40126 Bologna,Bologna,44.4966,11.3517,http://www.cicu.unibo.it/,
+unibo,"DICAM - Dipartimento di Ingegneria Civile, Chimica, Ambientale e dei Materiali",Viale del Risorgimento 2 - 40136 Bologna,Bologna,44.4904,11.3289,http://www.dicam.unibo.it/,
+unibo,FABIT - Servizi tecnici di laboratorio,Via Gobetti 87 - 40129 Bologna,Bologna,44.5136,11.3391,,
+unibo,CTL - Unità di processo Organizzazione didattica,Via Filippo Re 10 - 40126 Bologna,Bologna,44.4999,11.3547,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Barberia 4 - 40123 Bologna,Bologna,44.4915,11.3392,,
+unibo,DIMEC - Unità di laboratorio di Istologia e Patologia sperimentale,Via Belmeloro 8 - 40126 Bologna,Bologna,44.4955,11.3542,,
+unibo,DIMEVET - Unità di laboratorio Acquacoltura e ittiopatologia,Viale Vespucci 2 - 47042 Cesenatico,Cesenatico,44.2064,12.3966,,
+unibo,APAT - Settore Coordinamento servizi agli spazi sede di Bologna,Via Ugo Foscolo 7 - 40123 Bologna,Bologna,44.4918,11.3300,,
+unibo,Dipartimento di Scienze Mediche e Chirurgiche,Via Massarenti 13 - 40138 Bologna,Bologna,44.4922,11.3640,,
+unibo,"CESIA - Settore Gestione protocollo informatico, flussi documentali e archivi",Largo Trombetti 4 - 40126 Bologna,Bologna,44.4961,11.3522,,
+unibo,PSI - Servizi amministrativi,Viale Berti Pichat 10 - 40127 Bologna,Bologna,44.5005,11.3564,,
+unibo,ACRN - Settore Biblioteca centrale,Via Vittime Civili di Guerra 5 - 47921 Rimini,Rimini,44.0637,12.5693,,
+unibo,"ARPAC - Settore Biblioteca di Storia Culture Civiltà; 
+ARPAC - Settore Servizi amministrativo-contabili e generali",Piazza San Giovanni in Monte 2 - 40124 Bologna,Bologna,44.4912,11.3485,,
+unibo,Dipartimento delle Arti,Piazzetta G. Morandi 2 - 40124 Bologna,Bologna,0.0000,0.0000,,
+unibo,CLA - Centro Linguistico di Ateneo,Via Zamboni 33 - 40126 Bologna,Bologna,44.4969,11.3524,,
+unibo,Dipartimento di Ingegneria Industriale,Viale Risorgimento 4 - 40136 Bologna,Bologna,44.4878,11.3289,,
+unibo,"APOS - Settore Sviluppo organizzativo e formazione; 
+APOS - Settore Sviluppo organizzativo e formazione - Ufficio Formazione esterna, alta formazione ed eventi formativi; 
+APOS - Settore Sviluppo organizzativo e formazione - Ufficio Formazione obbligatoria e formazione per il personale docente e ricercatore; 
+APOS - Settore Sviluppo organizzativo e formazione - Ufficio forme di lavoro a distanza; 
+APOS - Settore Sviluppo organizzativo e formazione - Ufficio Organizzazione e incarichi di responsabilità; 
+APOS - Unità di processo Supporto ai cambiamenti organizzativi; 
+APOS - Unità professionale Supporto ai processi trasversali di Area",Via Zamboni 26 - 40126 Bologna,Bologna,44.4961,11.3500,,
+unibo,"ARPAC - Settore Biblioteca di Medicina; 
+ARPAC - Settore Servizi amministrativo-contabili e generali",Via Filippo Re 8 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,FaBiT - Dipartimento di Farmacia e Biotecnologie,Via Belmeloro 6 - 40126 Bologna,Bologna,44.4959,11.3530,http://www.fabit.unibo.it/,
+unibo,Dipartimento di Scienze Aziendali,Via Capo di Lucca 34 - 40126 Bologna,Bologna,44.5000,11.3476,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Belmeloro 6 - 40126 Bologna,Bologna,44.4959,11.3530,,
+unibo,"SMA - Servizi Coordinamento attività tecniche museali e dei servizi al pubblico ed educativi; 
+SMA - Unità di processo Comunicazione e valorizzazione del patrimonio culturale dello SMA",Via Zamboni 33 - 40125 Bologna,Bologna,44.4969,11.3524,,
+unibo,Area Patrimonio Culturale,Via Zamboni 35 - 40126 Bologna,Bologna,44.4973,11.3531,,
+unibo,Assegnazione temporanea c/o Cineca,Via Magnanelli 6/3 - 40033 Casalecchio di Reno,Casalecchio di Reno,44.4862,11.2597,,
+unibo,SSRD - Unità di progetto Cabina di regia aule cittadella,Via Filippo Re 6 - 40126 Bologna,Bologna,44.4999,11.3548,,
+unibo,"SAM - Settore Budget e approvvigionamenti; 
+SAM - Settore Budget e approvvigionamenti - Ufficio Approvvigionamenti; 
+SAM - Settore Budget e approvvigionamenti - Ufficio Budget e contabilità; 
+SAM - Settore Budget e approvvigionamenti - Ufficio Progettazione e contratti di durata; 
+SAM - Settore Personale; 
+SAM - Settore Personale - Ufficio Missioni e compensi; 
+SAM - Settore Personale - Ufficio Personale non strutturato; 
+SAM - Settore Personale - Ufficio Personale strutturato; 
+SAM - Settore Ricerca; 
+SAM - Settore Ricerca - Ufficio Contratti e convenzioni con enti e imprese; 
+SAM - Settore Ricerca - Ufficio Progetti competitivi; 
+SAM - Settore Ricerca - Ufficio Sperimentazioni cliniche; 
+SAM - Settore Ricerca - Ufficio Supporto giuridico alla ricerca; 
+SAM - Settore Staff direzionale e Terza Missione; 
+SAM - Unità di processo Personale in convenzione con il servizio sanitario nazionale",Via Massarenti 9 - Pad. 11 - 40138 Bologna,Bologna,0.0000,0.0000,,
+unibo,"ACRN - Settore Servizi agli studenti; 
+ACRN - Settore Servizi agli studenti - Ufficio Orientamento, tirocini e relazioni con il pubblico - URP; 
+ACRN - Settore Servizi agli studenti - Ufficio Relazioni internazionali; 
+ACRN - Settore Servizi agli studenti - Ufficio Segreteria studenti",Via Cattaneo 17 - 47921 Rimini,Rimini,44.0615,12.5699,,
+unibo,Centro Linguistico di Ateneo,Via Lombardini 5 - 47121 Forlì,Forlì,44.2179,12.0413,,
+unibo,"AFORM - Settore Dottorato di ricerca; 
+AFORM - Settore Dottorato di ricerca - Ufficio Accreditamento, accordi e finanziamenti; 
+AFORM - Settore Dottorato di ricerca - Ufficio Corsi e carriere; 
+AFORM - Settore Dottorato di ricerca - Ufficio Progettazione; 
+AFORM - Settore Master, scuole di specializzazione non mediche ed esami di Stato; 
+AFORM - Settore Master, scuole di specializzazione non mediche ed esami di Stato - Ufficio Master; 
+AFORM - Settore Master, scuole di specializzazione non mediche ed esami di Stato - Ufficio Scuole di specializzazione di area non medica ed esami di Stato; 
+AFORM - Unità di processo Servizi trasversali di Area",Via Irnerio 49 - 40126 Bologna,Bologna,44.4989,11.3538,,
+unibo,"APAT- Settore Servizi amministrativi, contabili e fiscali del patrimonio - Ufficio Contabilità servizi",Largo Trombetti 4 - 40126 Bologna,Bologna,44.4961,11.3522,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Piazza San Giovanni in Monte 2 - 40124 Bologna,Bologna,44.4912,11.3485,,
+unibo,"CESIA - Area Sistemi e Servizi Informatici; 
+CeSIA - Settore Contact Center; 
+CeSIA - Settore Gestione applicazioni e database; 
+CeSIA - Settore Gestione applicazioni e database - Ufficio Database administration; 
+CeSIA - Settore Gestione applicazioni e database - Ufficio Filiera personale e presenze; 
+CeSIA - Settore Gestione applicazioni e database - Ufficio Filiera studenti e didattica; 
+CeSIA - Settore Gestione applicazioni e database - Ufficio Filiera tirocini e mobilità internazionale; 
+CeSIA - Settore Reti e sicurezza; 
+CESIA - Settore Servizi informatici per l'amministrazione generale; 
+CESIA - Settore Servizi informatici per le strutture di Ateneo; 
+CESIA - Settore Servizi informatici per le strutture di Ateneo - Ufficio Servizi Informatici Filippo Re; 
+CESIA - Settore Servizi informatici per le strutture di Ateneo - Ufficio Servizi informatici Hercolani-San Giovanni in Monte; 
+CeSIA - Settore Servizi informatici per le strutture di Ateneo - Ufficio Servizi Informatici Navile; 
+CESIA - Settore Servizi informatici per le strutture di Ateneo - Ufficio Servizi informatici per le strutture di area medica; 
+CESIA - Settore Servizi informatici per le strutture di Ateneo - Ufficio Servizi Informatici Risorgimento-Bertalia; 
+CESIA - Settore Servizi informatici per le strutture di Ateneo - Ufficio Servizi Informatici San Giacomo; 
+CESIA - Settore Servizi informatici per le strutture di Ateneo - Ufficio Servizi Informatici Zamboni; 
+CeSIA - Settore Sistemi e middleware; 
+CeSIA - Settore Sistemi e middleware - Ufficio Unità specialistica Identità digitale; 
+CeSIA - Settore Sistemi e middleware - Ufficio Unità specialistica Sistemi; 
+CeSIA - Settore Sistemi per la Ricerca e la Terza Missione; 
+CeSIA - Settore Supporto di secondo livello; 
+CeSIA - Settore Sviluppo rapido applicazioni; 
+CeSIA - Settore Tecnologie per l'innovazione didattica; 
+CeSIA - Settore Tecnologie per l'innovazione didattica - Ufficio Contenuti multimediali per digital learning; 
+CeSIA - Settore Tecnologie per l'innovazione didattica - Ufficio Test in modalità digitale; 
+CeSIA - Settore Tecnologie web; 
+CESIA - Unità professionale Coordinamento progetti",Viale Filopanti 3 - 40126 Bologna,Bologna,44.4969,11.3566,http://www.cesia.unibo.it/,
+unibo,SAM - Settore Distretto sanitario,Via Irnerio 48 - 40126 Bologna,Bologna,44.4991,11.3550,,
+unibo,Dipartimento di Storia Culture Civiltà,Via Zamboni 38 - 40126 Bologna,Bologna,44.4970,11.3524,,
+unibo,"Dipartimento di Fisica e Astronomia ""Augusto Righi""",Via Gobetti 93/2 - 40129 Bologna,Bologna,44.5216,11.3382,,
+unibo,APAP - Ufficio Gestione servizi di postalizzazione,Via Zamboni 22 - 40126 Bologna,Bologna,44.4956,11.3489,,
+unibo,"ACRA - Settore Servizi didattici; 
+ACRA - Settore Servizi informatici",Via Oberdan 1 - 48121 Ravenna,Ravenna,44.4160,12.1953,,
+unibo,"SSRD - Settore UNA EUROPA; 
+SSRD - Unità professionale Supporto e coordinamento dell'attività e delle strategie di internazionalizzazione",Via Filippo Re 4 - 40126 Bologna,Bologna,44.4995,11.3546,,
+unibo,"DISTAL - Servizi Amministrativi; 
+DISTAL - Servizi per la didattica; 
+DISTAL - Servizi tecnici di laboratorio Specialistici e didattici Bologna Cadriano e Imola; 
+DISTAL - Ufficio Gestione budget e approvvigionamenti; 
+DISTAL - Ufficio Personale e patrimonio; 
+DISTAL - Ufficio Ricerca e cooperazione internazionale; 
+DISTAL - Unità di laboratorio Camere e frigo congelatori; 
+DISTAL - Unità di laboratorio Colture arboree; 
+DISTAL - Unità di laboratorio Didattico progettazione CAD e gestione mobilità di dipartimento; 
+DISTAL - Unità di laboratorio Difesa e produzioni vegetali; 
+DISTAL - Unità di laboratorio Serre; 
+DISTAL - Unità di laboratorio Servizi tecnici e di campagna",Viale Fanin 44 - 40127 Bologna,Bologna,44.5140,11.4054,,
+unibo,DIFA - Servizi tecnici dei laboratori specialistici,Viale Berti Pichat 8 - 40127 Bologna,Bologna,44.5003,11.3565,,
