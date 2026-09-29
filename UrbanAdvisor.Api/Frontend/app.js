@@ -2,7 +2,10 @@
 // app.js - Student Urban Accessibility Advisor (front-end)
 // Logica della dashboard: mappa Leaflet multilayer, ricerca PoI vicini,
 // calcolo dello score, gestione profili, raccomandazioni, analisi spaziale,
-// temporale, privacy e clustering. Comunica con l'API via fetch su /api.
+// temporale, mobilita', privacy e clustering. Comunica con l'API via fetch su /api.
+// Il giorno (0 = lunedi' ... 6 = domenica) e' scelto dal selettore globale.
+// Privacy: la posizione viene perturbata qui nel browser (Laplace planare o
+// gaussiana); in modalita' privacy al server arriva solo il punto perturbato.
 // ============================================================================
 
 const API_BASE_URL = '/api';
@@ -36,6 +39,9 @@ let profiliCache = [];
 let privacyMarker = null;
 let clusterLayer = null;
 let isocronaLayer = null;
+let privacyPert = null, privacyLine = null, destinazione = null, destMarker = null;
+let moranLayer = null, tradeoffChart = null;
+const coloriFasce = { '0-10': '#1a9850', '10-20': '#91cf60', '20-30': '#fee08b', '30-45': '#fc8d59', '>45': '#d73027' };
 const clusterColors = ['#2ecc71', '#3498db', '#e67e22', '#e74c3c', '#9b59b6', '#1abc9c'];
 
 // Carica e disegna sulla mappa i PoI di una categoria (le piste ciclabili come polilinee).
@@ -99,11 +105,12 @@ async function toggleHeatmap() {
     } catch (e) { console.error('Errore heatmap:', e); }
 }
 
-// Gestore del click sulla mappa: imposta il punto corrente e aggiorna la scheda attiva.
+// Gestore del click sulla mappa: imposta il punto corrente (reale, resta nel browser) e aggiorna la scheda attiva.
 map.on('click', async (e) => {
     lastClickLat = e.latlng.lat; lastClickLon = e.latlng.lng;
     if (userMarker) map.removeLayer(userMarker);
-    userMarker = L.marker([lastClickLat, lastClickLon]).addTo(map).bindPopup('📍 Punto selezionato').openPopup();
+    userMarker = L.marker([lastClickLat, lastClickLon]).addTo(map).bindPopup('📍 Punto selezionato (posizione reale)').openPopup();
+    aggiornaPerturbazione();
 
     if (!document.getElementById('tab-score').classList.contains('d-none')) await calcolaScore();
     if (!document.getElementById('tab-profilo').classList.contains('d-none')) await confrontaProfili();
@@ -112,12 +119,29 @@ map.on('click', async (e) => {
     if (!document.getElementById('tab-mobilita').classList.contains('d-none')) await caricaTempoPercorrenza();
 });
 
+// Giorno selezionato nel selettore globale (0 = lunedì ... 6 = domenica).
+function giorno() {
+    return document.getElementById('giornoGlobale').value;
+}
+
+// Aggiorna le schede che dipendono dal giorno quando cambia il selettore.
+function onCambioGiorno() {
+    if (!document.getElementById('tab-temporale').classList.contains('d-none')) loadTemporale();
+    if (lastClickLat && !document.getElementById('tab-score').classList.contains('d-none')) calcolaScore();
+}
+
+// Coordinate da inviare al server: quelle perturbate se la modalità privacy è attiva, altrimenti quelle reali.
+function coordInvio() {
+    return privacyPert ? privacyPert : { lat: lastClickLat, lon: lastClickLon };
+}
+
 // Richiede lo score del punto selezionato e aggiorna il pannello.
 async function calcolaScore() {
     if (!lastClickLat) return;
     const ora = document.getElementById('oraInput').value;
     const profiloId = document.getElementById('profiloSelect').value;
-    let url = `${API_BASE_URL}/ranking?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}`;
+    const c = coordInvio();
+    let url = `${API_BASE_URL}/ranking?lat=${c.lat}&lon=${c.lon}&ora=${ora}&giorno=${giorno()}`;
     if (profiloId) url += `&profiloId=${profiloId}`;
     try {
         const res = await fetch(url); const data = await res.json();
@@ -125,7 +149,7 @@ async function calcolaScore() {
         scoreEl.textContent = data.punteggio;
         scoreEl.className = 'score-badge ' + (data.punteggio >= 70 ? 'score-high' : data.punteggio >= 40 ? 'score-mid' : 'score-low');
         document.getElementById('scoreFascia').innerHTML = `<span class="badge ${data.fascia === 'Diurna' ? 'bg-warning text-dark' : 'bg-dark'}">${data.fascia === 'Diurna' ? '🌞' : '🌙'} ${data.fascia}</span>`;
-        document.getElementById('scoreProfilo').textContent = `Profilo: ${data.profilo}`;
+        document.getElementById('scoreProfilo').innerHTML = `Profilo: ${data.profilo} · giorno ${data.tipo_giorno}<br>🚌 ${data.contesto.corse_ora} corse/ora nel raggio · 📚 ${data.contesto.biblioteche_aperte}/${data.contesto.biblioteche} biblioteche aperte${privacyPert ? '<br><span class="text-warning">🔒 calcolato sulla posizione perturbata</span>' : ''}`;
         const container = document.getElementById('subscoresContainer');
         container.innerHTML = '';
         const items = [
@@ -151,10 +175,11 @@ async function cercaVicini() {
     if (!lastClickLat) return;
     const raggio = document.getElementById('raggioCerca').value;
     const cat = document.getElementById('categoriaCerca').value;
-    let url = `${API_BASE_URL}/nearby?lat=${lastClickLat}&lon=${lastClickLon}&raggio=${raggio}`;
+    const c = coordInvio();
+    let url = `${API_BASE_URL}/nearby?lat=${c.lat}&lon=${c.lon}&raggio=${raggio}`;
     if (cat) url += `&categoria=${cat}`;
     if (searchCircle) map.removeLayer(searchCircle);
-    searchCircle = L.circle([lastClickLat, lastClickLon], { radius: parseInt(raggio), color: '#0d6efd', fillOpacity: 0.05, weight: 1.5 }).addTo(map);
+    searchCircle = L.circle([c.lat, c.lon], { radius: parseInt(raggio), color: '#0d6efd', fillOpacity: 0.05, weight: 1.5 }).addTo(map);
     try {
         const res = await fetch(url); const data = await res.json();
         document.getElementById('nearbyCount').textContent = data.totale;
@@ -174,16 +199,19 @@ async function cercaVicini() {
 async function caricaIndicatoriArea() {
     if (!lastClickLat) return;
     const raggio = document.getElementById('raggioCerca').value;
+    const ora = document.getElementById('oraInput').value;
+    const c = coordInvio();
     try {
-        const res = await fetch(`${API_BASE_URL}/area/indicatori?lat=${lastClickLat}&lon=${lastClickLon}&raggio=${raggio}`);
+        const res = await fetch(`${API_BASE_URL}/area/indicatori?lat=${c.lat}&lon=${c.lon}&raggio=${raggio}&ora=${ora}&giorno=${giorno()}`);
         const data = await res.json();
         document.getElementById('indTotalePoi').textContent = data.totale_poi;
         document.getElementById('indDensita').textContent = data.densita.servizi_per_km2;
         const d = data.dettaglio;
         document.getElementById('indDettaglio').innerHTML = `
-            <div class="d-flex justify-content-between border-bottom py-1"><span>📚 Biblioteche</span><b>${d.biblioteche}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>📚 Biblioteche (aperte ora)</span><b>${d.biblioteche} (${d.biblioteche_aperte})</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>📖 Sale Studio</span><b>${d.sale_studio}</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🚌 Fermate Bus</span><b>${d.fermate_bus}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🕒 Corse/ora (fermata più servita)</span><b>${data.corse_ora}</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🌳 Aree Verdi</span><b>${d.aree_verdi}</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🚲 Piste Ciclabili</span><b>${d.piste_km} km</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🏠 Residenze</span><b>${d.residenze}</b></div>
@@ -283,10 +311,11 @@ async function confrontaProfili() {
     const id1 = document.getElementById('confronto1').value, id2 = document.getElementById('confronto2').value;
     if (!id1 || !id2 || id1 === id2) return;
     const ora = document.getElementById('oraInput').value;
+    const c = coordInvio();
     try {
         const [r1, r2] = await Promise.all([
-            fetch(`${API_BASE_URL}/ranking?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}&profiloId=${id1}`).then(r=>r.json()),
-            fetch(`${API_BASE_URL}/ranking?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}&profiloId=${id2}`).then(r=>r.json())
+            fetch(`${API_BASE_URL}/ranking?lat=${c.lat}&lon=${c.lon}&ora=${ora}&giorno=${giorno()}&profiloId=${id1}`).then(r=>r.json()),
+            fetch(`${API_BASE_URL}/ranking?lat=${c.lat}&lon=${c.lon}&ora=${ora}&giorno=${giorno()}&profiloId=${id2}`).then(r=>r.json())
         ]);
         const container = document.getElementById('confrontoResult');
         container.classList.remove('d-none');
@@ -306,7 +335,7 @@ async function confrontaProfili() {
 async function loadRaccomandazioni() {
     const profiloId = document.getElementById('recProfiloSelect').value;
     const ora = document.getElementById('recOra').value;
-    let url = `${API_BASE_URL}/raccomandazioni?ora=${ora}&top=5`;
+    let url = `${API_BASE_URL}/raccomandazioni?ora=${ora}&giorno=${giorno()}&top=5`;
     if (profiloId) url += `&profiloId=${profiloId}`;
 
     document.getElementById('recList').innerHTML = '<p class="text-muted">Calcolo in corso...</p>';
@@ -315,7 +344,7 @@ async function loadRaccomandazioni() {
         if (recMarkers) map.removeLayer(recMarkers);
         recMarkers = L.layerGroup().addTo(map);
 
-        let html = `<div class="small text-muted mb-2">Profilo: ${data.profilo} | ${data.fascia === 'Diurna' ? '🌞' : '🌙'} ${data.fascia}</div>`;
+        let html = `<div class="small text-muted mb-2">Profilo: ${data.profilo} | ${data.giorno_nome} | ${data.fascia === 'Diurna' ? '🌞' : '🌙'} ${data.fascia}</div>`;
         data.raccomandazioni.forEach(r => {
             const scoreClass = r.student_accessibility_score >= 70 ? 'score-high' : r.student_accessibility_score >= 40 ? 'score-mid' : 'score-low';
             html += `<div class="rec-card"><div class="d-flex align-items-center gap-3">
@@ -338,7 +367,7 @@ async function loadRaccomandazioni() {
 async function loadDensityGrid() {
     const profiloId = document.getElementById('gridProfiloSelect').value;
     const ora = document.getElementById('gridOra').value;
-    let url = `${API_BASE_URL}/density/grid?celle=8&ora=${ora}`;
+    let url = `${API_BASE_URL}/density/grid?celle=8&ora=${ora}&giorno=${giorno()}`;
     if (profiloId) url += `&profiloId=${profiloId}`;
 
     try {
@@ -371,46 +400,55 @@ async function loadDensityGrid() {
     } catch (e) { console.error(e); }
 }
 
-// Calcola e disegna la griglia di isocrone (tempo di percorrenza per cella) sulla mappa.
+// Imposta come destinazione la sede universitaria (non museo) più vicina al punto selezionato.
+async function impostaDestinazione() {
+    if (!lastClickLat) { document.getElementById('mobDestinazione').textContent = 'Clicca prima un punto sulla mappa.'; return; }
+    const ora = document.getElementById('mobOra').value;
+    try {
+        const res = await fetch(`${API_BASE_URL}/mobility/tempo-percorrenza?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}&giorno=${giorno()}`);
+        const data = await res.json();
+        if (!data.disponibile) { document.getElementById('mobDestinazione').textContent = data.motivo; return; }
+        destinazione = { lat: data.destinazione.lat, lon: data.destinazione.lon, nome: (data.sede_destinazione || '').split(';')[0].trim() };
+        if (destMarker) map.removeLayer(destMarker);
+        const icon = L.divIcon({ html: '<div style="font-size:22px">🎯</div>', className: '', iconSize: [24, 24], iconAnchor: [12, 12] });
+        destMarker = L.marker([destinazione.lat, destinazione.lon], { icon }).addTo(map).bindPopup(`🎯 ${destinazione.nome}`);
+        document.getElementById('mobDestinazione').innerHTML = `<b>${destinazione.nome}</b>`;
+    } catch (e) { console.error('Errore destinazione:', e); }
+}
+
+// Calcola e disegna le isocrone (fasce di tempo verso la destinazione) sulla griglia.
 async function loadIsocrona() {
+    if (!destinazione) { document.getElementById('mobRaggiungibili').innerHTML = '<p class="text-warning small">Imposta prima una destinazione.</p>'; return; }
     const modalita = document.getElementById('mobModalita').value;
     const ora = document.getElementById('mobOra').value;
+    const n = 12;
 
-    document.getElementById('mobRaggiungibili').innerHTML = '<p class="text-muted small">Calcolo in corso (100 celle)...</p>';
+    document.getElementById('mobRaggiungibili').innerHTML = `<p class="text-muted small">Calcolo in corso (${n * n} celle)...</p>`;
     try {
-        const res = await fetch(`${API_BASE_URL}/mobility/isocrona?ora=${ora}&modalita=${modalita}`);
+        const res = await fetch(`${API_BASE_URL}/mobility/isocrona?destLat=${destinazione.lat}&destLon=${destinazione.lon}&ora=${ora}&giorno=${giorno()}&modalita=${modalita}&celle=${n}`);
         const data = await res.json();
+        if (!data.disponibile) { document.getElementById('mobRaggiungibili').innerHTML = `<p class="text-muted small">${data.motivo}</p>`; return; }
 
         if (isocronaLayer) map.removeLayer(isocronaLayer);
         isocronaLayer = L.layerGroup().addTo(map);
-
-        const tempiValidi = data.griglia.filter(c => c.disponibile).map(c => c.tempo_minuti);
-        const minT = Math.min(...tempiValidi), maxT = Math.max(...tempiValidi, minT + 1);
+        const stepLat = 0.05 / data.celle, stepLon = 0.08 / data.celle;
 
         data.griglia.forEach(cell => {
-            let color;
-            if (!cell.disponibile) {
-                color = '#999999';
-            } else {
-                const t = (cell.tempo_minuti - minT) / (maxT - minT);
-                color = t < 0.5
-                    ? interpolaColore('#1a9850', '#fee08b', t * 2)
-                    : interpolaColore('#fee08b', '#d73027', (t - 0.5) * 2);
-            }
-            const stepLat = 0.05 / 10, stepLon = 0.08 / 10;
             const bounds = [[cell.lat - stepLat/2, cell.lon - stepLon/2], [cell.lat + stepLat/2, cell.lon + stepLon/2]];
-            const label = cell.disponibile ? `${cell.tempo_minuti} min` : (cell.motivo || 'Non disponibile');
-            L.rectangle(bounds, { color: '#333', weight: 0.5, fillColor: color, fillOpacity: 0.55 })
-                .bindPopup(`<b>${label}</b>`)
+            L.rectangle(bounds, { color: '#333', weight: 0.3, fillColor: coloriFasce[cell.fascia], fillOpacity: 0.55 })
+                .bindPopup(`<b>${cell.tempo_minuti} min</b> (${cell.fascia} min)<br><small>${cell.mezzo}</small>`)
                 .addTo(isocronaLayer);
         });
 
-        document.getElementById('isocronaLegend').classList.remove('d-none');
+        const legend = document.getElementById('isocronaLegend');
+        legend.innerHTML = `<div class="fw-bold mb-1">Verso ${destinazione.nome} — ${data.tipo_giorno}, ${data.ora}:00</div>` +
+            data.fasce.map(f => `<span class="me-2"><span style="display:inline-block;width:12px;height:12px;background:${coloriFasce[f]};border-radius:2px"></span> ${f} min</span>`).join('');
+        legend.classList.remove('d-none');
 
-        let html = `<div class="fw-bold small mb-2">🏆 Top 5 Aree più raggiungibili</div>`;
+        let html = `<div class="fw-bold small mb-2">🏆 Top 5 aree più raggiungibili</div>`;
         data.aree_piu_raggiungibili.forEach(r => {
             html += `<div class="d-flex justify-content-between align-items-center border-bottom py-1 small">
-                <span>#${r.posizione}</span><span class="fw-bold text-success">${r.tempo_minuti} min</span></div>`;
+                <span>#${r.posizione} <span class="text-muted">${r.mezzo}</span></span><span class="fw-bold text-success">${r.tempo_minuti} min</span></div>`;
         });
         document.getElementById('mobRaggiungibili').innerHTML = html;
     } catch (e) {
@@ -419,13 +457,6 @@ async function loadIsocrona() {
     }
 }
 
-// Interpola linearmente tra due colori esadecimali (per la scala isocrone).
-function interpolaColore(hex1, hex2, t) {
-    const c1 = [1,3,5].map(i => parseInt(hex1.substr(i,2),16));
-    const c2 = [1,3,5].map(i => parseInt(hex2.substr(i,2),16));
-    const rgb = c1.map((v,i) => Math.round(v + (c2[i]-v)*t));
-    return `rgb(${rgb.join(',')})`;
-}
 
 // Rimuove il layer isocrone dalla mappa.
 function clearIsocrona() {
@@ -433,29 +464,35 @@ function clearIsocrona() {
     document.getElementById('isocronaLegend').classList.add('d-none');
 }
 
-// Mostra il dettaglio multimodale (piedi/bici/TPL) per il punto cliccato.
+// Mostra il dettaglio multimodale (piedi/bici/TPL) dal punto cliccato verso la destinazione o la sede più vicina.
 async function caricaTempoPercorrenza() {
     if (!lastClickLat) return;
     const ora = document.getElementById('mobOra').value;
+    const c = coordInvio();
+    let url = `${API_BASE_URL}/mobility/tempo-percorrenza?lat=${c.lat}&lon=${c.lon}&ora=${ora}&giorno=${giorno()}`;
+    if (destinazione) url += `&destLat=${destinazione.lat}&destLon=${destinazione.lon}`;
     try {
-        const res = await fetch(`${API_BASE_URL}/mobility/tempo-percorrenza?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}`);
+        const res = await fetch(url);
         const data = await res.json();
         if (!data.disponibile) {
             document.getElementById('mobPuntoResult').innerHTML = `<p class="text-muted">${data.motivo}</p>`;
             return;
         }
+        const p = data.percorso;
         const sedeBreve = (data.sede_destinazione || '').split(';')[0].trim();
-        let html = `<div class="small text-muted mb-2">Verso: <b>${sedeBreve}</b> (${data.distanza_diretta_metri}m in linea d'aria)</div>`;
-        html += `<div class="d-flex justify-content-between border-bottom py-1"><span>🚶 A piedi</span><b>${data.piedi.tempo_minuti} min</b></div>`;
-        html += `<div class="d-flex justify-content-between border-bottom py-1"><span>🚲 Bici</span><b>${data.bici.tempo_minuti} min</b></div>`;
-        if (data.trasporto_pubblico.disponibile) {
-            const tp = data.trasporto_pubblico;
+        let html = `<div class="small text-muted mb-2">Verso: <b>${sedeBreve}</b> (${p.distanza_diretta_metri} m in linea d'aria, ${data.tipo_giorno} ore ${data.ora}:00)</div>`;
+        html += `<div class="d-flex justify-content-between border-bottom py-1"><span>🚶 A piedi</span><b>${p.piedi.tempo_minuti} min</b></div>`;
+        html += `<div class="d-flex justify-content-between border-bottom py-1"><span>🚲 Bici</span><b>${p.bici.tempo_minuti} min</b></div>`;
+        const tp = p.trasporto_pubblico;
+        if (tp.disponibile) {
             html += `<div class="d-flex justify-content-between py-1"><span>🚌 Trasporto Pubblico</span><b>${tp.tempo_totale_minuti} min</b></div>`;
             html += `<div class="text-muted mt-1" style="font-size:0.7rem">
-                ${tp.dettaglio.fermata_partenza} → ${tp.dettaglio.fermata_arrivo}<br>
-                ${tp.dettaglio.corse_ora} corse/ora, attesa media ${tp.dettaglio.attesa_media_min} min</div>`;
+                Linea ${tp.dettaglio.linee}: ${tp.dettaglio.fermata_partenza} → ${tp.dettaglio.fermata_arrivo}<br>
+                piedi ${tp.dettaglio.a_piedi_fino_fermata_min} + attesa ${tp.dettaglio.attesa_media_min} (${tp.dettaglio.corse_ora} corse/ora)
+                + bordo ${tp.dettaglio.a_bordo_min} + piedi ${tp.dettaglio.a_piedi_da_fermata_min} min
+                ${tp.piu_veloce_a_piedi ? '<br><b>A piedi si fa prima.</b>' : ''}</div>`;
         } else {
-            html += `<div class="text-muted small py-1">🚌 Trasporto Pubblico: ${data.trasporto_pubblico.motivo}</div>`;
+            html += `<div class="text-muted small py-1">🚌 ${tp.motivo}</div>`;
         }
         document.getElementById('mobPuntoResult').innerHTML = html;
     } catch (e) { console.error('Errore tempo percorrenza:', e); }
@@ -470,12 +507,11 @@ function clearGrid() {
 
 // Richiede la disponibilita' dei servizi per giorno e ora.
 async function loadTemporale() {
-    const giorno = document.getElementById('tempGiorno').value;
     const ora = document.getElementById('tempOra').value;
     try {
-        const res = await fetch(`${API_BASE_URL}/temporale/disponibilita?giorno=${giorno}&ora=${ora}`);
+        const res = await fetch(`${API_BASE_URL}/temporale/disponibilita?giorno=${giorno()}&ora=${ora}`);
         const data = await res.json();
-        let html = `<div class="fw-bold mb-2">${data.giorno_nome}, ore ${data.ora}:00</div>`;
+        let html = `<div class="fw-bold mb-2">${data.giorno_nome} (${data.tipo_giorno}), ore ${data.ora}:00</div>`;
 
         data.servizi.forEach(s => {
             const pct = s.totale_servizi > 0 ? Math.round(s.aperti_ora / s.totale_servizi * 100) : 0;
@@ -493,6 +529,17 @@ async function loadTemporale() {
                 const isNow = d.ora == ora;
                 html += `<div class="hour-bar" style="height:${h}px;background:${isNow ? '#0d6efd' : '#ccc'}" title="${d.ora}:00 → ${d.aperti} aperti"></div>`;
             });
+            html += `</div><div class="d-flex justify-content-between" style="font-size:0.6rem;color:#999"><span>0</span><span>6</span><span>12</span><span>18</span><span>23</span></div></div>`;
+        }
+
+        if (data.passaggi_bus_per_ora && data.passaggi_bus_per_ora.length > 0) {
+            const maxC = Math.max(...data.passaggi_bus_per_ora.map(d => d.corse), 1);
+            html += `<div class="mt-3"><div class="fw-bold small mb-1">Passaggi bus per ora (GTFS, ${data.tipo_giorno})</div><div class="d-flex align-items-end" style="height:80px">`;
+            for (let h = 0; h < 24; h++) {
+                const d = data.passaggi_bus_per_ora.find(x => x.ora === h);
+                const c = d ? d.corse : 0;
+                html += `<div class="hour-bar" style="height:${Math.max(c / maxC * 70, 1)}px;background:${h == ora ? '#0d6efd' : '#6ea8fe'}" title="${h}:00 → ${c} passaggi"></div>`;
+            }
             html += `</div><div class="d-flex justify-content-between" style="font-size:0.6rem;color:#999"><span>0</span><span>6</span><span>12</span><span>18</span><span>23</span></div></div>`;
         }
 
@@ -554,90 +601,181 @@ async function loadStatistiche() {
     } catch (e) { console.error(e); }
 }
 
-// Confronta score reale e perturbato per il sigma scelto.
+// Campiona una posizione perturbata con spostamento medio atteso 'raggioMedio' (metri).
+// Laplace planare (geo-indistinguishability): angolo uniforme, raggio ~ Gamma(2, 1/ε) con ε = 2 / raggioMedio.
+// Gaussiana: rumore normale indipendente sui due assi, raggio ~ Rayleigh(σ) con σ = raggioMedio / sqrt(π/2).
+function perturba(lat, lon, raggioMedio, meccanismo) {
+    if (raggioMedio <= 0) return { lat, lon };
+    const theta = 2 * Math.PI * Math.random();
+    let r;
+    if (meccanismo === 'gauss') {
+        const sigma = raggioMedio / Math.sqrt(Math.PI / 2);
+        r = sigma * Math.sqrt(-2 * Math.log(1 - Math.random()));
+    } else {
+        const eps = 2 / raggioMedio;
+        r = -(Math.log(1 - Math.random()) + Math.log(1 - Math.random())) / eps;
+    }
+    return {
+        lat: lat + (r * Math.cos(theta)) / 111320,
+        lon: lon + (r * Math.sin(theta)) / (111320 * Math.cos(lat * Math.PI / 180))
+    };
+}
+
+// Parametri correnti del meccanismo di privacy scelto nella scheda.
+function parametriPrivacy() {
+    return {
+        raggio: parseInt(document.getElementById('privacyRaggio').value),
+        meccanismo: document.getElementById('privacyMeccanismo').value
+    };
+}
+
+// Aggiorna l'etichetta del livello di perturbazione (ε per Laplace, σ per la gaussiana).
+function aggiornaEtichettaPrivacy() {
+    const { raggio, meccanismo } = parametriPrivacy();
+    document.getElementById('privacyRaggioVal').textContent = `${raggio} m`;
+    const el = document.getElementById('privacyEpsilon');
+    if (raggio <= 0) el.textContent = 'Nessuna perturbazione';
+    else if (meccanismo === 'gauss') el.textContent = `σ = ${(raggio / Math.sqrt(Math.PI / 2)).toFixed(0)} m per asse`;
+    else el.textContent = `ε = ${(2000 / raggio).toFixed(2)} km⁻¹ (ε·r = ln 4 entro ${(Math.log(4) * raggio / 2).toFixed(0)} m)`;
+    if (document.getElementById('privacyAttiva').checked) aggiornaPerturbazione();
+}
+
+// Attiva/disattiva la modalità privacy (solo la posizione perturbata viene inviata al server).
+function toggleModalitaPrivacy() {
+    const attiva = document.getElementById('privacyAttiva').checked;
+    document.getElementById('privacyBadge').classList.toggle('d-none', !attiva);
+    aggiornaPerturbazione();
+}
+
+// Genera (se la modalità privacy è attiva) la posizione perturbata del punto selezionato e la mostra sulla mappa.
+function aggiornaPerturbazione() {
+    if (privacyMarker) { map.removeLayer(privacyMarker); privacyMarker = null; }
+    if (privacyLine) { map.removeLayer(privacyLine); privacyLine = null; }
+    privacyPert = null;
+    if (!lastClickLat || !document.getElementById('privacyAttiva').checked) return;
+    const { raggio, meccanismo } = parametriPrivacy();
+    privacyPert = perturba(lastClickLat, lastClickLon, raggio, meccanismo);
+    disegnaPerturbato(privacyPert, 'Posizione inviata al server');
+}
+
+// Disegna il punto perturbato e il collegamento con la posizione reale.
+function disegnaPerturbato(p, etichetta) {
+    if (privacyMarker) map.removeLayer(privacyMarker);
+    if (privacyLine) map.removeLayer(privacyLine);
+    privacyMarker = L.circleMarker([p.lat, p.lon], { radius: 9, fillColor: '#ff6b6b', color: '#c00', weight: 2, fillOpacity: 0.5 })
+        .addTo(map).bindPopup(`🔒 ${etichetta}`);
+    privacyLine = L.polyline([[lastClickLat, lastClickLon], [p.lat, p.lon]], { color: '#ff6b6b', dashArray: '5,10', weight: 2 }).addTo(map);
+}
+
+// Invia al server la posizione reale e i campioni perturbati per l'esperimento di valutazione.
+async function valutaPrivacy(campioni) {
+    const profiloId = document.getElementById('profiloSelect').value;
+    const body = {
+        lat: lastClickLat, lon: lastClickLon,
+        ora: parseInt(document.getElementById('privacyOra').value),
+        giorno: parseInt(giorno()),
+        profiloId: profiloId ? parseInt(profiloId) : null,
+        campioni
+    };
+    const res = await fetch(`${API_BASE_URL}/privacy/valutazione`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body)
+    });
+    return res.json();
+}
+
+// Confronta score e servizi vicini tra posizione reale e una posizione perturbata.
 async function confrontoPrivacy() {
-    if (!lastClickLat) { alert('Clicca prima un punto sulla mappa'); return; }
-    const sigma = document.getElementById('privacySigma').value;
-    const ora = document.getElementById('privacyOra').value;
+    if (!lastClickLat) { document.getElementById('privacyResult').innerHTML = '<p class="text-warning">Clicca prima un punto sulla mappa.</p>'; return; }
+    const { raggio, meccanismo } = parametriPrivacy();
+    const p = privacyPert || perturba(lastClickLat, lastClickLon, raggio, meccanismo);
     try {
-        const res = await fetch(`${API_BASE_URL}/privacy/confronto?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}&sigma=${sigma}`);
-        const data = await res.json();
+        const data = await valutaPrivacy([{ lat: p.lat, lon: p.lon, livello: raggio }]);
+        const x = data.risultati[0];
+        disegnaPerturbato(p, `Posizione perturbata (${meccanismo}, ${raggio} m)<br>Score: ${x.score}`);
 
-        if (privacyMarker) map.removeLayer(privacyMarker);
-        privacyMarker = L.circleMarker([data.posizione_perturbata.lat, data.posizione_perturbata.lon], {
-            radius: 10, fillColor: '#ff6b6b', color: '#c00', weight: 2, fillOpacity: 0.5
-        }).addTo(map).bindPopup(`🔒 Posizione perturbata (σ=${sigma}m)<br>Score: ${data.score_perturbato}`).openPopup();
-
-        L.polyline([[lastClickLat, lastClickLon], [data.posizione_perturbata.lat, data.posizione_perturbata.lon]], {
-            color: '#ff6b6b', dashArray: '5,10', weight: 2
-        }).addTo(map);
-
-        const r = data.subscores_reale, p = data.subscores_perturbato;
+        const r = data.subscores_reale, q = x.subscores;
+        const riga = (ic, a, b) => `<tr><td>${ic}</td><td>${a}</td><td>${b}</td><td class="${Math.abs(a-b)>10?'text-danger':''}">${a-b}</td></tr>`;
         document.getElementById('privacyResult').innerHTML = `
             <div class="border rounded p-2 bg-light mb-2">
-                <div class="d-flex justify-content-between"><b>Privacy Perturbation</b><span class="fw-bold">${data.privacy_perturbation_metri}m</span></div>
-                <div class="d-flex justify-content-between"><b>σ applicato</b><span>${data.sigma_metri}m</span></div>
+                <div class="d-flex justify-content-between"><b>Privacy Perturbation</b><span class="fw-bold">${x.privacy_perturbation_metri} m</span></div>
+                <div class="d-flex justify-content-between"><b>Recall servizi vicini</b><span>${Math.round(x.recall_servizi * 100)}% di ${data.servizi_vicini_reali}</span></div>
             </div>
             <div class="row g-2">
-                <div class="col-6 text-center">
-                    <div class="small fw-bold">📍 Reale</div>
-                    <div class="score-badge ${data.score_reale>=70?'score-high':data.score_reale>=40?'score-mid':'score-low'}" style="font-size:1.8rem">${data.score_reale}</div>
-                </div>
-                <div class="col-6 text-center">
-                    <div class="small fw-bold">🔒 Perturbata</div>
-                    <div class="score-badge ${data.score_perturbato>=70?'score-high':data.score_perturbato>=40?'score-mid':'score-low'}" style="font-size:1.8rem">${data.score_perturbato}</div>
-                </div>
+                <div class="col-6 text-center"><div class="small fw-bold">📍 Reale</div>
+                    <div class="score-badge ${data.score_reale>=70?'score-high':data.score_reale>=40?'score-mid':'score-low'}" style="font-size:1.8rem">${data.score_reale}</div></div>
+                <div class="col-6 text-center"><div class="small fw-bold">🔒 Perturbata</div>
+                    <div class="score-badge ${x.score>=70?'score-high':x.score>=40?'score-mid':'score-low'}" style="font-size:1.8rem">${x.score}</div></div>
             </div>
-            <div class="text-center mt-1"><small>Quality Loss: <b class="text-danger">${data.quality_loss} punti</b></small></div>
+            <div class="text-center mt-1"><small>Quality Loss: <b class="text-danger">${x.quality_loss} punti</b></small></div>
             <table class="table table-sm mt-2" style="font-size:0.7rem">
                 <tr><th></th><th>Reale</th><th>Perturbata</th><th>Δ</th></tr>
-                <tr><td>🚌</td><td>${r.trasporti}</td><td>${p.trasporti}</td><td class="${Math.abs(r.trasporti-p.trasporti)>10?'text-danger':''}">${r.trasporti-p.trasporti}</td></tr>
-                <tr><td>📚</td><td>${r.biblioteche}</td><td>${p.biblioteche}</td><td class="${Math.abs(r.biblioteche-p.biblioteche)>10?'text-danger':''}">${r.biblioteche-p.biblioteche}</td></tr>
-                <tr><td>🌳</td><td>${r.aree_verdi}</td><td>${p.aree_verdi}</td><td class="${Math.abs(r.aree_verdi-p.aree_verdi)>10?'text-danger':''}">${r.aree_verdi-p.aree_verdi}</td></tr>
-                <tr><td>🚲</td><td>${r.mobilita}</td><td>${p.mobilita}</td><td class="${Math.abs(r.mobilita-p.mobilita)>10?'text-danger':''}">${r.mobilita-p.mobilita}</td></tr>
-                <tr><td>🏠</td><td>${r.residenze}</td><td>${p.residenze}</td><td class="${Math.abs(r.residenze-p.residenze)>10?'text-danger':''}">${r.residenze-p.residenze}</td></tr>
-                <tr><td>🍽️</td><td>${r.mense}</td><td>${p.mense}</td><td class="${Math.abs(r.mense-p.mense)>10?'text-danger':''}">${r.mense-p.mense}</td></tr>
-                <tr><td>🏛️</td><td>${r.sedi}</td><td>${p.sedi}</td><td class="${Math.abs(r.sedi-p.sedi)>10?'text-danger':''}">${r.sedi-p.sedi}</td></tr>
+                ${riga('🚌', r.trasporti, q.trasporti)}${riga('📚', r.biblioteche, q.biblioteche)}${riga('🌳', r.aree_verdi, q.aree_verdi)}
+                ${riga('🚲', r.mobilita, q.mobilita)}${riga('🏠', r.residenze, q.residenze)}${riga('🍽️', r.mense, q.mense)}${riga('🏛️', r.sedi, q.sedi)}
             </table>`;
     } catch (e) { console.error(e); }
 }
 
-// Calcola e mostra il trade-off privacy/qualita' su piu' livelli di sigma.
+// Esperimento di trade-off: per ogni livello genera 20 campioni perturbati e grafica privacy e qualità del servizio.
 async function tradeoffPrivacy() {
-    if (!lastClickLat) { alert('Clicca prima un punto sulla mappa'); return; }
-    const ora = document.getElementById('privacyOra').value;
-    document.getElementById('tradeoffResult').innerHTML = '<p class="text-muted">Calcolo in corso (7 livelli × 5 campioni)...</p>';
+    if (!lastClickLat) { document.getElementById('tradeoffResult').innerHTML = '<p class="text-warning">Clicca prima un punto sulla mappa.</p>'; return; }
+    const { meccanismo } = parametriPrivacy();
+    const livelli = [0, 50, 100, 200, 300, 500, 1000, 2000];
+    const campioniPerLivello = 20;
+    const campioni = [];
+    livelli.forEach(l => {
+        for (let i = 0; i < campioniPerLivello; i++) {
+            const p = perturba(lastClickLat, lastClickLon, l, meccanismo);
+            campioni.push({ lat: p.lat, lon: p.lon, livello: l });
+        }
+    });
+    document.getElementById('tradeoffResult').innerHTML = `<p class="text-muted">Calcolo in corso (${campioni.length} campioni)...</p>`;
     try {
-        const res = await fetch(`${API_BASE_URL}/privacy/tradeoff?lat=${lastClickLat}&lon=${lastClickLon}&ora=${ora}`);
-        const data = await res.json();
-
-        let html = '<table class="table table-sm table-bordered" style="font-size:0.72rem"><tr><th>σ (m)</th><th>Privacy (m)</th><th>Score</th><th>Loss</th></tr>';
-        const maxLoss = Math.max(...data.risultati.map(r => r.quality_loss_medio), 1);
-
-        data.risultati.forEach(r => {
-            const barW = Math.round(r.quality_loss_medio / maxLoss * 100);
-            html += `<tr>
-                <td>${r.sigma_metri}</td>
-                <td>${r.privacy_perturbation_media}</td>
-                <td><span class="fw-bold ${r.score_medio_perturbato>=70?'text-success':r.score_medio_perturbato>=40?'text-warning':'text-danger'}">${r.score_medio_perturbato}</span></td>
-                <td><div class="d-flex align-items-center gap-1"><div style="width:${barW}%;height:8px;background:#dc3545;border-radius:4px"></div><span>${r.quality_loss_medio}</span></div></td>
-            </tr>`;
+        const data = await valutaPrivacy(campioni);
+        const media = arr => arr.reduce((a, b) => a + b, 0) / arr.length;
+        const righe = livelli.map(l => {
+            const g = data.risultati.filter(x => x.livello === l);
+            return {
+                livello: l,
+                privacy: media(g.map(x => x.privacy_perturbation_metri)),
+                loss: media(g.map(x => x.quality_loss)),
+                recall: media(g.map(x => x.recall_servizi)) * 100
+            };
         });
+
+        const canvas = document.getElementById('tradeoffChart');
+        canvas.classList.remove('d-none');
+        if (tradeoffChart) tradeoffChart.destroy();
+        tradeoffChart = new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: livelli.map(l => `${l}`),
+                datasets: [
+                    { label: 'Privacy Perturbation (m)', data: righe.map(r => r.privacy.toFixed(0)), yAxisID: 'y', borderColor: '#0d6efd', backgroundColor: '#0d6efd' },
+                    { label: 'Recall servizi vicini (%)', data: righe.map(r => r.recall.toFixed(1)), yAxisID: 'y1', borderColor: '#198754', backgroundColor: '#198754' },
+                    { label: 'Perdita di score (punti)', data: righe.map(r => r.loss.toFixed(1)), yAxisID: 'y1', borderColor: '#dc3545', backgroundColor: '#dc3545' }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
+                scales: {
+                    x: { title: { display: true, text: `Spostamento medio configurato (m) — ${meccanismo === 'gauss' ? 'gaussiana' : 'Laplace planare'}` } },
+                    y: { position: 'left', title: { display: true, text: 'metri' } },
+                    y1: { position: 'right', min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: '% / punti' } }
+                }
+            }
+        });
+
+        let html = `<div class="small text-muted mb-1">Score reale: <b>${data.score_reale}</b> · servizi entro 500 m: <b>${data.servizi_vicini_reali}</b></div>`;
+        html += '<table class="table table-sm table-bordered" style="font-size:0.72rem"><tr><th>Livello (m)</th><th>Privacy (m)</th><th>Recall</th><th>Loss</th></tr>';
+        righe.forEach(r => { html += `<tr><td>${r.livello}</td><td>${r.privacy.toFixed(0)}</td><td>${r.recall.toFixed(0)}%</td><td>${r.loss.toFixed(1)}</td></tr>`; });
         html += '</table>';
-
-        html += '<div class="mt-2"><div class="small fw-bold mb-1">📊 Trade-Off: Privacy ↑ vs Qualità ↓</div>';
-        html += '<div class="d-flex align-items-end gap-1" style="height:60px">';
-        data.risultati.forEach(r => {
-            const h = Math.max(r.quality_loss_medio / maxLoss * 50, 2);
-            html += `<div style="flex:1;height:${h}px;background:linear-gradient(#ffc107,#dc3545);border-radius:3px 3px 0 0" title="σ=${r.sigma_metri}m → loss=${r.quality_loss_medio}"></div>`;
-        });
-        html += '</div><div class="d-flex justify-content-between" style="font-size:0.55rem;color:#999">';
-        data.risultati.forEach(r => { html += `<span>${r.sigma_metri}</span>`; });
-        html += '</div></div>';
-
         document.getElementById('tradeoffResult').innerHTML = html;
     } catch (e) { console.error(e); document.getElementById('tradeoffResult').innerHTML = '<p class="text-danger">Errore</p>'; }
 }
+
+
 
 // Esegue il clustering delle zone e mostra cluster e indice di Moran.
 async function loadClustering() {
@@ -645,7 +783,7 @@ async function loadClustering() {
     const ora = document.getElementById('clusterOra').value;
     document.getElementById('clusterResult').innerHTML = '<p class="text-muted">Calcolo K-Means...</p>';
     try {
-        const res = await fetch(`${API_BASE_URL}/clustering?k=${k}&ora=${ora}`);
+        const res = await fetch(`${API_BASE_URL}/clustering?k=${k}&ora=${ora}&giorno=${giorno()}`);
         const data = await res.json();
 
         if (clusterLayer) map.removeLayer(clusterLayer);
@@ -670,25 +808,62 @@ async function loadClustering() {
         document.getElementById('clusterResult').innerHTML = html;
 
         const m = data.moran;
-        const moranColor = m.moran_i > 0.3 ? '#198754' : m.moran_i > 0.1 ? '#ffc107' : '#6c757d';
-        document.getElementById('moranResult').innerHTML = `
-            <div class="border rounded p-2 bg-light">
-                <div class="small fw-bold">Moran's I — ${m.indicatore}</div>
-                <div class="text-center my-2">
-                    <span style="font-size:1.8rem;font-weight:700;color:${moranColor}">${m.moran_i}</span>
-                </div>
-                <div class="small">${m.interpretazione}</div>
-                <div class="text-muted" style="font-size:0.65rem">${m.nota}</div>
-            </div>`;
+        document.getElementById('moranResult').innerHTML = boxMoran(`Moran's I — ${m.indicatore}`, m.moran_i, m.atteso, m.p_value, m.interpretazione, m.nota);
     } catch (e) { console.error(e); document.getElementById('clusterResult').innerHTML = '<p class="text-danger">Errore</p>'; }
 }
 
-// Rimuove i cluster dalla mappa.
-function clearClusters() {
-    if (clusterLayer) { map.removeLayer(clusterLayer); clusterLayer = null; }
-    document.getElementById('clusterResult').innerHTML = '';
-    document.getElementById('moranResult').innerHTML = '';
+// Riquadro con indice di Moran, valore atteso, p-value e interpretazione.
+function boxMoran(titolo, moranI, atteso, pValue, interpretazione, nota) {
+    const colore = pValue < 0.05 ? (moranI > atteso ? '#198754' : '#dc3545') : '#6c757d';
+    return `<div class="border rounded p-2 bg-light">
+        <div class="small fw-bold">${titolo}</div>
+        <div class="text-center my-2"><span style="font-size:1.8rem;font-weight:700;color:${colore}">${moranI}</span></div>
+        <div class="d-flex justify-content-between small"><span>E[I] = ${atteso}</span><span>p-value = ${pValue}</span></div>
+        <div class="small mt-1">${interpretazione}</div>
+        <div class="text-muted" style="font-size:0.65rem">${nota}</div>
+    </div>`;
 }
 
-// Inizializzazione: carica il layer biblioteche e i profili all'avvio.
-document.addEventListener('DOMContentLoaded', () => { loadLayer('biblioteche'); loadProfili(); });
+// Calcola l'indice di Moran per l'indicatore scelto e colora le celle della griglia in base al valore.
+async function loadMoran() {
+    const ind = document.getElementById('moranIndicatore').value;
+    const ora = document.getElementById('clusterOra').value;
+    document.getElementById('moranIndicatoreResult').innerHTML = '<p class="text-muted small">Calcolo in corso...</p>';
+    try {
+        const res = await fetch(`${API_BASE_URL}/moran?indicatore=${ind}&ora=${ora}&giorno=${giorno()}`);
+        const data = await res.json();
+        if (data.errore) { document.getElementById('moranIndicatoreResult').innerHTML = `<p class="text-danger small">${data.errore}</p>`; return; }
+
+        if (moranLayer) map.removeLayer(moranLayer);
+        moranLayer = L.layerGroup().addTo(map);
+        const max = Math.max(...data.valori.map(v => v.valore), 1);
+        const stepLat = 0.05 / data.celle, stepLon = 0.08 / data.celle;
+        data.valori.forEach(v => {
+            const t = v.valore / max;
+            const bounds = [[v.lat - stepLat/2, v.lon - stepLon/2], [v.lat + stepLat/2, v.lon + stepLon/2]];
+            L.rectangle(bounds, { color: '#555', weight: 0.3, fillColor: `rgb(${Math.round(255 - 180 * t)}, ${Math.round(255 - 200 * t)}, 255)`, fillOpacity: 0.6 })
+                .bindPopup(`${data.indicatore}: <b>${v.valore}</b>`)
+                .addTo(moranLayer);
+        });
+        document.getElementById('moranIndicatoreResult').innerHTML =
+            boxMoran(`Moran's I — ${data.descrizione}`, data.moran_i, data.atteso, data.p_value, data.interpretazione,
+                     `${data.pesi}; ${data.permutazioni} permutazioni; z = ${data.z_permutazioni}`);
+    } catch (e) { console.error(e); document.getElementById('moranIndicatoreResult').innerHTML = '<p class="text-danger small">Errore</p>'; }
+}
+
+// Rimuove cluster e mappa di Moran dalla mappa.
+function clearClusters() {
+    if (clusterLayer) { map.removeLayer(clusterLayer); clusterLayer = null; }
+    if (moranLayer) { map.removeLayer(moranLayer); moranLayer = null; }
+    document.getElementById('clusterResult').innerHTML = '';
+    document.getElementById('moranResult').innerHTML = '';
+    document.getElementById('moranIndicatoreResult').innerHTML = '';
+}
+
+// Inizializzazione: giorno corrente, etichetta privacy, layer biblioteche e profili.
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('giornoGlobale').value = (new Date().getDay() + 6) % 7;
+    aggiornaEtichettaPrivacy();
+    loadLayer('biblioteche');
+    loadProfili();
+});

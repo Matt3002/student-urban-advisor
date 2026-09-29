@@ -8,6 +8,7 @@ namespace UrbanAdvisor.Api.Models
     {
         [Key] [Column("id")] public int Id { get; set; }
         [Column("stop_id")] public string StopId { get; set; } = null!;
+        [Column("tipo_giorno")] public string TipoGiorno { get; set; } = "feriale";
         [Column("fascia_oraria")] public int FasciaOraria { get; set; }
         [Column("numero_corse")] public int NumeroCorse { get; set; }
     }

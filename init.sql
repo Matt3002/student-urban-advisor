@@ -286,6 +286,7 @@ CREATE TABLE IF NOT EXISTS suggerimenti_storico (
     lat DOUBLE PRECISION NOT NULL,
     lon DOUBLE PRECISION NOT NULL,
     ora INTEGER NOT NULL,
+    giorno INTEGER CHECK (giorno BETWEEN 0 AND 6),
     punteggio INTEGER NOT NULL,
     fascia VARCHAR(50) NOT NULL,
     motivazione TEXT NOT NULL,
@@ -331,7 +332,11 @@ SELECT 'fermate', 'Servizio TPER', g.giorno,
 FROM generate_series(0, 6) AS g(giorno);
 
 -- ============================================================================
--- GTFS TPER: fermate reali + frequenza corse per fascia oraria (giorno feriale tipo)
+-- GTFS TPER: fermate, corse e orari di passaggio per tipo di giorno
+-- (feriale / sabato / festivo), frequenza per fascia oraria.
+-- Periodo di riferimento: la data di inizio servizio coperta dal maggior numero
+-- di service_id del calendario, per non sommare periodi diversi (es. estivo e
+-- invernale). Le eccezioni di calendar_dates.txt non sono considerate.
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS gtfs_fermate (
@@ -341,12 +346,29 @@ CREATE TABLE IF NOT EXISTS gtfs_fermate (
     geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
+CREATE TABLE IF NOT EXISTS gtfs_trips (
+    trip_id VARCHAR(100) PRIMARY KEY,
+    route_id VARCHAR(50),
+    feriale BOOLEAN NOT NULL,
+    sabato BOOLEAN NOT NULL,
+    festivo BOOLEAN NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS gtfs_stop_times (
+    trip_id VARCHAR(100) NOT NULL,
+    stop_id VARCHAR(50) NOT NULL,
+    stop_sequence INTEGER NOT NULL,
+    arr_sec INTEGER NOT NULL,
+    dep_sec INTEGER NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS gtfs_frequenze_fermata (
     id SERIAL PRIMARY KEY,
     stop_id VARCHAR(50) REFERENCES gtfs_fermate(stop_id),
+    tipo_giorno VARCHAR(10) NOT NULL CHECK (tipo_giorno IN ('feriale', 'sabato', 'festivo')),
     fascia_oraria INTEGER NOT NULL CHECK (fascia_oraria BETWEEN 0 AND 23),
     numero_corse INTEGER NOT NULL,
-    UNIQUE(stop_id, fascia_oraria)
+    UNIQUE(stop_id, tipo_giorno, fascia_oraria)
 );
 
 CREATE TEMP TABLE stg_gtfs_stops (
@@ -367,7 +389,6 @@ COPY stg_gtfs_trips      FROM '/var/lib/postgresql/csv_data/gtfs/trips.txt'     
 COPY stg_gtfs_stop_times FROM '/var/lib/postgresql/csv_data/gtfs/stop_times.txt' DELIMITER ',' CSV HEADER QUOTE '"';
 COPY stg_gtfs_calendar   FROM '/var/lib/postgresql/csv_data/gtfs/calendar.txt'   DELIMITER ',' CSV HEADER QUOTE '"';
 
--- Fermate con coordinate valide (location_type='0' = fermata reale, non stazione aggregata)
 INSERT INTO gtfs_fermate (stop_id, nome, geom)
 SELECT stop_id, stop_name,
     ST_SetSRID(ST_MakePoint(NULLIF(stop_lon,'')::FLOAT, NULLIF(stop_lat,'')::FLOAT), 4326)
@@ -378,20 +399,63 @@ WHERE location_type = '0'
 CREATE INDEX IF NOT EXISTS idx_gtfs_fermate_geom ON gtfs_fermate USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_gtfs_fermate_geog ON gtfs_fermate USING gist(geog);
 
--- Service_id attivi tutti i 5 giorni lavorativi = "giorno feriale tipo"
-CREATE TEMP TABLE feriali AS
-SELECT service_id FROM stg_gtfs_calendar
-WHERE monday='1' AND tuesday='1' AND wednesday='1' AND thursday='1' AND friday='1';
+CREATE TEMP TABLE cal AS
+SELECT service_id,
+    (monday='1' AND tuesday='1' AND wednesday='1' AND thursday='1' AND friday='1') AS feriale,
+    (saturday='1') AS sabato,
+    (sunday='1') AS festivo,
+    TO_DATE(start_date, 'YYYYMMDD') AS inizio,
+    TO_DATE(end_date, 'YYYYMMDD') AS fine
+FROM stg_gtfs_calendar;
 
--- Numero di corse per fermata per ogni fascia oraria (0-23), giorno feriale tipo.
--- NB: arrival_time GTFS può superare "24:00:00" (corse dopo mezzanotte sul servizio del giorno
--- prima) quindi si usa %% 24 per normalizzare nella fascia corretta.
-INSERT INTO gtfs_frequenze_fermata (stop_id, fascia_oraria, numero_corse)
-SELECT st.stop_id,
-       (SPLIT_PART(st.arrival_time, ':', 1)::INT) % 24 AS fascia_oraria,
-       COUNT(DISTINCT st.trip_id) AS numero_corse
+CREATE TEMP TABLE data_riferimento AS
+SELECT d.inizio AS giorno
+FROM (SELECT DISTINCT inizio FROM cal) d
+ORDER BY (SELECT COUNT(*) FROM cal c WHERE d.inizio BETWEEN c.inizio AND c.fine) DESC, d.inizio
+LIMIT 1;
+
+INSERT INTO gtfs_trips (trip_id, route_id, feriale, sabato, festivo)
+SELECT DISTINCT ON (t.trip_id) t.trip_id, t.route_id, c.feriale, c.sabato, c.festivo
+FROM stg_gtfs_trips t
+JOIN cal c ON c.service_id = t.service_id
+CROSS JOIN data_riferimento r
+WHERE r.giorno BETWEEN c.inizio AND c.fine
+  AND (c.feriale OR c.sabato OR c.festivo);
+
+INSERT INTO gtfs_stop_times (trip_id, stop_id, stop_sequence, arr_sec, dep_sec)
+SELECT st.trip_id, st.stop_id, st.stop_sequence::INT,
+    SPLIT_PART(st.arrival_time, ':', 1)::INT * 3600 + SPLIT_PART(st.arrival_time, ':', 2)::INT * 60 + SPLIT_PART(st.arrival_time, ':', 3)::INT,
+    SPLIT_PART(st.departure_time, ':', 1)::INT * 3600 + SPLIT_PART(st.departure_time, ':', 2)::INT * 60 + SPLIT_PART(st.departure_time, ':', 3)::INT
 FROM stg_gtfs_stop_times st
-JOIN stg_gtfs_trips t ON st.trip_id = t.trip_id
-JOIN feriali f ON t.service_id = f.service_id
-WHERE st.stop_id IN (SELECT stop_id FROM gtfs_fermate)
-GROUP BY st.stop_id, fascia_oraria;
+WHERE st.trip_id IN (SELECT trip_id FROM gtfs_trips)
+  AND st.stop_id IN (SELECT stop_id FROM gtfs_fermate)
+  AND NULLIF(st.departure_time, '') IS NOT NULL AND NULLIF(st.arrival_time, '') IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_gtfs_stop_times_stop ON gtfs_stop_times (stop_id);
+CREATE INDEX IF NOT EXISTS idx_gtfs_stop_times_trip ON gtfs_stop_times (trip_id, stop_sequence);
+
+-- Numero di corse distinte per fermata, tipo di giorno e fascia oraria (0-23).
+-- Gli orari GTFS possono superare le 24:00 (corse dopo mezzanotte): si normalizza con % 24.
+INSERT INTO gtfs_frequenze_fermata (stop_id, tipo_giorno, fascia_oraria, numero_corse)
+SELECT st.stop_id, g.tipo, (st.dep_sec / 3600) % 24, COUNT(DISTINCT st.trip_id)
+FROM gtfs_stop_times st
+JOIN gtfs_trips t ON t.trip_id = st.trip_id
+CROSS JOIN LATERAL (VALUES ('feriale', t.feriale), ('sabato', t.sabato), ('festivo', t.festivo)) AS g(tipo, attivo)
+WHERE g.attivo
+GROUP BY st.stop_id, g.tipo, (st.dep_sec / 3600) % 24;
+
+CREATE INDEX IF NOT EXISTS idx_gtfs_frequenze ON gtfs_frequenze_fermata (tipo_giorno, fascia_oraria, stop_id);
+
+-- ============================================================================
+-- Vista unificata dei PoI puntuali (per recall dei servizi vicini e indicatori per cella).
+-- ============================================================================
+
+CREATE OR REPLACE VIEW poi_tutti AS
+SELECT 'biblioteche'::TEXT AS categoria, id::TEXT AS id, nome::TEXT AS nome, geom::GEOMETRY AS geom, geog FROM biblioteche
+UNION ALL SELECT 'salestudio', id::TEXT, nome, geom::GEOMETRY, geog FROM sale_studio
+UNION ALL SELECT 'fermate', codice_fermata, nome_fermata, geom::GEOMETRY, geog FROM fermate_bus
+UNION ALL SELECT 'areeverdi', id::TEXT, nome_area, geom::GEOMETRY, geog FROM aree_verdi
+UNION ALL SELECT 'residenze', id, nome, geom::GEOMETRY, geog FROM residenze_universitarie
+UNION ALL SELECT 'stazioni', codice, denominazione, geom::GEOMETRY, geog FROM stazioni_ferroviarie
+UNION ALL SELECT 'mense', id::TEXT, nome, geom::GEOMETRY, geog FROM mense
+UNION ALL SELECT 'sedi', id::TEXT, nome, geom::GEOMETRY, geog FROM sedi_universitarie;

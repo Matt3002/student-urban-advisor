@@ -14,5 +14,6 @@ namespace UrbanAdvisor.Api.Models
         [Column("lunghezza")] public decimal? Lunghezza { get; set; }
         [Column("utilizzo")] public string? Utilizzo { get; set; }
         [Column("geom")] public MultiLineString? Geom { get; set; }
+        [Column("geog", TypeName = "geography")] [DatabaseGenerated(DatabaseGeneratedOption.Computed)] public MultiLineString? Geog { get; set; }
     }
 }

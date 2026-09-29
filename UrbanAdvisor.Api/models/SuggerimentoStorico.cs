@@ -22,6 +22,9 @@ namespace UrbanAdvisor.Api.Models
         [Column("ora")]
         public int Ora { get; set; }
 
+        [Column("giorno")]
+        public int? Giorno { get; set; }
+
         [Column("punteggio")]
         public int Punteggio { get; set; }
 
