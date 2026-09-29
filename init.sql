@@ -2,11 +2,12 @@
 -- init.sql - Script di inizializzazione del database PostGIS
 -- Configurazione del DB:
 -- 1. Attivazione estensione PostGIS.
--- 2. Creazione tabelle definitive con tipologie geometriche (Point, MultiLineString, MultiPoint).
+-- 2. Creazione tabelle definitive con tipologie geometriche (Point, MultiLineString, MultiPoint)
+--    e colonna 'geog' (geography, generata da geom) per distanze e buffer in metri.
 -- 3. Creazione tabelle di staging per parsing CSV.
 -- 4. Importazione dati massiva tramite comando COPY.
 -- 5. ETL spaziale: trasformazione dati grezzi in geometrie SRID 4326.
--- 6. Creazione indici spaziali GiST per l'ottimizzazione delle query.
+-- 6. Creazione indici spaziali GiST (su geom e geog) per l'ottimizzazione delle query.
 -- 7. Popolamento tabelle di supporto: profili utente e orari servizi.
 -- ============================================================================
 
@@ -18,7 +19,8 @@ CREATE TABLE IF NOT EXISTS biblioteche (
     indirizzo VARCHAR(255),
     quartiere VARCHAR(255),
     postazioni_lettura INTEGER,
-    geom GEOMETRY(MultiPoint, 4326)
+    geom GEOMETRY(MultiPoint, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 CREATE TABLE IF NOT EXISTS piste_ciclabili (
@@ -26,14 +28,16 @@ CREATE TABLE IF NOT EXISTS piste_ciclabili (
     codice VARCHAR(50),
     lunghezza NUMERIC,
     utilizzo VARCHAR(100),
-    geom GEOMETRY(MultiLineString, 4326)
+    geom GEOMETRY(MultiLineString, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 CREATE TABLE IF NOT EXISTS fermate_bus (
     codice_fermata VARCHAR(50) PRIMARY KEY,
     linea_bus VARCHAR(255),
     nome_fermata VARCHAR(255),
-    geom GEOMETRY(Point, 4326)
+    geom GEOMETRY(Point, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 CREATE TABLE IF NOT EXISTS aree_verdi (
@@ -42,7 +46,8 @@ CREATE TABLE IF NOT EXISTS aree_verdi (
     tipologia VARCHAR(255),
     quartiere VARCHAR(255),
     ubicazione VARCHAR(255),
-    geom GEOMETRY(Point, 4326)
+    geom GEOMETRY(Point, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 CREATE TABLE IF NOT EXISTS residenze_universitarie (
@@ -53,7 +58,8 @@ CREATE TABLE IF NOT EXISTS residenze_universitarie (
     posti_letto INTEGER,
     quartiere VARCHAR(255),
     url TEXT,
-    geom GEOMETRY(Point, 4326)
+    geom GEOMETRY(Point, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 CREATE TABLE IF NOT EXISTS stazioni_ferroviarie (
@@ -61,7 +67,8 @@ CREATE TABLE IF NOT EXISTS stazioni_ferroviarie (
     denominazione VARCHAR(255),
     ubicazione VARCHAR(255),
     comune VARCHAR(100),
-    geom GEOMETRY(Point, 4326)
+    geom GEOMETRY(Point, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 CREATE TABLE IF NOT EXISTS sedi_universitarie (
@@ -70,7 +77,8 @@ CREATE TABLE IF NOT EXISTS sedi_universitarie (
     nome TEXT,
     indirizzo VARCHAR(255),
     url TEXT,
-    geom GEOMETRY(Point, 4326)
+    geom GEOMETRY(Point, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 CREATE TEMP TABLE stg_sedi_universitarie (
@@ -88,6 +96,7 @@ WHERE city = 'Bologna'
   AND NULLIF(lon,'')::FLOAT IS NOT NULL AND NULLIF(lon,'')::FLOAT != 0;
 
 CREATE INDEX IF NOT EXISTS idx_sedi_universitarie_geom ON sedi_universitarie USING gist(geom);
+CREATE INDEX IF NOT EXISTS idx_sedi_universitarie_geog ON sedi_universitarie USING gist(geog);
 
 CREATE TABLE IF NOT EXISTS mense (
     id SERIAL PRIMARY KEY,
@@ -95,7 +104,8 @@ CREATE TABLE IF NOT EXISTS mense (
     indirizzo VARCHAR(255),
     tipo VARCHAR(50),       -- 'mensa' (pasto completo) o 'punto_ristoro' (self/microonde)
     gestore VARCHAR(255),
-    geom GEOMETRY(Point, 4326)
+    geom GEOMETRY(Point, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 INSERT INTO mense (nome, indirizzo, tipo, gestore, geom) VALUES
@@ -111,6 +121,7 @@ INSERT INTO mense (nome, indirizzo, tipo, gestore, geom) VALUES
     ST_SetSRID(ST_MakePoint(11.3495, 44.4965), 4326));
 
 CREATE INDEX IF NOT EXISTS idx_mense_geom ON mense USING gist(geom);
+CREATE INDEX IF NOT EXISTS idx_mense_geog ON mense USING gist(geog);
 
 CREATE TEMP TABLE stg_biblioteche (
     biblioteca TEXT, tipologia TEXT, indirizzo TEXT, quartiere TEXT, rete_wifi TEXT, 
@@ -211,6 +222,48 @@ CREATE INDEX IF NOT EXISTS idx_fermate_geom ON fermate_bus USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_aree_verdi_geom ON aree_verdi USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_residenze_geom ON residenze_universitarie USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_stazioni_geom ON stazioni_ferroviarie USING gist(geom);
+CREATE INDEX IF NOT EXISTS idx_biblioteche_geog ON biblioteche USING gist(geog);
+CREATE INDEX IF NOT EXISTS idx_piste_geog ON piste_ciclabili USING gist(geog);
+CREATE INDEX IF NOT EXISTS idx_fermate_geog ON fermate_bus USING gist(geog);
+CREATE INDEX IF NOT EXISTS idx_aree_verdi_geog ON aree_verdi USING gist(geog);
+CREATE INDEX IF NOT EXISTS idx_residenze_geog ON residenze_universitarie USING gist(geog);
+CREATE INDEX IF NOT EXISTS idx_stazioni_geog ON stazioni_ferroviarie USING gist(geog);
+
+-- ============================================================================
+-- Sale studio: import opzionale da data/sale-studio.csv (formato normalizzato,
+-- separatore ';', intestazione: nome;indirizzo;lat;lon;posti;fonte).
+-- Se il file non esiste la tabella resta vuota e l'inizializzazione prosegue.
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS sale_studio (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(255),
+    indirizzo VARCHAR(255),
+    posti INTEGER,
+    fonte VARCHAR(255),
+    geom GEOMETRY(Point, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
+);
+
+CREATE TEMP TABLE stg_sale_studio (
+    nome TEXT, indirizzo TEXT, lat TEXT, lon TEXT, posti TEXT, fonte TEXT
+);
+
+DO $$
+BEGIN
+    COPY stg_sale_studio FROM '/var/lib/postgresql/csv_data/sale-studio.csv' DELIMITER ';' CSV HEADER QUOTE '"';
+EXCEPTION WHEN undefined_file THEN
+    RAISE NOTICE 'sale-studio.csv non trovato: tabella sale_studio lasciata vuota';
+END $$;
+
+INSERT INTO sale_studio (nome, indirizzo, posti, fonte, geom)
+SELECT nome, indirizzo, NULLIF(TRIM(posti), '')::INTEGER, fonte,
+    ST_SetSRID(ST_MakePoint(REPLACE(TRIM(lon), ',', '.')::FLOAT, REPLACE(TRIM(lat), ',', '.')::FLOAT), 4326)
+FROM stg_sale_studio
+WHERE NULLIF(TRIM(lat), '') IS NOT NULL AND NULLIF(TRIM(lon), '') IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_sale_studio_geom ON sale_studio USING gist(geom);
+CREATE INDEX IF NOT EXISTS idx_sale_studio_geog ON sale_studio USING gist(geog);
 
 CREATE TABLE IF NOT EXISTS profili_utente (
     id SERIAL PRIMARY KEY,
@@ -284,7 +337,8 @@ FROM generate_series(0, 6) AS g(giorno);
 CREATE TABLE IF NOT EXISTS gtfs_fermate (
     stop_id VARCHAR(50) PRIMARY KEY,
     nome VARCHAR(255),
-    geom GEOMETRY(Point, 4326)
+    geom GEOMETRY(Point, 4326),
+    geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
 );
 
 CREATE TABLE IF NOT EXISTS gtfs_frequenze_fermata (
@@ -322,6 +376,7 @@ WHERE location_type = '0'
   AND NULLIF(stop_lat,'') IS NOT NULL AND NULLIF(stop_lon,'') IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_gtfs_fermate_geom ON gtfs_fermate USING gist(geom);
+CREATE INDEX IF NOT EXISTS idx_gtfs_fermate_geog ON gtfs_fermate USING gist(geog);
 
 -- Service_id attivi tutti i 5 giorni lavorativi = "giorno feriale tipo"
 CREATE TEMP TABLE feriali AS

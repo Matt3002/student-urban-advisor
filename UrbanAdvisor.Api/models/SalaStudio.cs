@@ -1,11 +1,14 @@
+// ============================================================================
+// SalaStudio.cs - Modello dati per le sale studio (import da data/sale-studio.csv)
+// ============================================================================
 using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UrbanAdvisor.Api.Models
 {
-    [Table("mense")]
-    public class Mensa
+    [Table("sale_studio")]
+    public class SalaStudio
     {
         [Key]
         [Column("id")]
@@ -17,11 +20,11 @@ namespace UrbanAdvisor.Api.Models
         [Column("indirizzo")]
         public string? Indirizzo { get; set; }
 
-        [Column("tipo")]
-        public string? Tipo { get; set; }
+        [Column("posti")]
+        public int? Posti { get; set; }
 
-        [Column("gestore")]
-        public string? Gestore { get; set; }
+        [Column("fonte")]
+        public string? Fonte { get; set; }
 
         [Column("geom")]
         public Point? Geom { get; set; }
@@ -29,6 +32,5 @@ namespace UrbanAdvisor.Api.Models
         [Column("geog", TypeName = "geography")]
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public Point? Geog { get; set; }
-        
     }
 }

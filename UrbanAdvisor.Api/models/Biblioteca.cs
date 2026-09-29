@@ -26,5 +26,9 @@ namespace UrbanAdvisor.Api.Models
 
         [Column("geom")]
         public MultiPoint? Geom { get; set; }
+
+        [Column("geog", TypeName = "geography")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public MultiPoint? Geog { get; set; }
     }
 }

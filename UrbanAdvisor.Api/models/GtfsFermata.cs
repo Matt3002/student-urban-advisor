@@ -10,5 +10,6 @@ namespace UrbanAdvisor.Api.Models
         [Key] [Column("stop_id")] public string StopId { get; set; } = null!;
         [Column("nome")] public string? Nome { get; set; }
         [Column("geom")] public Point? Geom { get; set; }
+        [Column("geog", TypeName = "geography")] [DatabaseGenerated(DatabaseGeneratedOption.Computed)] public Point? Geog { get; set; }
     }
 }

@@ -25,5 +25,9 @@ namespace UrbanAdvisor.Api.Models
 
         [Column("geom")]
         public Point? Geom { get; set; }
+
+        [Column("geog", TypeName = "geography")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        public Point? Geog { get; set; }
     }
 }

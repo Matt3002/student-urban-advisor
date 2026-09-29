@@ -10,5 +10,6 @@ namespace UrbanAdvisor.Api.Models
         [Key] [Column("codice")] public string Codice { get; set; } = null!;
         [Column("denominazione")] public string? Denominazione { get; set; }
         [Column("geom")] public Point? Geom { get; set; }
+        [Column("geog", TypeName = "geography")] [DatabaseGenerated(DatabaseGeneratedOption.Computed)] public Point? Geog { get; set; }
     }
 }

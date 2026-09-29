@@ -12,5 +12,6 @@ namespace UrbanAdvisor.Api.Models
         [Column("indirizzo")] public string? Indirizzo { get; set; }
         [Column("posti_letto")] public int? PostiLetto { get; set; }
         [Column("geom")] public Point? Geom { get; set; }
+        [Column("geog", TypeName = "geography")] [DatabaseGenerated(DatabaseGeneratedOption.Computed)] public Point? Geog { get; set; }
     }
 }

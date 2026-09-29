@@ -113,8 +113,29 @@
                         <span style="color:#16a085">●</span> Sedi Universitarie
                     </div>
                     <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-salestudio" onchange="toggleLayer('salestudio')">
+                        <span style="color:#c0392b">●</span> Sale Studio
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
+                        <input type="checkbox" id="chk-piste" onchange="toggleLayer('piste')">
+                        <span style="color:#8e44ad">━</span> Piste Ciclabili
+                    </div>
+                    <div class="layer-toggle p-2 d-flex align-items-center gap-2">
                         <input type="checkbox" id="chk-heatmap" onchange="toggleHeatmap()">
                         <span style="color:#ff6b6b">◉</span> <b>Heatmap Densità</b>
+                    </div>
+                    <div class="px-2 mb-1">
+                        <select class="form-select form-select-sm" id="heatmapCategoria" onchange="refreshHeatmap()">
+                            <option value="">Heatmap: tutti i servizi</option>
+                            <option value="sedi">Heatmap: sedi universitarie</option>
+                            <option value="biblioteche">Heatmap: biblioteche</option>
+                            <option value="salestudio">Heatmap: sale studio</option>
+                            <option value="mense">Heatmap: mense e punti ristoro</option>
+                            <option value="residenze">Heatmap: residenze universitarie</option>
+                            <option value="fermate">Heatmap: fermate bus</option>
+                            <option value="areeverdi">Heatmap: aree verdi</option>
+                            <option value="stazioni">Heatmap: stazioni</option>
+                        </select>
                     </div>
                     <hr>
                     <h6 class="mb-2"><i class="bi bi-search"></i> Cerca Servizi Vicini</h6>
@@ -128,6 +149,7 @@
                         <select class="form-select form-select-sm" id="categoriaCerca">
                             <option value="">Tutte le categorie</option>
                             <option value="biblioteche">Biblioteche</option>
+                            <option value="salestudio">Sale Studio</option>
                             <option value="fermate">Fermate Bus</option>
                             <option value="areeverdi">Aree Verdi</option>
                             <option value="residenze">Residenze</option>
@@ -174,7 +196,7 @@
                         <input type="text" class="form-control form-control-sm" id="profiloNome" placeholder="Nome profilo">
                     </div>
                     <div class="profile-weight"><label>🚌 Trasporti</label><input type="range" min="0" max="100" value="50" id="w-trasporti" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
-                    <div class="profile-weight"><label>📚 Biblioteche</label><input type="range" min="0" max="100" value="50" id="w-biblioteche" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
+                    <div class="profile-weight"><label>📚 Bibl./Sale studio</label><input type="range" min="0" max="100" value="50" id="w-biblioteche" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
                     <div class="profile-weight"><label>🌳 Aree Verdi</label><input type="range" min="0" max="100" value="50" id="w-areeverdi" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
                     <div class="profile-weight"><label>🚲 Mobilità Sost.</label><input type="range" min="0" max="100" value="50" id="w-mobilita" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>
                     <div class="profile-weight"><label>🏠 Residenze</label><input type="range" min="0" max="100" value="50" id="w-residenze" oninput="this.nextElementSibling.textContent=this.value"><span class="val">50</span></div>

@@ -15,7 +15,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 const layers = {
     biblioteche: L.layerGroup().addTo(map), fermate: L.layerGroup(),
     areeverdi: L.layerGroup(), residenze: L.layerGroup(), stazioni: L.layerGroup(),
-    mense: L.layerGroup(), sedi: L.layerGroup() 
+    mense: L.layerGroup(), sedi: L.layerGroup(), salestudio: L.layerGroup(), piste: L.layerGroup()
 };
 
 const catConfig = {
@@ -25,7 +25,9 @@ const catConfig = {
     residenze:   { color: '#9b59b6', icon: '🏠', label: 'Residenza' },
     stazioni:    { color: '#f39c12', icon: '🚉', label: 'Stazione' },
     mense:       { color: '#ff5e5e', icon: '🍽️', label: 'Mensa/Ristoro' },
-    sedi:        { color: '#16a085', icon: '🏛️', label: 'Sede Universitaria' }
+    sedi:        { color: '#16a085', icon: '🏛️', label: 'Sede Universitaria' },
+    salestudio:  { color: '#c0392b', icon: '📖', label: 'Sala Studio' },
+    piste:       { color: '#8e44ad', icon: '🚲', label: 'Pista Ciclabile' }
 };
 
 let userMarker = null, searchCircle = null, lastClickLat = null, lastClickLon = null;
@@ -36,13 +38,22 @@ let clusterLayer = null;
 let isocronaLayer = null;
 const clusterColors = ['#2ecc71', '#3498db', '#e67e22', '#e74c3c', '#9b59b6', '#1abc9c'];
 
-// Carica e disegna sulla mappa i PoI di una categoria.
+// Carica e disegna sulla mappa i PoI di una categoria (le piste ciclabili come polilinee).
 async function loadLayer(name) {
     try {
         const res = await fetch(`${API_BASE_URL}/${name}`);
         const data = await res.json();
         const cfg = catConfig[name];
         layers[name].clearLayers();
+        if (name === 'piste') {
+            data.forEach(p => {
+                if (!p.linee || p.linee.length === 0) return;
+                L.polyline(p.linee, { color: cfg.color, weight: 3, opacity: 0.8 })
+                    .bindPopup(`<b>${cfg.icon} ${cfg.label} ${p.codice || ''}</b><br><small>${p.utilizzo || ''}</small>${p.lunghezza ? `<br><small>Lunghezza: ${Math.round(p.lunghezza)} m</small>` : ''}`)
+                    .addTo(layers[name]);
+            });
+            return;
+        }
         data.forEach(item => {
             if (!item.lat || !item.lon) return;
             const marker = L.circleMarker([item.lat, item.lon], {
@@ -67,14 +78,21 @@ function toggleLayer(name) {
     else { map.removeLayer(layers[name]); }
 }
 
-// Attiva/disattiva la heatmap di densita' dei servizi.
+// Ridisegna la heatmap quando cambia la categoria selezionata.
+function refreshHeatmap() {
+    if (document.getElementById('chk-heatmap').checked) toggleHeatmap();
+}
+
+// Attiva/disattiva la heatmap di densita' dei servizi, eventualmente filtrata per categoria.
 async function toggleHeatmap() {
     const chk = document.getElementById('chk-heatmap');
-    if (!chk.checked) { if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; } return; }
+    if (heatLayer) { map.removeLayer(heatLayer); heatLayer = null; }
+    if (!chk.checked) return;
+    const cat = document.getElementById('heatmapCategoria').value;
     try {
-        const res = await fetch(`${API_BASE_URL}/heatmap`);
+        const res = await fetch(`${API_BASE_URL}/heatmap${cat ? `?categoria=${cat}` : ''}`);
         const data = await res.json();
-        const pts = data.punti.map(p => [p.lat, p.lon, p.peso]);
+        const pts = data.punti.map(p => [p.lat, p.lon, cat ? 1.0 : p.peso]);
         heatLayer = L.heatLayer(pts, { radius: 25, blur: 20, maxZoom: 17, max: 1.0,
             gradient: { 0.2: '#ffffb2', 0.4: '#fecc5c', 0.6: '#fd8d3c', 0.8: '#f03b20', 1: '#bd0026' }
         }).addTo(map);
@@ -112,7 +130,7 @@ async function calcolaScore() {
         container.innerHTML = '';
         const items = [
             { name: '🚌 Trasporti', val: data.subscores.trasporti },
-            { name: '📚 Biblioteche', val: data.subscores.biblioteche },
+            { name: '📚 Bibl./Sale st.', val: data.subscores.biblioteche },
             { name: '🌳 Aree Verdi', val: data.subscores.aree_verdi },
             { name: '🚲 Mobilità', val: data.subscores.mobilita },
             { name: '🏠 Residenze', val: data.subscores.residenze },
@@ -164,9 +182,10 @@ async function caricaIndicatoriArea() {
         const d = data.dettaglio;
         document.getElementById('indDettaglio').innerHTML = `
             <div class="d-flex justify-content-between border-bottom py-1"><span>📚 Biblioteche</span><b>${d.biblioteche}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>📖 Sale Studio</span><b>${d.sale_studio}</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🚌 Fermate Bus</span><b>${d.fermate_bus}</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🌳 Aree Verdi</span><b>${d.aree_verdi}</b></div>
-            <div class="d-flex justify-content-between border-bottom py-1"><span>🚲 Piste Ciclabili</span><b>${d.piste_ciclabili}</b></div>
+            <div class="d-flex justify-content-between border-bottom py-1"><span>🚲 Piste Ciclabili</span><b>${d.piste_km} km</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🏠 Residenze</span><b>${d.residenze}</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🚉 Stazioni</span><b>${d.stazioni}</b></div>
             <div class="d-flex justify-content-between border-bottom py-1"><span>🍽️ Mense/Ristoro</span><b>${d.mense}</b></div>
@@ -186,8 +205,8 @@ function switchTab(name, btn) {
     if (name === 'profilo') loadProfili();
     if (name === 'raccomandazioni') loadProfili();
     if (name === 'analisi') loadProfili();
-    if (name === 'temporale') { loadTemporale(); loadTemporaleStats();
-    if (name === 'mobilita' && lastClickLat) caricaTempoPercorrenza();}
+    if (name === 'temporale') { loadTemporale(); loadTemporaleStats(); }
+    if (name === 'mobilita' && lastClickLat) caricaTempoPercorrenza();
 }
 
 // Carica i profili utente e popola i menu a tendina.
@@ -215,7 +234,7 @@ function loadProfiloEdit() {
     const btn = document.getElementById('btnDeleteProfilo');
     if (id === 'new') {
         document.getElementById('profiloNome').value = '';
-        ['trasporti','biblioteche','areeverdi','mobilita','residenze'].forEach(k => { document.getElementById(`w-${k}`).value = 50; document.getElementById(`w-${k}`).nextElementSibling.textContent = '50'; });
+        ['trasporti','biblioteche','areeverdi','mobilita','residenze','mense','sedi'].forEach(k => { document.getElementById(`w-${k}`).value = 50; document.getElementById(`w-${k}`).nextElementSibling.textContent = '50'; });
         btn.style.display = 'none'; return;
     }
     const p = profiliCache.find(x => x.id == id);
@@ -303,7 +322,7 @@ async function loadRaccomandazioni() {
                 <div class="rec-rank">${r.posizione}</div>
                 <div class="flex-fill"><div class="fw-bold ${scoreClass}">Score: ${r.student_accessibility_score}/100</div>
                 <small class="text-muted">${r.motivazione}</small><br>
-                <small>📚${r.dettaglio.biblioteche} 🚌${r.dettaglio.fermate} 🌳${r.dettaglio.aree_verdi} 🚲${r.dettaglio.piste} 🏠${r.dettaglio.residenze} 🍽️${r.dettaglio.mense} 🏛️${r.dettaglio.sedi}</small>
+                <small>📚${r.dettaglio.biblioteche} 📖${r.dettaglio.sale_studio} 🚌${r.dettaglio.fermate} 🌳${r.dettaglio.aree_verdi} 🚲${r.dettaglio.piste_km}km 🏠${r.dettaglio.residenze} 🍽️${r.dettaglio.mense} 🏛️${r.dettaglio.sedi}</small>
                 </div></div></div>`;
 
             const icon = L.divIcon({ html: `<div style="background:#0d6efd;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${r.posizione}</div>`, className: '', iconSize: [28, 28] });
@@ -336,7 +355,7 @@ async function loadDensityGrid() {
             const stepLat = 0.05 / data.celle, stepLon = 0.08 / data.celle;
             const bounds = [[cell.lat - stepLat/2, cell.lon - stepLon/2], [cell.lat + stepLat/2, cell.lon + stepLon/2]];
             const rect = L.rectangle(bounds, { color: '#333', weight: 0.5, fillColor: color, fillOpacity: 0.6 });
-            rect.bindPopup(`<b>Score: ${cell.score}/100</b><br>📚${cell.dettaglio.biblioteche} 🚌${cell.dettaglio.fermate} 🌳${cell.dettaglio.aree_verdi} 🚲${cell.dettaglio.piste} 🏠${cell.dettaglio.residenze}<br>Totale PoI: ${cell.totale_poi}`);
+            rect.bindPopup(`<b>Score: ${cell.score}/100</b><br>📚${cell.dettaglio.biblioteche} 📖${cell.dettaglio.sale_studio} 🚌${cell.dettaglio.fermate} 🌳${cell.dettaglio.aree_verdi} 🚲${cell.dettaglio.piste_km}km 🏠${cell.dettaglio.residenze} 🍽️${cell.dettaglio.mense} 🏛️${cell.dettaglio.sedi}<br>Totale PoI: ${cell.totale_poi}`);
             gridLayer.addLayer(rect);
         });
 
@@ -577,6 +596,8 @@ async function confrontoPrivacy() {
                 <tr><td>🌳</td><td>${r.aree_verdi}</td><td>${p.aree_verdi}</td><td class="${Math.abs(r.aree_verdi-p.aree_verdi)>10?'text-danger':''}">${r.aree_verdi-p.aree_verdi}</td></tr>
                 <tr><td>🚲</td><td>${r.mobilita}</td><td>${p.mobilita}</td><td class="${Math.abs(r.mobilita-p.mobilita)>10?'text-danger':''}">${r.mobilita-p.mobilita}</td></tr>
                 <tr><td>🏠</td><td>${r.residenze}</td><td>${p.residenze}</td><td class="${Math.abs(r.residenze-p.residenze)>10?'text-danger':''}">${r.residenze-p.residenze}</td></tr>
+                <tr><td>🍽️</td><td>${r.mense}</td><td>${p.mense}</td><td class="${Math.abs(r.mense-p.mense)>10?'text-danger':''}">${r.mense-p.mense}</td></tr>
+                <tr><td>🏛️</td><td>${r.sedi}</td><td>${p.sedi}</td><td class="${Math.abs(r.sedi-p.sedi)>10?'text-danger':''}">${r.sedi-p.sedi}</td></tr>
             </table>`;
     } catch (e) { console.error(e); }
 }

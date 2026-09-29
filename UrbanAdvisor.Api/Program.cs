@@ -2,13 +2,17 @@
 // Program.cs - Student Urban Accessibility Advisor
 // Configurazione dell'applicazione .NET (Minimal API) e definizione di tutti
 // gli endpoint REST: lettura PoI, ricerca spaziale, scoring context-aware,
-// profilazione, analisi spaziale/temporale, privacy e clustering.
-// Il front-end statico e' servito dalla cartella Frontend (WebRootPath).
+// profilazione, analisi spaziale/temporale, mobilita', privacy e clustering.
+// Distanze e buffer sono calcolati in metri sulla colonna geography 'geog';
+// la formula dello score e' centralizzata in Services/ScoringService.cs.
+// Il front-end statico e' servito da un container nginx separato che inoltra
+// le chiamate /api/ a questo servizio. Documento OpenAPI: /openapi/v1.json.
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
 using UrbanAdvisor.Api.Data;
 using UrbanAdvisor.Api.Models;
+using UrbanAdvisor.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,11 +37,7 @@ builder.Services.AddDbContext<UrbanAdvisorDbContext>(options =>
 var app = builder.Build();
 
 app.UseCors("AllowAll");
-
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+app.MapOpenApi();
 
 // Restituisce tutte le biblioteche con coordinate.
 app.MapGet("/api/biblioteche", async (UrbanAdvisorDbContext db) =>
@@ -52,6 +52,19 @@ app.MapGet("/api/biblioteche", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync();
     return Results.Ok(data);
 }).WithName("GetBiblioteche");
+
+// Restituisce tutte le sale studio.
+app.MapGet("/api/salestudio", async (UrbanAdvisorDbContext db) =>
+{
+    return Results.Ok(await db.SaleStudio
+        .Select(s => new {
+            id = s.Id, nome = s.Nome, indirizzo = s.Indirizzo,
+            posti = s.Posti, fonte = s.Fonte,
+            categoria = "salestudio",
+            lat = s.Geom != null ? s.Geom.Coordinate.Y : 0,
+            lon = s.Geom != null ? s.Geom.Coordinate.X : 0
+        }).ToListAsync());
+});
 
 // Restituisce tutte le fermate bus TPER.
 app.MapGet("/api/fermate", async (UrbanAdvisorDbContext db) =>
@@ -129,15 +142,19 @@ app.MapGet("/api/sedi", async (UrbanAdvisorDbContext db) =>
         }).ToListAsync());
 });
 
-// Restituisce tutte le piste ciclabili.
+// Restituisce le piste ciclabili con la geometria (lista di linee [lat, lon]) per il disegno su mappa.
 app.MapGet("/api/piste", async (UrbanAdvisorDbContext db) =>
 {
-    return Results.Ok(await db.PisteCiclabili
-        .Select(p => new {
-            id = p.Id, codice = p.Codice,
-            lunghezza = p.Lunghezza, utilizzo = p.Utilizzo,
-            categoria = "piste"
-        }).ToListAsync());
+    var piste = await db.PisteCiclabili.Where(p => p.Geom != null).ToListAsync();
+    return Results.Ok(piste.Select(p => new
+    {
+        id = p.Id, codice = p.Codice,
+        lunghezza = p.Lunghezza, utilizzo = p.Utilizzo,
+        categoria = "piste",
+        linee = p.Geom!.Geometries
+            .Select(g => g.Coordinates.Select(c => new[] { Math.Round(c.Y, 6), Math.Round(c.X, 6) }).ToArray())
+            .ToArray()
+    }));
 });
 
 // Route assistant: tempo di percorrenza multimodale verso la sede universitaria più vicina.
@@ -157,19 +174,11 @@ app.MapGet("/api/mobility/isocrona", async (int? ora, string? modalita, UrbanAdv
         modalitaVal = "trasporto_pubblico";
 
     int n = 10;
-    double minLat = 44.47, maxLat = 44.52, minLon = 11.30, maxLon = 11.38;
-    double stepLat = (maxLat - minLat) / n, stepLon = (maxLon - minLon) / n;
-
     var celle = new List<(double lat, double lon, bool disponibile, double? tempo, string? motivo)>();
-    for (int i = 0; i < n; i++)
+    foreach (var (cLat, cLon) in GeoUtils.CentriGriglia(n))
     {
-        for (int j = 0; j < n; j++)
-        {
-            double cLat = minLat + (i + 0.5) * stepLat;
-            double cLon = minLon + (j + 0.5) * stepLon;
-            var (disp, tempo, motivo) = await CalcolaTempoModalita(cLat, cLon, oraVal, modalitaVal, db);
-            celle.Add((cLat, cLon, disp, tempo, motivo));
-        }
+        var (disp, tempo, motivo) = await CalcolaTempoModalita(cLat, cLon, oraVal, modalitaVal, db);
+        celle.Add((cLat, cLon, disp, tempo, motivo));
     }
 
     var griglia = celle.Select(c => new
@@ -197,150 +206,110 @@ app.MapGet("/api/mobility/isocrona", async (int? ora, string? modalita, UrbanAdv
     });
 });
 
-// Restituisce i PoI entro un raggio da una posizione, ordinati per distanza.
+// Restituisce i PoI entro un raggio (metri) da una posizione, ordinati per distanza reale.
 app.MapGet("/api/nearby", async (double lat, double lon, int raggio, string? categoria, UrbanAdvisorDbContext db) =>
 {
-    double raggioGradi = raggio / 111000.0;
-    var userPoint = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-    var risultati = new List<object>();
+    var g = GeoUtils.Punto(lat, lon);
+    var risultati = new List<PoiVicino>();
 
     if (categoria == null || categoria == "biblioteche")
-    {
-        var items = await db.Biblioteche
-            .Where(b => b.Geom != null && b.Geom.IsWithinDistance(userPoint, raggioGradi))
-            .Select(b => new {
-                id = b.Id.ToString(), nome = b.Nome, categoria = "biblioteche",
-                dettaglio = b.Indirizzo ?? "",
-                lat = b.Geom!.Coordinate.Y, lon = b.Geom!.Coordinate.X,
-                distanzaMetri = (int)(b.Geom!.Distance(userPoint) * 111000)
-            }).ToListAsync();
-        risultati.AddRange(items);
-    }
+        risultati.AddRange(await db.Biblioteche
+            .Where(b => b.Geog != null && b.Geog.IsWithinDistance(g, raggio))
+            .Select(b => new PoiVicino(b.Id.ToString(), b.Nome ?? "", "biblioteche", b.Indirizzo ?? "",
+                b.Geom!.Coordinate.Y, b.Geom!.Coordinate.X, (int)b.Geog!.Distance(g)))
+            .ToListAsync());
+
+    if (categoria == null || categoria == "salestudio")
+        risultati.AddRange(await db.SaleStudio
+            .Where(s => s.Geog != null && s.Geog.IsWithinDistance(g, raggio))
+            .Select(s => new PoiVicino(s.Id.ToString(), s.Nome ?? "", "salestudio", s.Indirizzo ?? "",
+                s.Geom!.Y, s.Geom!.X, (int)s.Geog!.Distance(g)))
+            .ToListAsync());
 
     if (categoria == null || categoria == "fermate")
-    {
-        var items = await db.FermateBus
-            .Where(f => f.Geom != null && f.Geom.IsWithinDistance(userPoint, raggioGradi))
-            .Select(f => new {
-                id = f.CodiceFermata, nome = f.NomeFermata ?? "", categoria = "fermate",
-                dettaglio = f.LineaBus ?? "",
-                lat = f.Geom!.Coordinate.Y, lon = f.Geom!.Coordinate.X,
-                distanzaMetri = (int)(f.Geom!.Distance(userPoint) * 111000)
-            }).ToListAsync();
-        risultati.AddRange(items);
-    }
+        risultati.AddRange(await db.FermateBus
+            .Where(f => f.Geog != null && f.Geog.IsWithinDistance(g, raggio))
+            .Select(f => new PoiVicino(f.CodiceFermata, f.NomeFermata ?? "", "fermate", f.LineaBus ?? "",
+                f.Geom!.Y, f.Geom!.X, (int)f.Geog!.Distance(g)))
+            .ToListAsync());
 
     if (categoria == null || categoria == "areeverdi")
-    {
-        var items = await db.AreeVerdi
-            .Where(a => a.Geom != null && a.Geom.IsWithinDistance(userPoint, raggioGradi))
-            .Select(a => new {
-                id = a.Id.ToString(), nome = a.NomeArea ?? "", categoria = "areeverdi",
-                dettaglio = a.Tipologia ?? "",
-                lat = a.Geom!.Coordinate.Y, lon = a.Geom!.Coordinate.X,
-                distanzaMetri = (int)(a.Geom!.Distance(userPoint) * 111000)
-            }).ToListAsync();
-        risultati.AddRange(items);
-    }
+        risultati.AddRange(await db.AreeVerdi
+            .Where(a => a.Geog != null && a.Geog.IsWithinDistance(g, raggio))
+            .Select(a => new PoiVicino(a.Id.ToString(), a.NomeArea ?? "", "areeverdi", a.Tipologia ?? "",
+                a.Geom!.Y, a.Geom!.X, (int)a.Geog!.Distance(g)))
+            .ToListAsync());
 
     if (categoria == null || categoria == "residenze")
-    {
-        var items = await db.ResidenzeUniversitarie
-            .Where(r => r.Geom != null && r.Geom.IsWithinDistance(userPoint, raggioGradi))
-            .Select(r => new {
-                id = r.Id, nome = r.Nome ?? "", categoria = "residenze",
-                dettaglio = $"{r.PostiLetto} posti letto",
-                lat = r.Geom!.Coordinate.Y, lon = r.Geom!.Coordinate.X,
-                distanzaMetri = (int)(r.Geom!.Distance(userPoint) * 111000)
-            }).ToListAsync();
-        risultati.AddRange(items);
-    }
+        risultati.AddRange(await db.ResidenzeUniversitarie
+            .Where(r => r.Geog != null && r.Geog.IsWithinDistance(g, raggio))
+            .Select(r => new PoiVicino(r.Id, r.Nome ?? "", "residenze", r.PostiLetto + " posti letto",
+                r.Geom!.Y, r.Geom!.X, (int)r.Geog!.Distance(g)))
+            .ToListAsync());
 
     if (categoria == null || categoria == "stazioni")
-    {
-        var items = await db.StazioniFerroviarie
-            .Where(s => s.Geom != null && s.Geom.IsWithinDistance(userPoint, raggioGradi))
-            .Select(s => new {
-                id = s.Codice, nome = s.Denominazione ?? "", categoria = "stazioni",
-                dettaglio = s.Denominazione ?? "",
-                lat = s.Geom!.Coordinate.Y, lon = s.Geom!.Coordinate.X,
-                distanzaMetri = (int)(s.Geom!.Distance(userPoint) * 111000)
-            }).ToListAsync();
-        risultati.AddRange(items);
-    }
-        if (categoria == null || categoria == "mense")
-    {
-        var items = await db.Mense
-            .Where(m => m.Geom != null && m.Geom.IsWithinDistance(userPoint, raggioGradi))
-            .Select(m => new {
-                id = m.Id.ToString(), nome = m.Nome ?? "", categoria = "mense",
-                dettaglio = m.Tipo == "mensa" ? "Mensa universitaria" : "Punto Ristoro",
-                lat = m.Geom!.Coordinate.Y, lon = m.Geom!.Coordinate.X,
-                distanzaMetri = (int)(m.Geom!.Distance(userPoint) * 111000)
-            }).ToListAsync();
-        risultati.AddRange(items);
-    }
+        risultati.AddRange(await db.StazioniFerroviarie
+            .Where(s => s.Geog != null && s.Geog.IsWithinDistance(g, raggio))
+            .Select(s => new PoiVicino(s.Codice, s.Denominazione ?? "", "stazioni", s.Denominazione ?? "",
+                s.Geom!.Y, s.Geom!.X, (int)s.Geog!.Distance(g)))
+            .ToListAsync());
+
+    if (categoria == null || categoria == "mense")
+        risultati.AddRange(await db.Mense
+            .Where(m => m.Geog != null && m.Geog.IsWithinDistance(g, raggio))
+            .Select(m => new PoiVicino(m.Id.ToString(), m.Nome ?? "", "mense",
+                m.Tipo == "mensa" ? "Mensa universitaria" : "Punto Ristoro",
+                m.Geom!.Y, m.Geom!.X, (int)m.Geog!.Distance(g)))
+            .ToListAsync());
 
     if (categoria == null || categoria == "sedi")
-    {
-        var items = await db.SediUniversitarie
-            .Where(s => s.Geom != null && s.Geom.IsWithinDistance(userPoint, raggioGradi))
-            .Select(s => new {
-                id = s.Id.ToString(), nome = s.Nome ?? "", categoria = "sedi",
-                dettaglio = s.Tipo == "museo" ? "Museo" : "Dipartimento/Ufficio",
-                lat = s.Geom!.Coordinate.Y, lon = s.Geom!.Coordinate.X,
-                distanzaMetri = (int)(s.Geom!.Distance(userPoint) * 111000)
-            }).ToListAsync();
-        risultati.AddRange(items);
-    }
+        risultati.AddRange(await db.SediUniversitarie
+            .Where(s => s.Geog != null && s.Geog.IsWithinDistance(g, raggio))
+            .Select(s => new PoiVicino(s.Id.ToString(), s.Nome ?? "", "sedi",
+                s.Tipo == "museo" ? "Museo" : "Dipartimento/Ufficio",
+                s.Geom!.Y, s.Geom!.X, (int)s.Geog!.Distance(g)))
+            .ToListAsync());
 
-    var ordinati = risultati.Cast<dynamic>().OrderBy(r => (int)r.distanzaMetri).ToList();
+    var ordinati = risultati.OrderBy(r => r.DistanzaMetri).ToList();
     return Results.Ok(new { totale = ordinati.Count, raggio_metri = raggio, risultati = ordinati });
 });
 
-// Buffer analysis: conteggi e densita' dei PoI in un'area.
+// Buffer analysis: conteggi, km di piste e densita' dei PoI in un cerchio di raggio dato (metri).
 app.MapGet("/api/area/indicatori", async (double lat, double lon, int raggio, UrbanAdvisorDbContext db) =>
 {
-    double raggioGradi = raggio / 111000.0;
-    var userPoint = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-
-    var nBiblioteche = await db.Biblioteche.CountAsync(b => b.Geom != null && b.Geom.IsWithinDistance(userPoint, raggioGradi));
-    var nFermate = await db.FermateBus.CountAsync(f => f.Geom != null && f.Geom.IsWithinDistance(userPoint, raggioGradi));
-    var nAreeVerdi = await db.AreeVerdi.CountAsync(a => a.Geom != null && a.Geom.IsWithinDistance(userPoint, raggioGradi));
-    var nResidenze = await db.ResidenzeUniversitarie.CountAsync(r => r.Geom != null && r.Geom.IsWithinDistance(userPoint, raggioGradi));
-    var nStazioni = await db.StazioniFerroviarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(userPoint, raggioGradi));
-    var nPiste = await db.PisteCiclabili.CountAsync(p => p.Geom != null && p.Geom.IsWithinDistance(userPoint, raggioGradi));
-    var nMense = await db.Mense.CountAsync(m => m.Geom != null && m.Geom.IsWithinDistance(userPoint, raggioGradi));
-    var nSedi = await db.SediUniversitarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(userPoint, raggioGradi));
-
-    int totale = nBiblioteche + nFermate + nAreeVerdi + nResidenze + nStazioni + nPiste + nMense + nSedi;
+    var c = await ScoringService.ContaServiziAsync(db, lat, lon, raggio);
+    double areaKm2 = Math.PI * Math.Pow(raggio / 1000.0, 2);
 
     return Results.Ok(new
     {
         raggio_metri = raggio,
-        totale_poi = totale,
+        area_km2 = Math.Round(areaKm2, 3),
+        totale_poi = c.TotalePoi,
         dettaglio = new
         {
-            biblioteche = nBiblioteche,
-            fermate_bus = nFermate,
-            aree_verdi = nAreeVerdi,
-            residenze = nResidenze,
-            stazioni = nStazioni,
-            piste_ciclabili = nPiste,
-            mense = nMense,
-            sedi = nSedi
+            biblioteche = c.Biblioteche,
+            sale_studio = c.SaleStudio,
+            fermate_bus = c.Fermate,
+            aree_verdi = c.AreeVerdi,
+            residenze = c.Residenze,
+            stazioni = c.Stazioni,
+            mense = c.Mense,
+            sedi = c.Sedi,
+            piste_km = Math.Round(c.KmPiste, 2)
         },
         densita = new
         {
-            servizi_per_km2 = Math.Round(totale / (Math.PI * Math.Pow(raggio / 1000.0, 2)), 1)
-        }
+            servizi_per_km2 = Math.Round(c.TotalePoi / areaKm2, 1),
+            km_piste_per_km2 = Math.Round(c.KmPiste / areaKm2, 2)
+        },
+        distanza_fermata_metri = (int)c.DistanzaFermataMetri
     });
 });
 
 // Restituisce la lista dei profili utente.
 app.MapGet("/api/profili", async (UrbanAdvisorDbContext db) =>
 {
-    return Results.Ok(await db.ProfiliUtente.ToListAsync());
+    return Results.Ok(await db.ProfiliUtente.OrderBy(p => p.Id).ToListAsync());
 });
 
 // Restituisce un singolo profilo utente per id.
@@ -353,12 +322,14 @@ app.MapGet("/api/profili/{id}", async (int id, UrbanAdvisorDbContext db) =>
 // Crea un nuovo profilo utente.
 app.MapPost("/api/profili", async (ProfiloUtente profilo, UrbanAdvisorDbContext db) =>
 {
+    profilo.Id = 0;
+    NormalizzaPesi(profilo);
     db.ProfiliUtente.Add(profilo);
     await db.SaveChangesAsync();
     return Results.Created($"/api/profili/{profilo.Id}", profilo);
 });
 
-// Aggiorna un profilo utente esistente.
+// Aggiorna un profilo utente esistente (tutti i pesi, comprese mense e sedi).
 app.MapPut("/api/profili/{id}", async (int id, ProfiloUtente input, UrbanAdvisorDbContext db) =>
 {
     var profilo = await db.ProfiliUtente.FindAsync(id);
@@ -370,6 +341,9 @@ app.MapPut("/api/profili/{id}", async (int id, ProfiloUtente input, UrbanAdvisor
     profilo.PesoAreeVerdi = input.PesoAreeVerdi;
     profilo.PesoMobilitaSostenibile = input.PesoMobilitaSostenibile;
     profilo.PesoResidenze = input.PesoResidenze;
+    profilo.PesoMense = input.PesoMense;
+    profilo.PesoSedi = input.PesoSedi;
+    NormalizzaPesi(profilo);
     await db.SaveChangesAsync();
     return Results.Ok(profilo);
 });
@@ -387,108 +361,17 @@ app.MapDelete("/api/profili/{id}", async (int id, UrbanAdvisorDbContext db) =>
 // Calcola lo Student Accessibility Score context-aware (posizione, ora, profilo) e lo salva nello storico.
 app.MapGet("/api/ranking", async (double lat, double lon, int ora, int? profiloId, UrbanAdvisorDbContext db) =>
 {
-    var userPoint = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-    double raggioGradi = 1000.0 / 111000.0;
-
-    ProfiloUtente? profilo = null;
-    if (profiloId.HasValue)
-        profilo = await db.ProfiliUtente.FindAsync(profiloId.Value);
-
-    int wTrasporti = profilo?.PesoTrasporti ?? 50;
-    int wBiblioteche = profilo?.PesoBiblioteche ?? 50;
-    int wAreeVerdi = profilo?.PesoAreeVerdi ?? 50;
-    int wMobilita = profilo?.PesoMobilitaSostenibile ?? 50;
-    int wResidenze = profilo?.PesoResidenze ?? 50;
-    int wMense = profilo?.PesoMense ?? 50;
-    int wSedi = profilo?.PesoSedi ?? 50;
-
-    double somma = wTrasporti + wBiblioteche + wAreeVerdi + wMobilita + wResidenze + wMense + wSedi;
-    if (somma == 0) somma = 1;
-    double nT = wTrasporti / somma;
-    double nB = wBiblioteche / somma;
-    double nV = wAreeVerdi / somma;
-    double nM = wMobilita / somma;
-    double nR = wResidenze / somma;
-    double nMe = wMense / somma;
-    double nS = wSedi / somma;
-
-    var fermataPiuVicina = await db.FermateBus
-        .Where(f => f.Geom != null)
-        .OrderBy(f => f.Geom!.Distance(userPoint))
-        .FirstOrDefaultAsync();
-    double distFermata = (fermataPiuVicina?.Geom?.Distance(userPoint) ?? 999) * 111000;
-    int scoreTrasporti = distFermata <= 1000 ? (int)(100 - distFermata / 10) : 0;
-    scoreTrasporti = Math.Clamp(scoreTrasporti, 0, 100);
-
-    int nBib = await db.Biblioteche.CountAsync(b => b.Geom != null && b.Geom.IsWithinDistance(userPoint, raggioGradi));
-    int scoreBiblioteche = Math.Min(nBib * 25, 100);
-
-    int nVerde = await db.AreeVerdi.CountAsync(a => a.Geom != null && a.Geom.IsWithinDistance(userPoint, raggioGradi));
-    int scoreVerdi = Math.Min(nVerde * 10, 100);
-
-    int nPiste = await db.PisteCiclabili.CountAsync(p => p.Geom != null && p.Geom.IsWithinDistance(userPoint, raggioGradi));
-    int scoreMobilita = Math.Min(nPiste * 15, 100);
-
-    int nRes = await db.ResidenzeUniversitarie.CountAsync(r => r.Geom != null && r.Geom.IsWithinDistance(userPoint, raggioGradi));
-    int scoreResidenze = Math.Min(nRes * 30, 100);
-
-    int nMense = await db.Mense.CountAsync(m => m.Geom != null && m.Geom.IsWithinDistance(userPoint, raggioGradi));
-    int scoreMense = Math.Min(nMense * 40, 100);
-
-    int nSedi = await db.SediUniversitarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(userPoint, raggioGradi));
-    int scoreSedi = Math.Min(nSedi * 3, 100);
-
-    bool isGiorno = ora >= 8 && ora < 20;
-    if (!isGiorno)
-    {
-        scoreBiblioteche = (int)(scoreBiblioteche * 0.3);
-        scoreTrasporti = (int)(scoreTrasporti * 1.3);
-        scoreResidenze = (int)(scoreResidenze * 1.5);
-        scoreMense = (int)(scoreMense * 0.3);
-        scoreSedi = (int)(scoreSedi * 0.2);
-    }
-
-    scoreTrasporti = Math.Clamp(scoreTrasporti, 0, 100);
-    scoreResidenze = Math.Clamp(scoreResidenze, 0, 100);
-
-    double punteggioFinale = (scoreTrasporti * nT + scoreBiblioteche * nB +
-                              scoreVerdi * nV + scoreMobilita * nM + scoreResidenze * nR +
-                              scoreMense * nMe + scoreSedi * nS);
-    int punteggio = Math.Clamp((int)Math.Round(punteggioFinale), 0, 100);
-
-    string fascia = isGiorno ? "Diurna" : "Notturna";
-    var motivazioni = new List<string>();
-
-    var fattori = new List<(string nome, int score, double peso)>
-    {
-        ("Trasporti pubblici", scoreTrasporti, nT),
-        ("Biblioteche/Sale studio", scoreBiblioteche, nB),
-        ("Aree verdi", scoreVerdi, nV),
-        ("Mobilità sostenibile", scoreMobilita, nM),
-        ("Residenze universitarie", scoreResidenze, nR),
-        ("Mense/Punti ristoro", scoreMense, nMe),
-        ("Sedi universitarie", scoreSedi, nS)
-    };
-    fattori = fattori.OrderByDescending(f => f.score * f.peso).ToList();
-
-    foreach (var f in fattori)
-    {
-        string livello = f.score >= 70 ? "alto" : f.score >= 40 ? "medio" : "basso";
-        motivazioni.Add($"{f.nome}: {livello} ({f.score}/100, peso {(int)(f.peso * 100)}%)");
-    }
-
-    string motivazione = $"{(isGiorno ? "🌞" : "🌙")} Fascia {fascia}. " +
-                          $"Fermata bus più vicina: {(int)distFermata}m. " +
-                          $"Nel raggio di 1km: {nBib} biblioteche, {nVerde} aree verdi, {nPiste} piste ciclabili, {nRes} residenze, {nMense} mense/ristori, {nSedi} sedi universitarie. " +
-                          string.Join(" | ", motivazioni);
+    ProfiloUtente? profilo = profiloId.HasValue ? await db.ProfiliUtente.FindAsync(profiloId.Value) : null;
+    var conteggi = await ScoringService.ContaServiziAsync(db, lat, lon);
+    var r = ScoringService.CalcolaScore(conteggi, ora, PesiProfilo.Da(profilo));
 
     var storico = new SuggerimentoStorico
     {
-        ProfiloId = profiloId,
+        ProfiloId = profilo?.Id,
         Lat = lat, Lon = lon, Ora = ora,
-        Punteggio = punteggio,
-        Fascia = fascia,
-        Motivazione = motivazione,
+        Punteggio = r.Punteggio,
+        Fascia = r.Fascia,
+        Motivazione = r.Dettaglio,
         CreatedAt = DateTime.UtcNow
     };
     db.SuggerimentiStorico.Add(storico);
@@ -496,13 +379,12 @@ app.MapGet("/api/ranking", async (double lat, double lon, int ora, int? profiloI
 
     return Results.Ok(new
     {
-        punteggio,
-        fascia,
+        punteggio = r.Punteggio,
+        fascia = r.Fascia,
         profilo = profilo?.Nome ?? "Default (bilanciato)",
-        dettaglio = motivazione,
-        subscores = new { trasporti = scoreTrasporti, biblioteche = scoreBiblioteche,
-                          aree_verdi = scoreVerdi, mobilita = scoreMobilita, residenze = scoreResidenze,
-                          mense = scoreMense, sedi = scoreSedi },
+        dettaglio = r.Dettaglio,
+        motivi = r.Motivi,
+        subscores = r.Subscores.PerApi(),
         storico_id = storico.Id
     });
 });
@@ -559,238 +441,107 @@ app.MapGet("/api/statistiche", async (UrbanAdvisorDbContext db) =>
     });
 });
 
-// Restituisce i punti PoI pesati per la heatmap.
+// Restituisce i punti PoI pesati per la heatmap (filtrabile per categoria).
 app.MapGet("/api/heatmap", async (string? categoria, UrbanAdvisorDbContext db) =>
 {
     var punti = new List<object>();
 
     if (categoria == null || categoria == "biblioteche")
-    {
-        var items = await db.Biblioteche.Where(b => b.Geom != null)
+        punti.AddRange(await db.Biblioteche.Where(b => b.Geom != null)
             .Select(b => new { lat = b.Geom!.Coordinate.Y, lon = b.Geom!.Coordinate.X, peso = 1.0, cat = "biblioteche" })
-            .ToListAsync();
-        punti.AddRange(items);
-    }
+            .ToListAsync());
+    if (categoria == null || categoria == "salestudio")
+        punti.AddRange(await db.SaleStudio.Where(s => s.Geom != null)
+            .Select(s => new { lat = s.Geom!.Y, lon = s.Geom!.X, peso = 1.0, cat = "salestudio" })
+            .ToListAsync());
     if (categoria == null || categoria == "fermate")
-    {
-        var items = await db.FermateBus.Where(f => f.Geom != null)
-            .Select(f => new { lat = f.Geom!.Coordinate.Y, lon = f.Geom!.Coordinate.X, peso = 0.3, cat = "fermate" })
-            .ToListAsync();
-        punti.AddRange(items);
-    }
+        punti.AddRange(await db.FermateBus.Where(f => f.Geom != null)
+            .Select(f => new { lat = f.Geom!.Y, lon = f.Geom!.X, peso = 0.3, cat = "fermate" })
+            .ToListAsync());
     if (categoria == null || categoria == "areeverdi")
-    {
-        var items = await db.AreeVerdi.Where(a => a.Geom != null)
-            .Select(a => new { lat = a.Geom!.Coordinate.Y, lon = a.Geom!.Coordinate.X, peso = 0.6, cat = "areeverdi" })
-            .ToListAsync();
-        punti.AddRange(items);
-    }
+        punti.AddRange(await db.AreeVerdi.Where(a => a.Geom != null)
+            .Select(a => new { lat = a.Geom!.Y, lon = a.Geom!.X, peso = 0.6, cat = "areeverdi" })
+            .ToListAsync());
     if (categoria == null || categoria == "residenze")
-    {
-        var items = await db.ResidenzeUniversitarie.Where(r => r.Geom != null)
-            .Select(r => new { lat = r.Geom!.Coordinate.Y, lon = r.Geom!.Coordinate.X, peso = 0.8, cat = "residenze" })
-            .ToListAsync();
-        punti.AddRange(items);
-    }
+        punti.AddRange(await db.ResidenzeUniversitarie.Where(r => r.Geom != null)
+            .Select(r => new { lat = r.Geom!.Y, lon = r.Geom!.X, peso = 0.8, cat = "residenze" })
+            .ToListAsync());
     if (categoria == null || categoria == "stazioni")
-    {
-        var items = await db.StazioniFerroviarie.Where(s => s.Geom != null)
-            .Select(s => new { lat = s.Geom!.Coordinate.Y, lon = s.Geom!.Coordinate.X, peso = 0.7, cat = "stazioni" })
-            .ToListAsync();
-        punti.AddRange(items);
-    }
+        punti.AddRange(await db.StazioniFerroviarie.Where(s => s.Geom != null)
+            .Select(s => new { lat = s.Geom!.Y, lon = s.Geom!.X, peso = 0.7, cat = "stazioni" })
+            .ToListAsync());
     if (categoria == null || categoria == "mense")
-    {
-        var items = await db.Mense.Where(m => m.Geom != null)
-            .Select(m => new { lat = m.Geom!.Coordinate.Y, lon = m.Geom!.Coordinate.X, peso = 0.9, cat = "mense" })
-            .ToListAsync();
-        punti.AddRange(items);
-    }
+        punti.AddRange(await db.Mense.Where(m => m.Geom != null)
+            .Select(m => new { lat = m.Geom!.Y, lon = m.Geom!.X, peso = 0.9, cat = "mense" })
+            .ToListAsync());
     if (categoria == null || categoria == "sedi")
-    {
-        var items = await db.SediUniversitarie.Where(s => s.Geom != null)
-            .Select(s => new { lat = s.Geom!.Coordinate.Y, lon = s.Geom!.Coordinate.X, peso = 0.5, cat = "sedi" })
-            .ToListAsync();
-        punti.AddRange(items);
-    }
+        punti.AddRange(await db.SediUniversitarie.Where(s => s.Geom != null)
+            .Select(s => new { lat = s.Geom!.Y, lon = s.Geom!.X, peso = 0.5, cat = "sedi" })
+            .ToListAsync());
 
     return Results.Ok(new { totale = punti.Count, punti });
 });
 
-// Density analysis: griglia NxN con score per cella.
+// Density analysis: griglia NxN con conteggi e score per cella (una sola query spaziale).
 app.MapGet("/api/density/grid", async (int? celle, int? profiloId, int? ora, UrbanAdvisorDbContext db) =>
 {
-    int n = celle ?? 8;
-    double minLat = 44.47, maxLat = 44.52;
-    double minLon = 11.30, maxLon = 11.38;
-    double stepLat = (maxLat - minLat) / n;
-    double stepLon = (maxLon - minLon) / n;
-    double raggioGradi = 500.0 / 111000.0;
-
-    ProfiloUtente? profilo = null;
-    if (profiloId.HasValue)
-        profilo = await db.ProfiliUtente.FindAsync(profiloId.Value);
-    int wT = profilo?.PesoTrasporti ?? 50;
-    int wB = profilo?.PesoBiblioteche ?? 50;
-    int wV = profilo?.PesoAreeVerdi ?? 50;
-    int wM = profilo?.PesoMobilitaSostenibile ?? 50;
-    int wR = profilo?.PesoResidenze ?? 50;
-    int wMe = profilo?.PesoMense ?? 50;
-    int wS = profilo?.PesoSedi ?? 50;
-    double somma = wT + wB + wV + wM + wR + wMe + wS;
-    if (somma == 0) somma = 1;
-
+    int n = Math.Clamp(celle ?? 8, 2, 20);
     int oraVal = ora ?? 14;
-    bool isGiorno = oraVal >= 8 && oraVal < 20;
+    ProfiloUtente? profilo = profiloId.HasValue ? await db.ProfiliUtente.FindAsync(profiloId.Value) : null;
+    var pesi = PesiProfilo.Da(profilo);
 
-    var griglia = new List<object>();
-
-    for (int i = 0; i < n; i++)
+    var conteggi = await ScoringService.ContaServiziAsync(db, GeoUtils.CentriGriglia(n));
+    var griglia = conteggi.Select(c =>
     {
-        for (int j = 0; j < n; j++)
+        var r = ScoringService.CalcolaScore(c, oraVal, pesi);
+        return new
         {
-            double cellLat = minLat + (i + 0.5) * stepLat;
-            double cellLon = minLon + (j + 0.5) * stepLon;
-            var pt = new NetTopologySuite.Geometries.Point(cellLon, cellLat) { SRID = 4326 };
+            lat = c.Lat, lon = c.Lon, score = r.Punteggio,
+            totale_poi = c.TotalePoi,
+            dettaglio = DettaglioConteggi(c)
+        };
+    }).ToList();
 
-            int nBib = await db.Biblioteche.CountAsync(b => b.Geom != null && b.Geom.IsWithinDistance(pt, raggioGradi));
-            int nFer = await db.FermateBus.CountAsync(f => f.Geom != null && f.Geom.IsWithinDistance(pt, raggioGradi));
-            int nVer = await db.AreeVerdi.CountAsync(a => a.Geom != null && a.Geom.IsWithinDistance(pt, raggioGradi));
-            int nPis = await db.PisteCiclabili.CountAsync(p => p.Geom != null && p.Geom.IsWithinDistance(pt, raggioGradi));
-            int nRes = await db.ResidenzeUniversitarie.CountAsync(r => r.Geom != null && r.Geom.IsWithinDistance(pt, raggioGradi));
-            int nMense = await db.Mense.CountAsync(m => m.Geom != null && m.Geom.IsWithinDistance(pt, raggioGradi));
-            int nSedi = await db.SediUniversitarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(pt, raggioGradi));
-
-            int sBib = Math.Min(nBib * 25, 100);
-            int sFer = Math.Min(nFer * 2, 100);
-            int sVer = Math.Min(nVer * 10, 100);
-            int sPis = Math.Min(nPis * 15, 100);
-            int sRes = Math.Min(nRes * 30, 100);
-            int sMense = Math.Min(nMense * 40, 100);
-            int sSedi = Math.Min(nSedi * 3, 100);
-
-            if (!isGiorno)
-            {
-                sBib = (int)(sBib * 0.3); sFer = (int)(sFer * 1.3); sRes = (int)(sRes * 1.5);
-                sMense = (int)(sMense * 0.3); sSedi = (int)(sSedi * 0.2);
-            }
-            sFer = Math.Clamp(sFer, 0, 100); sRes = Math.Clamp(sRes, 0, 100);
-
-            double score = (sFer * wT + sBib * wB + sVer * wV + sPis * wM + sRes * wR + sMense * wMe + sSedi * wS) / somma;
-            int totPoi = nBib + nFer + nVer + nPis + nRes + nMense + nSedi;
-
-            griglia.Add(new
-            {
-                lat = cellLat, lon = cellLon, score = (int)Math.Round(score),
-                totale_poi = totPoi,
-                dettaglio = new { biblioteche = nBib, fermate = nFer, aree_verdi = nVer, piste = nPis, residenze = nRes, mense = nMense, sedi = nSedi }
-            });
-        }
-    }
-
-    return Results.Ok(new { celle = n, ora = oraVal, fascia = isGiorno ? "Diurna" : "Notturna",
-        profilo = profilo?.Nome ?? "Default", griglia });
+    return Results.Ok(new { celle = n, ora = oraVal, fascia = ScoringService.IsDiurna(oraVal) ? "Diurna" : "Notturna",
+        raggio_metri = ScoringService.RaggioMetri, profilo = profilo?.Nome ?? "Default", griglia });
 });
 
 // Recommendation engine: le top-N zone urbane con motivazione.
 app.MapGet("/api/raccomandazioni", async (int? profiloId, int? ora, int? top, UrbanAdvisorDbContext db) =>
 {
-    int n = 10;
-    double minLat = 44.47, maxLat = 44.52;
-    double minLon = 11.30, maxLon = 11.38;
-    double stepLat = (maxLat - minLat) / n;
-    double stepLon = (maxLon - minLon) / n;
-    double raggioGradi = 500.0 / 111000.0;
-
-    ProfiloUtente? profilo = null;
-    if (profiloId.HasValue)
-        profilo = await db.ProfiliUtente.FindAsync(profiloId.Value);
-    int wT = profilo?.PesoTrasporti ?? 50;
-    int wB = profilo?.PesoBiblioteche ?? 50;
-    int wV = profilo?.PesoAreeVerdi ?? 50;
-    int wM = profilo?.PesoMobilitaSostenibile ?? 50;
-    int wR = profilo?.PesoResidenze ?? 50;
-    int wMe = profilo?.PesoMense ?? 50;
-    int wS = profilo?.PesoSedi ?? 50;
-    double somma = wT + wB + wV + wM + wR + wMe + wS;
-    if (somma == 0) somma = 1;
-
     int oraVal = ora ?? 14;
-    bool isGiorno = oraVal >= 8 && oraVal < 20;
-    int topN = top ?? 5;
+    int topN = Math.Clamp(top ?? 5, 1, 20);
+    ProfiloUtente? profilo = profiloId.HasValue ? await db.ProfiliUtente.FindAsync(profiloId.Value) : null;
+    var pesi = PesiProfilo.Da(profilo);
 
-    var zone = new List<(double lat, double lon, int score, string motivo, int nBib, int nFer, int nVer, int nPis, int nRes, int nMense, int nSedi)>();
-
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
+    var conteggi = await ScoringService.ContaServiziAsync(db, GeoUtils.CentriGriglia(10));
+    var topZone = conteggi
+        .Select(c => (c, r: ScoringService.CalcolaScore(c, oraVal, pesi)))
+        .OrderByDescending(z => z.r.Punteggio)
+        .Take(topN)
+        .Select((z, idx) => new
         {
-            double cellLat = minLat + (i + 0.5) * stepLat;
-            double cellLon = minLon + (j + 0.5) * stepLon;
-            var pt = new NetTopologySuite.Geometries.Point(cellLon, cellLat) { SRID = 4326 };
-
-            int nBib = await db.Biblioteche.CountAsync(b => b.Geom != null && b.Geom.IsWithinDistance(pt, raggioGradi));
-            int nFer = await db.FermateBus.CountAsync(f => f.Geom != null && f.Geom.IsWithinDistance(pt, raggioGradi));
-            int nVer = await db.AreeVerdi.CountAsync(a => a.Geom != null && a.Geom.IsWithinDistance(pt, raggioGradi));
-            int nPis = await db.PisteCiclabili.CountAsync(p => p.Geom != null && p.Geom.IsWithinDistance(pt, raggioGradi));
-            int nRes = await db.ResidenzeUniversitarie.CountAsync(r => r.Geom != null && r.Geom.IsWithinDistance(pt, raggioGradi));
-            int nMense = await db.Mense.CountAsync(m => m.Geom != null && m.Geom.IsWithinDistance(pt, raggioGradi));
-            int nSedi = await db.SediUniversitarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(pt, raggioGradi));
-
-            int sBib = Math.Min(nBib * 25, 100);
-            int sFer = Math.Min(nFer * 2, 100);
-            int sVer = Math.Min(nVer * 10, 100);
-            int sPis = Math.Min(nPis * 15, 100);
-            int sRes = Math.Min(nRes * 30, 100);
-            int sMense = Math.Min(nMense * 40, 100);
-            int sSedi = Math.Min(nSedi * 3, 100);
-
-            if (!isGiorno)
-            {
-                sBib = (int)(sBib * 0.3); sFer = (int)(sFer * 1.3); sRes = (int)(sRes * 1.5);
-                sMense = (int)(sMense * 0.3); sSedi = (int)(sSedi * 0.2);
-            }
-            sFer = Math.Clamp(sFer, 0, 100); sRes = Math.Clamp(sRes, 0, 100);
-
-            double score = (sFer * wT + sBib * wB + sVer * wV + sPis * wM + sRes * wR + sMense * wMe + sSedi * wS) / somma;
-
-            var motivi = new List<string>();
-            if (sBib >= 50) motivi.Add($"alta densità di biblioteche ({nBib})");
-            if (sFer >= 50) motivi.Add($"ben collegata ({nFer} fermate)");
-            if (sVer >= 50) motivi.Add($"ricca di aree verdi ({nVer})");
-            if (sPis >= 50) motivi.Add($"presenza piste ciclabili ({nPis})");
-            if (sRes >= 50) motivi.Add($"vicina a residenze ({nRes})");
-            if (sMense >= 50) motivi.Add($"buona offerta di mense/ristori ({nMense})");
-            if (sSedi >= 50) motivi.Add($"alta concentrazione di sedi universitarie ({nSedi})");
-            if (motivi.Count == 0) motivi.Add("area con servizi limitati");
-
-            zone.Add((cellLat, cellLon, (int)Math.Round(score), string.Join(", ", motivi), nBib, nFer, nVer, nPis, nRes, nMense, nSedi));
-        }
-    }
-
-    var topZone = zone.OrderByDescending(z => z.score).Take(topN).Select((z, idx) => new
-    {
-        posizione = idx + 1,
-        lat = z.lat, lon = z.lon,
-        student_accessibility_score = z.score,
-        motivazione = z.motivo,
-        dettaglio = new { biblioteche = z.nBib, fermate = z.nFer, aree_verdi = z.nVer, piste = z.nPis, residenze = z.nRes, mense = z.nMense, sedi = z.nSedi }
-    });
+            posizione = idx + 1,
+            lat = z.c.Lat, lon = z.c.Lon,
+            student_accessibility_score = z.r.Punteggio,
+            motivazione = string.Join(", ", z.r.Motivi),
+            dettaglio = DettaglioConteggi(z.c)
+        });
 
     return Results.Ok(new
     {
         profilo = profilo?.Nome ?? "Default",
-        ora = oraVal, fascia = isGiorno ? "Diurna" : "Notturna",
+        ora = oraVal, fascia = ScoringService.IsDiurna(oraVal) ? "Diurna" : "Notturna",
         raccomandazioni = topZone
     });
 });
 
-// Temporal analytics: servizi aperti/chiusi per giorno e ora.
+// Temporal analytics: servizi aperti/chiusi per giorno e ora (gestisce anche gli orari oltre la mezzanotte).
 app.MapGet("/api/temporale/disponibilita", async (int? giorno, int? ora, UrbanAdvisorDbContext db) =>
 {
     int giornoVal = giorno ?? (int)DateTime.Now.DayOfWeek;
     giornoVal = giornoVal == 0 ? 6 : giornoVal - 1;
-    int oraVal = ora ?? DateTime.Now.Hour;
+    int oraVal = Math.Clamp(ora ?? DateTime.Now.Hour, 0, 23);
     var oraTime = new TimeOnly(oraVal, 0);
 
     string[] giorniNomi = { "Lunedì", "Martedì", "Mercoledì", "Giovedì", "Venerdì", "Sabato", "Domenica" };
@@ -805,8 +556,8 @@ app.MapGet("/api/temporale/disponibilita", async (int? giorno, int? ora, UrbanAd
         {
             categoria = g.Key,
             totale_servizi = g.Count(),
-            aperti_ora = g.Count(o => oraTime >= o.OraApertura && oraTime < o.OraChiusura),
-            chiusi_ora = g.Count(o => !(oraTime >= o.OraApertura && oraTime < o.OraChiusura)),
+            aperti_ora = g.Count(o => Aperto(oraTime, o.OraApertura, o.OraChiusura)),
+            chiusi_ora = g.Count(o => !Aperto(oraTime, o.OraApertura, o.OraChiusura)),
             orario_tipico = g.First().OraApertura.ToString("HH:mm") + " - " + g.First().OraChiusura.ToString("HH:mm")
         })
         .ToList();
@@ -817,7 +568,7 @@ app.MapGet("/api/temporale/disponibilita", async (int? giorno, int? ora, UrbanAd
         return new
         {
             ora = h,
-            aperti = tuttiOrari.Count(o => t >= o.OraApertura && t < o.OraChiusura)
+            aperti = tuttiOrari.Count(o => Aperto(t, o.OraApertura, o.OraChiusura))
         };
     });
 
@@ -852,18 +603,22 @@ app.MapGet("/api/temporale/statistiche", async (UrbanAdvisorDbContext db) =>
 app.MapGet("/api/privacy/confronto", async (double lat, double lon, int ora, double sigma, int? profiloId, UrbanAdvisorDbContext db) =>
 {
     var rng = new Random();
-    double sigmaGradi = sigma / 111000.0;
+    double sigmaLat = sigma / 111320.0;
+    double sigmaLon = sigma / (111320.0 * Math.Cos(lat * Math.PI / 180));
 
     double noiseLat = rng.NextDouble() * 2 - 1 + rng.NextDouble() * 2 - 1;
     double noiseLon = rng.NextDouble() * 2 - 1 + rng.NextDouble() * 2 - 1;
-    double pertLat = lat + noiseLat * sigmaGradi;
-    double pertLon = lon + noiseLon * sigmaGradi;
+    double pertLat = lat + noiseLat * sigmaLat;
+    double pertLon = lon + noiseLon * sigmaLon;
 
-    var realScore = await CalcolaScoreInterno(lat, lon, ora, profiloId, db);
-    var pertScore = await CalcolaScoreInterno(pertLat, pertLon, ora, profiloId, db);
+    ProfiloUtente? profilo = profiloId.HasValue ? await db.ProfiliUtente.FindAsync(profiloId.Value) : null;
+    var pesi = PesiProfilo.Da(profilo);
+    var conteggi = await ScoringService.ContaServiziAsync(db, new List<(double, double)> { (lat, lon), (pertLat, pertLon) });
+    var realScore = ScoringService.CalcolaScore(conteggi[0], ora, pesi);
+    var pertScore = ScoringService.CalcolaScore(conteggi[1], ora, pesi);
 
-    double distanzaPerturbazione = Math.Sqrt(Math.Pow((pertLat - lat) * 111000, 2) + Math.Pow((pertLon - lon) * 111000 * Math.Cos(lat * Math.PI / 180), 2));
-    int qualityLoss = Math.Abs(realScore.punteggio - pertScore.punteggio);
+    double distanzaPerturbazione = GeoUtils.HaversineMetri(lat, lon, pertLat, pertLon);
+    int qualityLoss = Math.Abs(realScore.Punteggio - pertScore.Punteggio);
 
     return Results.Ok(new
     {
@@ -871,268 +626,76 @@ app.MapGet("/api/privacy/confronto", async (double lat, double lon, int ora, dou
         posizione_reale = new { lat, lon },
         posizione_perturbata = new { lat = pertLat, lon = pertLon },
         privacy_perturbation_metri = Math.Round(distanzaPerturbazione, 1),
-        score_reale = realScore.punteggio,
-        score_perturbato = pertScore.punteggio,
+        score_reale = realScore.Punteggio,
+        score_perturbato = pertScore.Punteggio,
         quality_loss = qualityLoss,
-        subscores_reale = realScore.subscores,
-        subscores_perturbato = pertScore.subscores
+        subscores_reale = realScore.Subscores.PerApi(),
+        subscores_perturbato = pertScore.Subscores.PerApi()
     });
 });
 
-// Privacy: analisi del trade-off tra privacy e qualita' del servizio.
+// Privacy: analisi del trade-off tra privacy e qualita' del servizio (tutti i campioni in una sola query).
 app.MapGet("/api/privacy/tradeoff", async (double lat, double lon, int ora, int? profiloId, UrbanAdvisorDbContext db) =>
 {
     var rng = new Random(42);
     var livelli = new[] { 0, 50, 100, 200, 500, 1000, 2000 };
     int campioni = 5;
 
-    var risultati = new List<object>();
-
+    var punti = new List<(double Lat, double Lon)> { (lat, lon) };
+    var livelloPunto = new List<int> { -1 };
     foreach (var sigma in livelli)
     {
-        double sigmaGradi = sigma / 111000.0;
-        var scores = new List<int>();
-        var distanze = new List<double>();
-
+        double sigmaLat = sigma / 111320.0;
+        double sigmaLon = sigma / (111320.0 * Math.Cos(lat * Math.PI / 180));
         for (int i = 0; i < campioni; i++)
         {
             double n1 = rng.NextDouble() * 2 - 1 + rng.NextDouble() * 2 - 1;
             double n2 = rng.NextDouble() * 2 - 1 + rng.NextDouble() * 2 - 1;
-            double pLat = lat + n1 * sigmaGradi;
-            double pLon = lon + n2 * sigmaGradi;
-
-            var sc = await CalcolaScoreInterno(pLat, pLon, ora, profiloId, db);
-            scores.Add(sc.punteggio);
-            distanze.Add(Math.Sqrt(Math.Pow((pLat - lat) * 111000, 2) + Math.Pow((pLon - lon) * 111000 * Math.Cos(lat * Math.PI / 180), 2)));
+            punti.Add((lat + n1 * sigmaLat, lon + n2 * sigmaLon));
+            livelloPunto.Add(sigma);
         }
+    }
 
-        var scoreReale = await CalcolaScoreInterno(lat, lon, ora, profiloId, db);
-        risultati.Add(new
+    ProfiloUtente? profilo = profiloId.HasValue ? await db.ProfiliUtente.FindAsync(profiloId.Value) : null;
+    var pesi = PesiProfilo.Da(profilo);
+    var conteggi = await ScoringService.ContaServiziAsync(db, punti);
+    int scoreReale = ScoringService.CalcolaScore(conteggi[0], ora, pesi).Punteggio;
+
+    var risultati = livelli.Select(sigma =>
+    {
+        var indici = Enumerable.Range(1, punti.Count - 1).Where(i => livelloPunto[i] == sigma).ToList();
+        var scores = indici.Select(i => ScoringService.CalcolaScore(conteggi[i], ora, pesi).Punteggio).ToList();
+        var distanze = indici.Select(i => GeoUtils.HaversineMetri(lat, lon, punti[i].Lat, punti[i].Lon)).ToList();
+        return new
         {
             sigma_metri = sigma,
             privacy_perturbation_media = Math.Round(distanze.Average(), 1),
             score_medio_perturbato = (int)scores.Average(),
-            score_reale = scoreReale.punteggio,
-            quality_loss_medio = (int)Math.Round(scores.Select(s => Math.Abs(s - scoreReale.punteggio)).Average())
-        });
-    }
+            score_reale = scoreReale,
+            quality_loss_medio = (int)Math.Round(scores.Select(s => Math.Abs(s - scoreReale)).Average())
+        };
+    }).ToList();
 
     return Results.Ok(new { lat, lon, ora, risultati });
 });
 
-// Funzione helper: calcola score e sub-score per una posizione (riusata da privacy e clustering).
-static async Task<(int punteggio, object subscores)> CalcolaScoreInterno(
-    double lat, double lon, int ora, int? profiloId, UrbanAdvisorDbContext db)
-{
-    var pt = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-    double rGradi = 1000.0 / 111000.0;
-
-    ProfiloUtente? profilo = null;
-    if (profiloId.HasValue) profilo = await db.ProfiliUtente.FindAsync(profiloId.Value);
-    int wT = profilo?.PesoTrasporti ?? 50, wB = profilo?.PesoBiblioteche ?? 50;
-    int wV = profilo?.PesoAreeVerdi ?? 50, wM = profilo?.PesoMobilitaSostenibile ?? 50, wR = profilo?.PesoResidenze ?? 50;
-    int wMe = profilo?.PesoMense ?? 50, wS = profilo?.PesoSedi ?? 50;
-    double somma = wT + wB + wV + wM + wR + wMe + wS; if (somma == 0) somma = 1;
-
-    var fermata = await db.FermateBus.Where(f => f.Geom != null).OrderBy(f => f.Geom!.Distance(pt)).FirstOrDefaultAsync();
-    double dFerm = (fermata?.Geom?.Distance(pt) ?? 999) * 111000;
-    int sT = Math.Clamp(dFerm <= 1000 ? (int)(100 - dFerm / 10) : 0, 0, 100);
-    int sB = Math.Min(await db.Biblioteche.CountAsync(b => b.Geom != null && b.Geom.IsWithinDistance(pt, rGradi)) * 25, 100);
-    int sV = Math.Min(await db.AreeVerdi.CountAsync(a => a.Geom != null && a.Geom.IsWithinDistance(pt, rGradi)) * 10, 100);
-    int sM = Math.Min(await db.PisteCiclabili.CountAsync(p => p.Geom != null && p.Geom.IsWithinDistance(pt, rGradi)) * 15, 100);
-    int sR = Math.Min(await db.ResidenzeUniversitarie.CountAsync(r => r.Geom != null && r.Geom.IsWithinDistance(pt, rGradi)) * 30, 100);
-    int sMe = Math.Min(await db.Mense.CountAsync(m => m.Geom != null && m.Geom.IsWithinDistance(pt, rGradi)) * 40, 100);
-    int sS = Math.Min(await db.SediUniversitarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(pt, rGradi)) * 3, 100);
-
-    bool isGiorno = ora >= 8 && ora < 20;
-    if (!isGiorno)
-    {
-        sB = (int)(sB * 0.3); sT = Math.Clamp((int)(sT * 1.3), 0, 100); sR = Math.Clamp((int)(sR * 1.5), 0, 100);
-        sMe = (int)(sMe * 0.3); sS = (int)(sS * 0.2);
-    }
-
-    double score = (sT * wT + sB * wB + sV * wV + sM * wM + sR * wR + sMe * wMe + sS * wS) / somma;
-    return (Math.Clamp((int)Math.Round(score), 0, 100),
-        new { trasporti = sT, biblioteche = sB, aree_verdi = sV, mobilita = sM, residenze = sR, mense = sMe, sedi = sS });
-}
-
-// Calcola i tempi di percorrenza multimodali (piedi, bici, TPL) dalla posizione data
-// verso la sede universitaria più vicina. TPL usa la frequenza reale GTFS per stimare l'attesa.
-static async Task<object> CalcolaTempoMultimodale(double lat, double lon, int ora, UrbanAdvisorDbContext db)
-{
-    var origine = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-
-    var sede = await db.SediUniversitarie
-        .Where(s => s.Geom != null)
-        .OrderBy(s => s.Geom!.Distance(origine))
-        .FirstOrDefaultAsync();
-
-    if (sede == null || sede.Geom == null)
-        return new { disponibile = false, motivo = "Nessuna sede universitaria trovata nel dataset" };
-
-    double distanzaDirettaMetri = origine.Distance(sede.Geom) * 111000;
-    const double fattoreDeviazione = 1.3;
-    double distanzaStradaleStimata = distanzaDirettaMetri * fattoreDeviazione;
-
-    double velocitaPiedi = 5000.0 / 60.0;
-    double tempoPiedi = distanzaStradaleStimata / velocitaPiedi;
-
-    double velocitaBici = 15000.0 / 60.0;
-    double tempoBici = distanzaStradaleStimata / velocitaBici;
-
-    var fermataPartenza = await db.GtfsFermate
-        .Where(f => f.Geom != null)
-        .OrderBy(f => f.Geom!.Distance(origine))
-        .FirstOrDefaultAsync();
-    var fermataArrivo = await db.GtfsFermate
-        .Where(f => f.Geom != null)
-        .OrderBy(f => f.Geom!.Distance(sede.Geom))
-        .FirstOrDefaultAsync();
-
-    object trasportoPubblico;
-    if (fermataPartenza?.Geom == null || fermataArrivo?.Geom == null)
-    {
-        trasportoPubblico = new { disponibile = false, motivo = "Nessuna fermata GTFS trovata" };
-    }
-    else
-    {
-        double distPartenzaFermata = origine.Distance(fermataPartenza.Geom) * 111000;
-        double distArrivoFermata = sede.Geom.Distance(fermataArrivo.Geom) * 111000;
-        double tempoPiediFermataPartenza = (distPartenzaFermata * fattoreDeviazione) / velocitaPiedi;
-        double tempoPiediFermataArrivo = (distArrivoFermata * fattoreDeviazione) / velocitaPiedi;
-
-        var freq = await db.GtfsFrequenzeFermata
-            .FirstOrDefaultAsync(g => g.StopId == fermataPartenza.StopId && g.FasciaOraria == ora);
-        int numeroCorse = freq?.NumeroCorse ?? 0;
-
-        if (numeroCorse == 0)
-        {
-            trasportoPubblico = new
-            {
-                disponibile = false,
-                motivo = $"Nessuna corsa rilevata alla fermata '{fermataPartenza.Nome}' nella fascia {ora}:00-{ora + 1}:00"
-            };
-        }
-        else
-        {
-            double headwayMinuti = 60.0 / numeroCorse;
-            double attesaMedia = headwayMinuti / 2.0;
-            double velocitaBus = 18000.0 / 60.0;
-            double distanzaTraFermate = fermataPartenza.Geom.Distance(fermataArrivo.Geom) * 111000;
-            double tempoABordo = (distanzaTraFermate * fattoreDeviazione) / velocitaBus;
-            double tempoTotale = tempoPiediFermataPartenza + attesaMedia + tempoABordo + tempoPiediFermataArrivo;
-
-            trasportoPubblico = new
-            {
-                disponibile = true,
-                tempo_totale_minuti = Math.Round(tempoTotale, 1),
-                dettaglio = new
-                {
-                    a_piedi_fino_fermata_min = Math.Round(tempoPiediFermataPartenza, 1),
-                    attesa_media_min = Math.Round(attesaMedia, 1),
-                    a_bordo_min = Math.Round(tempoABordo, 1),
-                    a_piedi_da_fermata_min = Math.Round(tempoPiediFermataArrivo, 1),
-                    fermata_partenza = fermataPartenza.Nome,
-                    fermata_arrivo = fermataArrivo.Nome,
-                    corse_ora = numeroCorse,
-                    headway_minuti = Math.Round(headwayMinuti, 1)
-                }
-            };
-        }
-    }
-
-    return new
-    {
-        disponibile = true,
-        sede_destinazione = sede.Nome,
-        distanza_diretta_metri = Math.Round(distanzaDirettaMetri, 0),
-        piedi = new { tempo_minuti = Math.Round(tempoPiedi, 1) },
-        bici = new { tempo_minuti = Math.Round(tempoBici, 1) },
-        trasporto_pubblico = trasportoPubblico
-    };
-}
-
-// Versione snella per calcolo su griglia: una sola modalità alla volta, evita di calcolare
-// piedi+bici+TPL quando la griglia ne richiede solo una, su 100 celle per richiesta.
-static async Task<(bool disponibile, double? tempoMinuti, string? motivo)> CalcolaTempoModalita(
-    double lat, double lon, int ora, string modalita, UrbanAdvisorDbContext db)
-{
-    var origine = new NetTopologySuite.Geometries.Point(lon, lat) { SRID = 4326 };
-    var sede = await db.SediUniversitarie.Where(s => s.Geom != null)
-        .OrderBy(s => s.Geom!.Distance(origine)).FirstOrDefaultAsync();
-    if (sede == null || sede.Geom == null) return (false, null, "Nessuna sede trovata");
-
-    double distanzaDiretta = origine.Distance(sede.Geom) * 111000;
-    const double fattoreDeviazione = 1.3;
-    double distanzaStradale = distanzaDiretta * fattoreDeviazione;
-
-    if (modalita == "piedi")
-        return (true, distanzaStradale / (5000.0 / 60.0), null);
-
-    if (modalita == "bici")
-        return (true, distanzaStradale / (15000.0 / 60.0), null);
-
-    // trasporto_pubblico
-    var fermataPartenza = await db.GtfsFermate.Where(f => f.Geom != null)
-        .OrderBy(f => f.Geom!.Distance(origine)).FirstOrDefaultAsync();
-    var fermataArrivo = await db.GtfsFermate.Where(f => f.Geom != null)
-        .OrderBy(f => f.Geom!.Distance(sede.Geom)).FirstOrDefaultAsync();
-    if (fermataPartenza?.Geom == null || fermataArrivo?.Geom == null)
-        return (false, null, "Nessuna fermata GTFS trovata");
-
-    var freq = await db.GtfsFrequenzeFermata
-        .FirstOrDefaultAsync(g => g.StopId == fermataPartenza.StopId && g.FasciaOraria == ora);
-    int numeroCorse = freq?.NumeroCorse ?? 0;
-    if (numeroCorse == 0)
-        return (false, null, $"Nessuna corsa in fascia {ora}:00");
-
-    double velocitaPiedi = 5000.0 / 60.0;
-    double velocitaBus = 18000.0 / 60.0;
-    double tPiediPartenza = (origine.Distance(fermataPartenza.Geom) * 111000 * fattoreDeviazione) / velocitaPiedi;
-    double tPiediArrivo = (sede.Geom.Distance(fermataArrivo.Geom) * 111000 * fattoreDeviazione) / velocitaPiedi;
-    double attesa = (60.0 / numeroCorse) / 2.0;
-    double aBordo = (fermataPartenza.Geom.Distance(fermataArrivo.Geom) * 111000 * fattoreDeviazione) / velocitaBus;
-
-    return (true, tPiediPartenza + attesa + aBordo + tPiediArrivo, null);
-}
-
 // Analytics avanzata: clustering K-Means delle zone e indice di Moran.
 app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvisorDbContext db) =>
 {
-    int numClusters = k ?? 4;
-    int n = 10;
-    double minLat = 44.47, maxLat = 44.52, minLon = 11.30, maxLon = 11.38;
-    double stepLat = (maxLat - minLat) / n, stepLon = (maxLon - minLon) / n;
-    double rGradi = 500.0 / 111000.0;
+    int numClusters = Math.Clamp(k ?? 4, 2, 8);
     int oraVal = ora ?? 14;
+    ProfiloUtente? profilo = profiloId.HasValue ? await db.ProfiliUtente.FindAsync(profiloId.Value) : null;
+    var pesi = PesiProfilo.Da(profilo);
 
-    var celle = new List<(double lat, double lon, double[] features, int score)>();
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            double cLat = minLat + (i + 0.5) * stepLat;
-            double cLon = minLon + (j + 0.5) * stepLon;
-            var pt = new NetTopologySuite.Geometries.Point(cLon, cLat) { SRID = 4326 };
-
-            int nB = await db.Biblioteche.CountAsync(b => b.Geom != null && b.Geom.IsWithinDistance(pt, rGradi));
-            int nF = await db.FermateBus.CountAsync(f => f.Geom != null && f.Geom.IsWithinDistance(pt, rGradi));
-            int nV = await db.AreeVerdi.CountAsync(a => a.Geom != null && a.Geom.IsWithinDistance(pt, rGradi));
-            int nP = await db.PisteCiclabili.CountAsync(p => p.Geom != null && p.Geom.IsWithinDistance(pt, rGradi));
-            int nR = await db.ResidenzeUniversitarie.CountAsync(r => r.Geom != null && r.Geom.IsWithinDistance(pt, rGradi));
-            int nMe = await db.Mense.CountAsync(m => m.Geom != null && m.Geom.IsWithinDistance(pt, rGradi));
-            int nS = await db.SediUniversitarie.CountAsync(s => s.Geom != null && s.Geom.IsWithinDistance(pt, rGradi));
-
-            var sc = await CalcolaScoreInterno(cLat, cLon, oraVal, profiloId, db);
-            celle.Add((cLat, cLon, new double[] { nB, nF, nV, nP, nR, nMe, nS }, sc.punteggio));
-        }
-    }
+    var conteggi = await ScoringService.ContaServiziAsync(db, GeoUtils.CentriGriglia(10));
+    var celle = conteggi.Select(c => (
+        lat: c.Lat, lon: c.Lon,
+        features: new double[] { c.Biblioteche + c.SaleStudio, c.Fermate, c.AreeVerdi, c.KmPiste, c.Residenze, c.Mense, c.Sedi },
+        score: ScoringService.CalcolaScore(c, oraVal, pesi).Punteggio
+    )).ToList();
 
     int dim = 7;
 
-    // Standardizzazione z-score: senza questo passaggio, "sedi" (range 0-50+) dominerebbe
-    // la distanza euclidea rispetto a feature con range molto più piccolo (0-5), distorcendo
-    // il clustering. K-Means è sensibile alla scala delle feature — va sempre normalizzato prima.
     var featMean = new double[dim];
     var featStd = new double[dim];
     for (int d = 0; d < dim; d++)
@@ -1140,7 +703,7 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
         featMean[d] = celle.Average(c => c.features[d]);
         double variance = celle.Average(c => Math.Pow(c.features[d] - featMean[d], 2));
         featStd[d] = Math.Sqrt(variance);
-        if (featStd[d] == 0) featStd[d] = 1; // evita divisione per zero se una feature è costante
+        if (featStd[d] == 0) featStd[d] = 1;
     }
     var standardized = celle.Select(c => c.features.Select((v, d) => (v - featMean[d]) / featStd[d]).ToArray()).ToList();
 
@@ -1197,7 +760,7 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
         for (int j2 = 0; j2 < N; j2++)
         {
             if (i2 == j2) continue;
-            double dist = Math.Sqrt(Math.Pow(celle[i2].lat - celle[j2].lat, 2) + Math.Pow(celle[i2].lon - celle[j2].lon, 2));
+            double dist = GeoUtils.HaversineMetri(celle[i2].lat, celle[i2].lon, celle[j2].lat, celle[j2].lon);
             double wij = dist > 0 ? 1.0 / dist : 0;
             W += wij;
             numerator += wij * (celle[i2].score - mean) * (celle[j2].score - mean);
@@ -1226,5 +789,170 @@ app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, UrbanAdvi
 
 app.Run();
 
+// Dettaglio dei conteggi di una cella nel formato JSON usato dal front-end.
+static object DettaglioConteggi(ConteggiArea c) => new
+{
+    biblioteche = c.Biblioteche, sale_studio = c.SaleStudio, fermate = c.Fermate,
+    aree_verdi = c.AreeVerdi, piste_km = Math.Round(c.KmPiste, 2), residenze = c.Residenze,
+    mense = c.Mense, sedi = c.Sedi
+};
+
+// Riporta i pesi del profilo nell'intervallo 0-100 ammesso dal database.
+static void NormalizzaPesi(ProfiloUtente p)
+{
+    p.Nome = string.IsNullOrWhiteSpace(p.Nome) ? "Nuovo Profilo" : p.Nome.Trim();
+    p.PesoTrasporti = Math.Clamp(p.PesoTrasporti, 0, 100);
+    p.PesoBiblioteche = Math.Clamp(p.PesoBiblioteche, 0, 100);
+    p.PesoAreeVerdi = Math.Clamp(p.PesoAreeVerdi, 0, 100);
+    p.PesoMobilitaSostenibile = Math.Clamp(p.PesoMobilitaSostenibile, 0, 100);
+    p.PesoResidenze = Math.Clamp(p.PesoResidenze, 0, 100);
+    p.PesoMense = Math.Clamp(p.PesoMense, 0, 100);
+    p.PesoSedi = Math.Clamp(p.PesoSedi, 0, 100);
+}
+
+// Verifica se un servizio e' aperto all'ora t; se la chiusura precede l'apertura l'orario prosegue oltre la mezzanotte.
+static bool Aperto(TimeOnly t, TimeOnly apertura, TimeOnly chiusura) =>
+    apertura <= chiusura ? t >= apertura && t < chiusura : t >= apertura || t < chiusura;
+
+// Calcola i tempi di percorrenza multimodali (piedi, bici, TPL) dalla posizione data verso la sede
+// universitaria (esclusi i musei) più vicina. TPL usa la frequenza reale GTFS per stimare l'attesa.
+static async Task<object> CalcolaTempoMultimodale(double lat, double lon, int ora, UrbanAdvisorDbContext db)
+{
+    var origine = GeoUtils.Punto(lat, lon);
+
+    var sede = await db.SediUniversitarie
+        .Where(s => s.Geog != null && s.Tipo != "museo")
+        .OrderBy(s => s.Geog!.Distance(origine))
+        .FirstOrDefaultAsync();
+
+    if (sede == null || sede.Geom == null)
+        return new { disponibile = false, motivo = "Nessuna sede universitaria trovata nel dataset" };
+
+    double distanzaDirettaMetri = GeoUtils.HaversineMetri(origine, sede.Geom);
+    const double fattoreDeviazione = 1.3;
+    double distanzaStradaleStimata = distanzaDirettaMetri * fattoreDeviazione;
+
+    double velocitaPiedi = 5000.0 / 60.0;
+    double tempoPiedi = distanzaStradaleStimata / velocitaPiedi;
+
+    double velocitaBici = 15000.0 / 60.0;
+    double tempoBici = distanzaStradaleStimata / velocitaBici;
+
+    var fermataPartenza = await db.GtfsFermate
+        .Where(f => f.Geog != null)
+        .OrderBy(f => f.Geog!.Distance(origine))
+        .FirstOrDefaultAsync();
+    var fermataArrivo = await db.GtfsFermate
+        .Where(f => f.Geog != null)
+        .OrderBy(f => f.Geog!.Distance(sede.Geom))
+        .FirstOrDefaultAsync();
+
+    object trasportoPubblico;
+    if (fermataPartenza?.Geom == null || fermataArrivo?.Geom == null)
+    {
+        trasportoPubblico = new { disponibile = false, motivo = "Nessuna fermata GTFS trovata" };
+    }
+    else
+    {
+        double distPartenzaFermata = GeoUtils.HaversineMetri(origine, fermataPartenza.Geom);
+        double distArrivoFermata = GeoUtils.HaversineMetri(sede.Geom, fermataArrivo.Geom);
+        double tempoPiediFermataPartenza = (distPartenzaFermata * fattoreDeviazione) / velocitaPiedi;
+        double tempoPiediFermataArrivo = (distArrivoFermata * fattoreDeviazione) / velocitaPiedi;
+
+        var freq = await db.GtfsFrequenzeFermata
+            .FirstOrDefaultAsync(g => g.StopId == fermataPartenza.StopId && g.FasciaOraria == ora);
+        int numeroCorse = freq?.NumeroCorse ?? 0;
+
+        if (numeroCorse == 0)
+        {
+            trasportoPubblico = new
+            {
+                disponibile = false,
+                motivo = $"Nessuna corsa rilevata alla fermata '{fermataPartenza.Nome}' nella fascia {ora}:00-{ora + 1}:00"
+            };
+        }
+        else
+        {
+            double headwayMinuti = 60.0 / numeroCorse;
+            double attesaMedia = headwayMinuti / 2.0;
+            double velocitaBus = 18000.0 / 60.0;
+            double distanzaTraFermate = GeoUtils.HaversineMetri(fermataPartenza.Geom, fermataArrivo.Geom);
+            double tempoABordo = (distanzaTraFermate * fattoreDeviazione) / velocitaBus;
+            double tempoTotale = tempoPiediFermataPartenza + attesaMedia + tempoABordo + tempoPiediFermataArrivo;
+
+            trasportoPubblico = new
+            {
+                disponibile = true,
+                tempo_totale_minuti = Math.Round(tempoTotale, 1),
+                dettaglio = new
+                {
+                    a_piedi_fino_fermata_min = Math.Round(tempoPiediFermataPartenza, 1),
+                    attesa_media_min = Math.Round(attesaMedia, 1),
+                    a_bordo_min = Math.Round(tempoABordo, 1),
+                    a_piedi_da_fermata_min = Math.Round(tempoPiediFermataArrivo, 1),
+                    fermata_partenza = fermataPartenza.Nome,
+                    fermata_arrivo = fermataArrivo.Nome,
+                    corse_ora = numeroCorse,
+                    headway_minuti = Math.Round(headwayMinuti, 1)
+                }
+            };
+        }
+    }
+
+    return new
+    {
+        disponibile = true,
+        sede_destinazione = sede.Nome,
+        distanza_diretta_metri = Math.Round(distanzaDirettaMetri, 0),
+        piedi = new { tempo_minuti = Math.Round(tempoPiedi, 1) },
+        bici = new { tempo_minuti = Math.Round(tempoBici, 1) },
+        trasporto_pubblico = trasportoPubblico
+    };
+}
+
+// Versione snella per il calcolo su griglia: una sola modalità alla volta (piedi, bici o TPL).
+static async Task<(bool disponibile, double? tempoMinuti, string? motivo)> CalcolaTempoModalita(
+    double lat, double lon, int ora, string modalita, UrbanAdvisorDbContext db)
+{
+    var origine = GeoUtils.Punto(lat, lon);
+    var sede = await db.SediUniversitarie.Where(s => s.Geog != null && s.Tipo != "museo")
+        .OrderBy(s => s.Geog!.Distance(origine)).FirstOrDefaultAsync();
+    if (sede == null || sede.Geom == null) return (false, null, "Nessuna sede trovata");
+
+    const double fattoreDeviazione = 1.3;
+    double distanzaStradale = GeoUtils.HaversineMetri(origine, sede.Geom) * fattoreDeviazione;
+
+    if (modalita == "piedi")
+        return (true, distanzaStradale / (5000.0 / 60.0), null);
+
+    if (modalita == "bici")
+        return (true, distanzaStradale / (15000.0 / 60.0), null);
+
+    var fermataPartenza = await db.GtfsFermate.Where(f => f.Geog != null)
+        .OrderBy(f => f.Geog!.Distance(origine)).FirstOrDefaultAsync();
+    var fermataArrivo = await db.GtfsFermate.Where(f => f.Geog != null)
+        .OrderBy(f => f.Geog!.Distance(sede.Geom)).FirstOrDefaultAsync();
+    if (fermataPartenza?.Geom == null || fermataArrivo?.Geom == null)
+        return (false, null, "Nessuna fermata GTFS trovata");
+
+    var freq = await db.GtfsFrequenzeFermata
+        .FirstOrDefaultAsync(g => g.StopId == fermataPartenza.StopId && g.FasciaOraria == ora);
+    int numeroCorse = freq?.NumeroCorse ?? 0;
+    if (numeroCorse == 0)
+        return (false, null, $"Nessuna corsa in fascia {ora}:00");
+
+    double velocitaPiedi = 5000.0 / 60.0;
+    double velocitaBus = 18000.0 / 60.0;
+    double tPiediPartenza = GeoUtils.HaversineMetri(origine, fermataPartenza.Geom) * fattoreDeviazione / velocitaPiedi;
+    double tPiediArrivo = GeoUtils.HaversineMetri(sede.Geom, fermataArrivo.Geom) * fattoreDeviazione / velocitaPiedi;
+    double attesa = (60.0 / numeroCorse) / 2.0;
+    double aBordo = GeoUtils.HaversineMetri(fermataPartenza.Geom, fermataArrivo.Geom) * fattoreDeviazione / velocitaBus;
+
+    return (true, tPiediPartenza + attesa + aBordo + tPiediArrivo, null);
+}
+
 // Record per deserializzare il corpo della richiesta di feedback.
 record FeedbackRequest(string Feedback);
+
+// PoI restituito dalla ricerca dei servizi vicini.
+record PoiVicino(string Id, string Nome, string Categoria, string Dettaglio, double Lat, double Lon, int DistanzaMetri);
