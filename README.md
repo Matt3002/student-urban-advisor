@@ -44,6 +44,7 @@ La cartella `data/` è montata nel container PostGIS in `/var/lib/postgresql/csv
 | `mappe.csv` | Sedi Unibo e musei (punti di interesse) | dati.unibo.it |
 | `sale-studio.csv` | Sale studio (facoltativo, vedi sotto) | dataset derivato |
 | `gtfs/stops.txt`, `trips.txt`, `stop_times.txt`, `calendar.txt` | Orari del trasporto pubblico | GTFS TPER |
+| `gtfs/calendar_dates.txt` | Eccezioni del calendario (facoltativo, consigliato) | GTFS TPER |
 
 Le mense e i punti ristoro (5 elementi) sono inseriti direttamente in `init.sql` come dataset derivato manualmente.
 
@@ -95,7 +96,7 @@ La formula è implementata una sola volta in `UrbanAdvisor.Api/Services/ScoringS
 
 Implementazione in `Services/MobilityService.cs`; i dati GTFS vengono importati da `init.sql` nelle tabelle `gtfs_fermate`, `gtfs_trips`, `gtfs_stop_times`, `gtfs_frequenze_fermata`.
 
-- **Periodo di riferimento**: tra le date di inizio dei servizi in `calendar.txt` si sceglie quella coperta dal maggior numero di `service_id`, per non sommare periodi diversi (es. orario estivo e invernale). Le eccezioni di `calendar_dates.txt` non sono considerate.
+- **Giorno di riferimento**: per ogni tipo di giorno (feriale, sabato, festivo) si sceglie una data reale tra i primi 60 giorni del calendario, quella con più corse; la tabella `gtfs_giorni_riferimento` riporta le date usate. Una corsa è attiva se il suo servizio lo è in quella data secondo `calendar.txt` e, se presente, `calendar_dates.txt`. Senza `calendar_dates.txt` più varianti dello stesso servizio risultano attive insieme: per ogni linea e tipo di giorno si tiene allora solo il `service_id` con più corse, per non contare due volte la stessa corsa.
 - **Piedi / bici**: distanza di Haversine × 1,3 (deviazione stradale), a 5 e 15 km/h.
 - **Trasporto pubblico**: corse **dirette** (senza cambi) che passano da una fermata entro 500 m dall'origine e, più avanti nella stessa corsa, da una fermata entro 500 m dalla destinazione, con partenza nella fascia oraria e nel tipo di giorno richiesti. Tempo = piedi fino alla fermata + attesa media (metà dell'intervallo tra le corse) + tempo a bordo da `stop_times` + piedi fino alla destinazione. Si sceglie la coppia di fermate più rapida; nelle isocrone il tempo con TPL è il minimo tra bus e percorso a piedi.
 - **Isocrone**: griglia 12 × 12 sulla bounding box; per ogni cella il tempo verso la sede universitaria scelta dall'utente, colorato per fasce 0–10, 10–20, 20–30, 30–45, >45 minuti.

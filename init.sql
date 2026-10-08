@@ -334,9 +334,13 @@ FROM generate_series(0, 6) AS g(giorno);
 -- ============================================================================
 -- GTFS TPER: fermate, corse e orari di passaggio per tipo di giorno
 -- (feriale / sabato / festivo), frequenza per fascia oraria.
--- Periodo di riferimento: la data di inizio servizio coperta dal maggior numero
--- di service_id del calendario, per non sommare periodi diversi (es. estivo e
--- invernale). Le eccezioni di calendar_dates.txt non sono considerate.
+-- Per ogni tipo di giorno si sceglie una DATA DI RIFERIMENTO reale: tra i primi
+-- 60 giorni del calendario, quella di quel tipo con il maggior numero di corse
+-- (esclude festivita' e periodi ridotti). Una corsa e' attiva se il suo servizio
+-- lo e' in quella data secondo calendar.txt e le eccezioni di calendar_dates.txt.
+-- Se calendar_dates.txt manca, varianti dello stesso servizio risultano attive
+-- insieme: per ogni linea e tipo di giorno si tiene allora solo il service_id
+-- con piu' corse, per non contare la stessa corsa piu' volte.
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS gtfs_fermate (
@@ -399,28 +403,79 @@ WHERE location_type = '0'
 CREATE INDEX IF NOT EXISTS idx_gtfs_fermate_geom ON gtfs_fermate USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_gtfs_fermate_geog ON gtfs_fermate USING gist(geog);
 
+CREATE TEMP TABLE stg_gtfs_calendar_dates (
+    service_id TEXT, date TEXT, exception_type TEXT
+);
+
+DO $$
+BEGIN
+    COPY stg_gtfs_calendar_dates FROM '/var/lib/postgresql/csv_data/gtfs/calendar_dates.txt' DELIMITER ',' CSV HEADER QUOTE '"';
+EXCEPTION WHEN undefined_file THEN
+    RAISE NOTICE 'calendar_dates.txt non trovato: si usa un solo service_id per linea e tipo di giorno';
+END $$;
+
 CREATE TEMP TABLE cal AS
 SELECT service_id,
-    (monday='1' AND tuesday='1' AND wednesday='1' AND thursday='1' AND friday='1') AS feriale,
-    (saturday='1') AS sabato,
-    (sunday='1') AS festivo,
+    ARRAY[monday='1', tuesday='1', wednesday='1', thursday='1', friday='1', saturday='1', sunday='1'] AS giorni,
     TO_DATE(start_date, 'YYYYMMDD') AS inizio,
     TO_DATE(end_date, 'YYYYMMDD') AS fine
 FROM stg_gtfs_calendar;
 
-CREATE TEMP TABLE data_riferimento AS
-SELECT d.inizio AS giorno
-FROM (SELECT DISTINCT inizio FROM cal) d
-ORDER BY (SELECT COUNT(*) FROM cal c WHERE d.inizio BETWEEN c.inizio AND c.fine) DESC, d.inizio
-LIMIT 1;
+CREATE TEMP TABLE date_candidate AS
+SELECT d::DATE AS giorno
+FROM generate_series((SELECT MIN(inizio) FROM cal), (SELECT MIN(inizio) FROM cal) + 60, INTERVAL '1 day') AS d;
+
+CREATE TEMP TABLE servizio_giorno AS
+SELECT dc.giorno, c.service_id
+FROM date_candidate dc
+JOIN cal c ON dc.giorno BETWEEN c.inizio AND c.fine AND c.giorni[EXTRACT(ISODOW FROM dc.giorno)::INT]
+WHERE NOT EXISTS (SELECT 1 FROM stg_gtfs_calendar_dates x
+                  WHERE x.service_id = c.service_id AND x.date = TO_CHAR(dc.giorno, 'YYYYMMDD') AND x.exception_type = '2')
+UNION
+SELECT TO_DATE(x.date, 'YYYYMMDD'), x.service_id
+FROM stg_gtfs_calendar_dates x
+WHERE x.exception_type = '1' AND TO_DATE(x.date, 'YYYYMMDD') IN (SELECT giorno FROM date_candidate);
+
+CREATE TABLE IF NOT EXISTS gtfs_giorni_riferimento (
+    tipo_giorno VARCHAR(10) PRIMARY KEY,
+    giorno DATE NOT NULL
+);
+
+INSERT INTO gtfs_giorni_riferimento (tipo_giorno, giorno)
+SELECT DISTINCT ON (tipo) tipo, giorno
+FROM (
+    SELECT CASE EXTRACT(ISODOW FROM sg.giorno) WHEN 7 THEN 'festivo' WHEN 6 THEN 'sabato' ELSE 'feriale' END AS tipo,
+           sg.giorno, COUNT(t.trip_id) AS corse
+    FROM servizio_giorno sg
+    JOIN stg_gtfs_trips t ON t.service_id = sg.service_id
+    GROUP BY 1, 2
+) z
+ORDER BY tipo, corse DESC, giorno;
+
+CREATE TEMP TABLE trip_tipo AS
+SELECT DISTINCT t.trip_id, t.route_id, t.service_id, r.tipo_giorno AS tipo
+FROM stg_gtfs_trips t
+JOIN servizio_giorno sg ON sg.service_id = t.service_id
+JOIN gtfs_giorni_riferimento r ON r.giorno = sg.giorno;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM stg_gtfs_calendar_dates) THEN
+        CREATE TEMP TABLE servizio_dominante AS
+        SELECT DISTINCT ON (route_id, tipo) route_id, tipo, service_id
+        FROM (SELECT route_id, tipo, service_id, COUNT(*) AS corse FROM trip_tipo GROUP BY 1, 2, 3) z
+        ORDER BY route_id, tipo, corse DESC, service_id;
+
+        DELETE FROM trip_tipo tt
+        USING servizio_dominante d
+        WHERE tt.route_id = d.route_id AND tt.tipo = d.tipo AND tt.service_id <> d.service_id;
+    END IF;
+END $$;
 
 INSERT INTO gtfs_trips (trip_id, route_id, feriale, sabato, festivo)
-SELECT DISTINCT ON (t.trip_id) t.trip_id, t.route_id, c.feriale, c.sabato, c.festivo
-FROM stg_gtfs_trips t
-JOIN cal c ON c.service_id = t.service_id
-CROSS JOIN data_riferimento r
-WHERE r.giorno BETWEEN c.inizio AND c.fine
-  AND (c.feriale OR c.sabato OR c.festivo);
+SELECT trip_id, MAX(route_id), BOOL_OR(tipo = 'feriale'), BOOL_OR(tipo = 'sabato'), BOOL_OR(tipo = 'festivo')
+FROM trip_tipo
+GROUP BY trip_id;
 
 INSERT INTO gtfs_stop_times (trip_id, stop_id, stop_sequence, arr_sec, dep_sec)
 SELECT st.trip_id, st.stop_id, st.stop_sequence::INT,
