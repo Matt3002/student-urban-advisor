@@ -230,9 +230,12 @@ CREATE INDEX IF NOT EXISTS idx_residenze_geog ON residenze_universitarie USING g
 CREATE INDEX IF NOT EXISTS idx_stazioni_geog ON stazioni_ferroviarie USING gist(geog);
 
 -- ============================================================================
--- Sale studio: import opzionale da data/sale-studio.csv (formato normalizzato,
--- separatore ';', intestazione: nome;indirizzo;lat;lon;posti;fonte).
--- Se il file non esiste la tabella resta vuota e l'inizializzazione prosegue.
+-- Sale studio e biblioteche universitarie:
+-- 1) biblioteche di Ateneo estratte dai Punti di interesse Unibo (mappe.csv),
+--    un punto per edificio, nome = la voce "Biblioteca ..." dell'elenco;
+-- 2) import opzionale di altre sale studio da data/sale-studio.csv (formato
+--    normalizzato, separatore ';', intestazione: nome;indirizzo;lat;lon;posti;fonte).
+--    Se il file non esiste l'inizializzazione prosegue.
 -- ============================================================================
 
 CREATE TABLE IF NOT EXISTS sale_studio (
@@ -261,6 +264,18 @@ SELECT nome, indirizzo, NULLIF(TRIM(posti), '')::INTEGER, fonte,
     ST_SetSRID(ST_MakePoint(REPLACE(TRIM(lon), ',', '.')::FLOAT, REPLACE(TRIM(lat), ',', '.')::FLOAT), 4326)
 FROM stg_sale_studio
 WHERE NULLIF(TRIM(lat), '') IS NOT NULL AND NULLIF(TRIM(lon), '') IS NOT NULL;
+
+INSERT INTO sale_studio (nome, indirizzo, posti, fonte, geom)
+SELECT DISTINCT ON (ROUND(lat::NUMERIC, 4), ROUND(lon::NUMERIC, 4))
+    TRIM(SUBSTRING(name FROM '(Biblioteca[^;]*)')),
+    address, NULL, 'dati.unibo.it - Punti di interesse',
+    ST_SetSRID(ST_MakePoint(lon::FLOAT, lat::FLOAT), 4326)
+FROM stg_sedi_universitarie
+WHERE city = 'Bologna'
+  AND name ~ 'Settore Biblioteca'
+  AND NULLIF(lat, '')::FLOAT IS NOT NULL AND NULLIF(lat, '')::FLOAT != 0
+  AND NULLIF(lon, '')::FLOAT IS NOT NULL AND NULLIF(lon, '')::FLOAT != 0
+ORDER BY ROUND(lat::NUMERIC, 4), ROUND(lon::NUMERIC, 4), name;
 
 CREATE INDEX IF NOT EXISTS idx_sale_studio_geom ON sale_studio USING gist(geom);
 CREATE INDEX IF NOT EXISTS idx_sale_studio_geog ON sale_studio USING gist(geog);

@@ -29,7 +29,7 @@ const catConfig = {
     stazioni:    { color: '#f39c12', icon: '🚉', label: 'Stazione' },
     mense:       { color: '#ff5e5e', icon: '🍽️', label: 'Mensa/Ristoro' },
     sedi:        { color: '#16a085', icon: '🏛️', label: 'Sede Universitaria' },
-    salestudio:  { color: '#c0392b', icon: '📖', label: 'Sala Studio' },
+    salestudio:  { color: '#c0392b', icon: '📖', label: 'Sala studio / Biblioteca universitaria' },
     piste:       { color: '#8e44ad', icon: '🚲', label: 'Pista Ciclabile' }
 };
 

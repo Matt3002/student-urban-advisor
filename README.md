@@ -42,11 +42,13 @@ La cartella `data/` è montata nel container PostGIS in `/var/lib/postgresql/csv
 | `residenze-universitarie.csv` | Residenze universitarie | Open Data Comune di Bologna |
 | `stazioniferroviarie_20210401.csv` | Stazioni ferroviarie | Open Data Comune di Bologna |
 | `mappe.csv` | Sedi Unibo e musei (punti di interesse) | dati.unibo.it |
-| `sale-studio.csv` | Sale studio (facoltativo, vedi sotto) | dataset derivato |
+| `sale-studio.csv` | Altre sale studio (facoltativo, vedi sotto) | dataset derivato |
 | `gtfs/stops.txt`, `trips.txt`, `stop_times.txt`, `calendar.txt` | Orari del trasporto pubblico | GTFS TPER |
 | `gtfs/calendar_dates.txt` | Eccezioni del calendario (facoltativo, consigliato) | GTFS TPER |
 
 Le mense e i punti ristoro (5 elementi) sono inseriti direttamente in `init.sql` come dataset derivato manualmente.
+
+Le **sale studio** comprendono le biblioteche di Ateneo di Bologna, estratte da `mappe.csv` (voci "Settore Biblioteca ...", un punto per edificio, 26 punti), più le eventuali sale studio di `sale-studio.csv`.
 
 ### Formato di `sale-studio.csv`
 
