@@ -222,8 +222,30 @@ async function caricaIndicatoriArea() {
     } catch (e) { console.error('Errore indicatori area:', e); }
 }
 
+// Livelli di analisi disegnati da ciascuna scheda: restano sulla mappa solo mentre la scheda è aperta.
+// La posizione perturbata resta sempre visibile quando la modalità privacy è attiva.
+function livelliScheda(name) {
+    if (name === 'analisi') return [gridLayer];
+    if (name === 'raccomandazioni') return [recMarkers];
+    if (name === 'mobilita') return [isocronaLayer, destMarker];
+    if (name === 'clustering') return [clusterLayer, moranLayer];
+    if (name === 'privacy' && !document.getElementById('privacyAttiva').checked) return [privacyMarker, privacyLine];
+    return [];
+}
+
+// Nasconde i livelli delle altre schede e ripristina quelli della scheda aperta (i risultati non vanno persi).
+function aggiornaLivelliMappa(name) {
+    ['analisi', 'raccomandazioni', 'mobilita', 'clustering', 'privacy'].forEach(t => {
+        livelliScheda(t).filter(l => l).forEach(l => {
+            if (t === name) { if (!map.hasLayer(l)) map.addLayer(l); }
+            else if (map.hasLayer(l)) map.removeLayer(l);
+        });
+    });
+}
+
 // Gestisce il cambio di scheda nella sidebar.
 function switchTab(name, btn) {
+    aggiornaLivelliMappa(name);
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('d-none'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`tab-${name}`).classList.remove('d-none');
@@ -305,7 +327,17 @@ async function eliminaProfilo() {
     try { await fetch(`${API_BASE_URL}/profili/${id}`, { method: 'DELETE' }); document.getElementById('profiloEditSelect').value = 'new'; loadProfiloEdit(); await loadProfili(); } catch (e) { console.error(e); }
 }
 
-// Confronta due profili sullo stesso punto e mostra i risultati.
+// Pesi di un profilo normalizzati a somma 1 (stessa regola del back-end).
+function pesiNormalizzati(p) {
+    const w = { trasporti: p.pesoTrasporti, biblioteche: p.pesoBiblioteche, aree_verdi: p.pesoAreeVerdi,
+                mobilita: p.pesoMobilitaSostenibile, residenze: p.pesoResidenze, mense: p.pesoMense, sedi: p.pesoSedi };
+    const somma = Object.values(w).reduce((a, b) => a + b, 0) || 1;
+    Object.keys(w).forEach(k => w[k] = w[k] / somma);
+    return w;
+}
+
+// Confronta due profili sullo stesso punto: i sotto-punteggi dipendono solo dal luogo e dal contesto,
+// i profili cambiano il peso di ciascun fattore e quindi il contributo al punteggio finale.
 async function confrontaProfili() {
     if (!lastClickLat) return;
     const id1 = document.getElementById('confronto1').value, id2 = document.getElementById('confronto2').value;
@@ -317,17 +349,29 @@ async function confrontaProfili() {
             fetch(`${API_BASE_URL}/ranking?lat=${c.lat}&lon=${c.lon}&ora=${ora}&giorno=${giorno()}&profiloId=${id1}`).then(r=>r.json()),
             fetch(`${API_BASE_URL}/ranking?lat=${c.lat}&lon=${c.lon}&ora=${ora}&giorno=${giorno()}&profiloId=${id2}`).then(r=>r.json())
         ]);
+        const p1 = profiliCache.find(p => p.id == id1), p2 = profiliCache.find(p => p.id == id2);
+        if (!p1 || !p2) return;
+        const w1 = pesiNormalizzati(p1), w2 = pesiNormalizzati(p2);
+        const fattori = [
+            ['trasporti', '🚌 Trasporti'], ['biblioteche', '📚 Bibl./Sale st.'], ['aree_verdi', '🌳 Aree Verdi'],
+            ['mobilita', '🚲 Mobilità'], ['residenze', '🏠 Residenze'], ['mense', '🍽️ Mense'], ['sedi', '🏛️ Sedi']
+        ];
+        const cella = (sub, w) => `${Math.round(w * 100)}% → <b>${(sub * w).toFixed(1)}</b>`;
+        const righe = fattori.map(([k, nome]) => {
+            const sub = r1.subscores[k];
+            const d = sub * w1[k] - sub * w2[k];
+            const evid = Math.abs(d) >= 3 ? (d > 0 ? ' style="background:rgba(25,135,84,.12)"' : ' style="background:rgba(220,53,69,.12)"') : '';
+            return `<tr${evid}><td>${nome}</td><td class="text-center">${sub}</td><td>${cella(sub, w1[k])}</td><td>${cella(sub, w2[k])}</td></tr>`;
+        }).join('');
+        const badge = r => `<div class="score-badge ${r.punteggio>=70?'score-high':r.punteggio>=40?'score-mid':'score-low'}">${r.punteggio}</div>`;
         const container = document.getElementById('confrontoResult');
         container.classList.remove('d-none');
-        container.innerHTML = `<div class="row g-2 mt-1"><div class="col-6 text-center"><div class="fw-bold">${r1.profilo}</div><div class="score-badge ${r1.punteggio>=70?'score-high':r1.punteggio>=40?'score-mid':'score-low'}">${r1.punteggio}</div></div><div class="col-6 text-center"><div class="fw-bold">${r2.profilo}</div><div class="score-badge ${r2.punteggio>=70?'score-high':r2.punteggio>=40?'score-mid':'score-low'}">${r2.punteggio}</div></div></div>
-            <table class="table table-sm table-bordered mt-2 mb-0" style="font-size:0.75rem"><tr><th></th><th>${r1.profilo}</th><th>${r2.profilo}</th></tr>
-            <tr><td>🚌 Trasporti</td><td>${r1.subscores.trasporti}</td><td>${r2.subscores.trasporti}</td></tr>
-            <tr><td>📚 Biblioteche</td><td>${r1.subscores.biblioteche}</td><td>${r2.subscores.biblioteche}</td></tr>
-            <tr><td>🌳 Aree Verdi</td><td>${r1.subscores.aree_verdi}</td><td>${r2.subscores.aree_verdi}</td></tr>
-            <tr><td>🚲 Mobilità</td><td>${r1.subscores.mobilita}</td><td>${r2.subscores.mobilita}</td></tr>
-            <tr><td>🏠 Residenze</td><td>${r1.subscores.residenze}</td><td>${r2.subscores.residenze}</td></tr>
-            <tr><td>🍽️ Mense</td><td>${r1.subscores.mense}</td><td>${r2.subscores.mense}</td></tr>
-            <tr><td>🏛️ Sedi</td><td>${r1.subscores.sedi}</td><td>${r2.subscores.sedi}</td></tr></table>`;
+        container.innerHTML = `<div class="row g-2 mt-1"><div class="col-6 text-center"><div class="fw-bold">${r1.profilo}</div>${badge(r1)}</div><div class="col-6 text-center"><div class="fw-bold">${r2.profilo}</div>${badge(r2)}</div></div>
+            <table class="table table-sm table-bordered mt-2 mb-1" style="font-size:0.72rem">
+            <tr><th>Fattore</th><th>Valore zona</th><th>${r1.profilo}<br><span class="fw-normal">peso → punti</span></th><th>${r2.profilo}<br><span class="fw-normal">peso → punti</span></th></tr>
+            ${righe}
+            <tr class="fw-bold"><td>Totale</td><td></td><td>${r1.punteggio}</td><td>${r2.punteggio}</td></tr></table>
+            <div class="text-muted" style="font-size:0.68rem">Il valore della zona dipende solo da luogo, ora e giorno ed è uguale per tutti i profili; il profilo decide quanto pesa ogni fattore. Punti = valore × peso.</div>`;
     } catch (e) { console.error('Errore confronto:', e); }
 }
 
