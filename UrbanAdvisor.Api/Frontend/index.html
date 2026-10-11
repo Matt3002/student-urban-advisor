@@ -342,13 +342,7 @@
                 </div>
                 <div id="tab-clustering" class="sidebar tab-panel d-none">
                     <h6><i class="bi bi-diagram-3"></i> Clustering & Moran</h6>
-                    <p class="small text-muted">K-Means sulle zone urbane + autocorrelazione spaziale di Moran (pesi queen, test a permutazioni).</p>
-                    <div class="mb-2">
-                        <label class="form-label small">Numero di Cluster (K)</label>
-                        <select class="form-select form-select-sm" id="clusterK">
-                            <option value="3">3</option><option value="4" selected>4</option><option value="5">5</option><option value="6">6</option>
-                        </select>
-                    </div>
+                    <p class="small text-muted">K-Means con K = 4 sulle zone urbane (alta, media, bassa accessibilità, periferico) + autocorrelazione spaziale di Moran (pesi queen, test a permutazioni).</p>
                     <div class="mb-2">
                         <label class="form-label small">Ora</label>
                         <input type="range" class="form-range" id="clusterOra" min="0" max="23" value="14"

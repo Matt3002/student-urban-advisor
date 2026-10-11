@@ -823,7 +823,7 @@ async function tradeoffPrivacy() {
 
 // Esegue il clustering delle zone e mostra cluster e indice di Moran.
 async function loadClustering() {
-    const k = document.getElementById('clusterK').value;
+    const k = 4;
     const ora = document.getElementById('clusterOra').value;
     document.getElementById('clusterResult').innerHTML = '<p class="text-muted">Calcolo K-Means...</p>';
     try {
