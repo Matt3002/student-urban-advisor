@@ -831,6 +831,7 @@ async function loadClustering() {
         const data = await res.json();
 
         if (clusterLayer) map.removeLayer(clusterLayer);
+        if (moranLayer) { map.removeLayer(moranLayer); moranLayer = null; }
         clusterLayer = L.layerGroup().addTo(map);
 
         let html = '';
@@ -844,7 +845,7 @@ async function loadClustering() {
             cl.celle.forEach(c => {
                 const stepLat = 0.05 / 10, stepLon = 0.08 / 10;
                 const bounds = [[c.lat - stepLat/2, c.lon - stepLon/2], [c.lat + stepLat/2, c.lon + stepLon/2]];
-                L.rectangle(bounds, { color, weight: 1, fillColor: color, fillOpacity: 0.35 })
+                L.rectangle(bounds, { color: '#333', weight: 0.5, fillColor: color, fillOpacity: 0.6 })
                     .bindPopup(`<b>${cl.label}</b><br>Score: ${c.score}/100`)
                     .addTo(clusterLayer);
             });
@@ -879,6 +880,7 @@ async function loadMoran() {
         if (data.errore) { document.getElementById('moranIndicatoreResult').innerHTML = `<p class="text-danger small">${data.errore}</p>`; return; }
 
         if (moranLayer) map.removeLayer(moranLayer);
+        if (clusterLayer) { map.removeLayer(clusterLayer); clusterLayer = null; }
         moranLayer = L.layerGroup().addTo(map);
         const max = Math.max(...data.valori.map(v => v.valore), 1);
         const stepLat = 0.05 / data.celle, stepLon = 0.08 / data.celle;
@@ -890,6 +892,8 @@ async function loadMoran() {
                 .addTo(moranLayer);
         });
         document.getElementById('moranIndicatoreResult').innerHTML =
+            `<div class="d-flex justify-content-between small mb-1"><span>0</span><span>${data.indicatore} per cella</span><span>${max}</span></div>
+             <div class="mb-2" style="height:10px;border-radius:5px;background:linear-gradient(to right,rgb(255,255,255),rgb(75,55,255))"></div>` +
             boxMoran(`Moran's I — ${data.descrizione}`, data.moran_i, data.atteso, data.p_value, data.interpretazione,
                      `${data.pesi}; ${data.permutazioni} permutazioni; z = ${data.z_permutazioni}`);
     } catch (e) { console.error(e); document.getElementById('moranIndicatoreResult').innerHTML = '<p class="text-danger small">Errore</p>'; }
