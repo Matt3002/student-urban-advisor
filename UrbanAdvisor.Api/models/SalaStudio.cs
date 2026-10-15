@@ -1,5 +1,7 @@
 // ============================================================================
-// SalaStudio.cs - Modello dati per le sale studio (import da data/sale-studio.csv)
+// SalaStudio.cs - Modello dati per le sale studio e le biblioteche di Ateneo
+// (estratte dai Punti di interesse Unibo, piu' l'import facoltativo di
+// data/sale-studio.csv)
 // ============================================================================
 using NetTopologySuite.Geometries;
 using System.ComponentModel.DataAnnotations;

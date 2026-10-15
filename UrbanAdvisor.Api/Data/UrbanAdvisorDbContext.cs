@@ -1,3 +1,10 @@
+// ============================================================================
+// UrbanAdvisorDbContext.cs - Contesto Entity Framework Core
+// Espone come DbSet i dataset geografici (biblioteche, fermate, aree verdi,
+// residenze, stazioni, sedi, mense, piste, sale studio), i profili utente, lo
+// storico dei suggerimenti, gli orari dei servizi e le tabelle GTFS.
+// Le colonne spaziali sono mappate con NetTopologySuite (estensione postgis).
+// ============================================================================
 using Microsoft.EntityFrameworkCore;
 using UrbanAdvisor.Api.Models;
 
@@ -8,7 +15,6 @@ namespace UrbanAdvisor.Api.Data
         public UrbanAdvisorDbContext(DbContextOptions<UrbanAdvisorDbContext> options)
             : base(options) { }
 
-        // Dataset geografici
         public DbSet<Biblioteca> Biblioteche { get; set; }
         public DbSet<FermataBus> FermateBus { get; set; }
         public DbSet<AreaVerde> AreeVerdi { get; set; }

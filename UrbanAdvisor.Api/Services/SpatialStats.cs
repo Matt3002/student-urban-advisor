@@ -1,7 +1,8 @@
 // ============================================================================
 // SpatialStats.cs - Statistiche spaziali sulla griglia di analisi
 // - Conteggio dei PoI per cella: celle rettangolari NON sovrapposte della
-//   bounding box (ST_Intersects con l'envelope della cella), per categoria.
+//   bounding box, intervalli semiaperti [inizio, fine) cosi' che un punto sul
+//   bordo tra due celle venga contato una sola volta, per categoria.
 // - Indice di Moran globale con pesi di contiguita' "queen" (celle che
 //   condividono un lato o un vertice, w = 1, poi standardizzati per riga):
 //   I = (N / S0) * sum_ij w_ij z_i z_j / sum_i z_i^2, con z_i = x_i - media.
@@ -40,10 +41,12 @@ namespace UrbanAdvisor.Api.Services
 
         private const string SqlConteggioCelle = @"
 SELECT c.i AS ""I"", c.j AS ""J"",
-    (SELECT COUNT(*) FROM poi_tutti p WHERE p.categoria = ANY(@categorie) AND ST_Intersects(p.geom, c.env))::int AS ""Conteggio""
+    (SELECT COUNT(*) FROM poi_tutti p
+     WHERE p.categoria = ANY(@categorie)
+       AND ST_X(ST_PointOnSurface(p.geom)) >= c.x0 AND ST_X(ST_PointOnSurface(p.geom)) < c.x0 + @steplon
+       AND ST_Y(ST_PointOnSurface(p.geom)) >= c.y0 AND ST_Y(ST_PointOnSurface(p.geom)) < c.y0 + @steplat)::int AS ""Conteggio""
 FROM (
-    SELECT i, j, ST_MakeEnvelope(@minlon + j * @steplon, @minlat + i * @steplat,
-                                 @minlon + (j + 1) * @steplon, @minlat + (i + 1) * @steplat, 4326) AS env
+    SELECT i, j, @minlon + j * @steplon AS x0, @minlat + i * @steplat AS y0
     FROM generate_series(0, @n - 1) AS i, generate_series(0, @n - 1) AS j
 ) c
 ORDER BY c.i, c.j";

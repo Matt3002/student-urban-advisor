@@ -1,20 +1,18 @@
 # ============================================================================
-# STAGE 1 - build & publish
+# Dockerfile dell'API .NET, build multi-stage:
+# 1. build & publish con l'SDK; il restore e' separato dalla copia del
+#    sorgente per sfruttare la cache dei layer;
+# 2. runtime con la sola immagine ASP.NET, in ascolto sulla porta 8080.
 # ============================================================================
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
-# Restore separato per sfruttare la cache dei layer
 COPY UrbanAdvisor.Api/UrbanAdvisor.Api.csproj UrbanAdvisor.Api/
 RUN dotnet restore UrbanAdvisor.Api/UrbanAdvisor.Api.csproj
 
-# Copia del resto del sorgente e publish
 COPY UrbanAdvisor.Api/ UrbanAdvisor.Api/
 RUN dotnet publish UrbanAdvisor.Api/UrbanAdvisor.Api.csproj -c Release -o /app/publish /p:UseAppHost=false
 
-# ============================================================================
-# STAGE 2 - runtime
-# ============================================================================
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 

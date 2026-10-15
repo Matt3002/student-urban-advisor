@@ -1,6 +1,16 @@
-@UrbanAdvisor.Api_HostAddress = http://localhost:5257
+@UrbanAdvisor.Api_HostAddress = http://localhost:8080
 
-GET {{UrbanAdvisor.Api_HostAddress}}/weatherforecast/
+GET {{UrbanAdvisor.Api_HostAddress}}/api/nearby?lat=44.4968&lon=11.3522&raggio=300
+Accept: application/json
+
+###
+
+GET {{UrbanAdvisor.Api_HostAddress}}/api/ranking?lat=44.4968&lon=11.3522&ora=10&giorno=0
+Accept: application/json
+
+###
+
+GET {{UrbanAdvisor.Api_HostAddress}}/api/moran?indicatore=fermate&celle=10
 Accept: application/json
 
 ###

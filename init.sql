@@ -4,11 +4,32 @@
 -- 1. Attivazione estensione PostGIS.
 -- 2. Creazione tabelle definitive con tipologie geometriche (Point, MultiLineString, MultiPoint)
 --    e colonna 'geog' (geography, generata da geom) per distanze e buffer in metri.
+--    sedi_universitarie.tipo: 'unibo' (dipartimenti/uffici/laboratori) o 'museo'
+--    (Sistema Museale di Ateneo); mense.tipo: 'mensa' (pasto completo) o
+--    'punto_ristoro' (self/microonde).
 -- 3. Creazione tabelle di staging per parsing CSV.
 -- 4. Importazione dati massiva tramite comando COPY.
 -- 5. ETL spaziale: trasformazione dati grezzi in geometrie SRID 4326.
 -- 6. Creazione indici spaziali GiST (su geom e geog) per l'ottimizzazione delle query.
--- 7. Popolamento tabelle di supporto: profili utente e orari servizi.
+-- 7. Sale studio e biblioteche universitarie: biblioteche di Ateneo estratte dai
+--    Punti di interesse Unibo (mappe.csv), un punto per edificio, nome = la voce
+--    "Biblioteca ..." dell'elenco; import opzionale di altre sale studio da
+--    data/sale-studio.csv (separatore ';', intestazione:
+--    nome;indirizzo;lat;lon;posti;fonte). Se il file non esiste si prosegue.
+-- 8. Popolamento tabelle di supporto: profili utente e orari servizi.
+-- 9. GTFS TPER: fermate, corse e orari di passaggio per tipo di giorno
+--    (feriale / sabato / festivo). Per ogni tipo di giorno si sceglie una DATA
+--    DI RIFERIMENTO reale: tra i primi 60 giorni del calendario, quella di quel
+--    tipo con il maggior numero di corse (esclude festivita' e periodi ridotti).
+--    Una corsa e' attiva se il suo servizio lo e' in quella data secondo
+--    calendar.txt e le eccezioni di calendar_dates.txt. Se calendar_dates.txt
+--    manca, varianti dello stesso servizio risultano attive insieme: per ogni
+--    linea e tipo di giorno si tiene allora solo il service_id con piu' corse.
+--    gtfs_frequenze_fermata contiene il numero di corse distinte per fermata,
+--    tipo di giorno e fascia oraria (0-23); gli orari GTFS possono superare le
+--    24:00 (corse dopo mezzanotte) e si normalizzano con % 24.
+-- 10. Vista poi_tutti: unione dei PoI puntuali con la loro categoria (recall dei
+--    servizi vicini e conteggi per cella).
 -- ============================================================================
 
 CREATE EXTENSION IF NOT EXISTS postgis;
@@ -73,7 +94,7 @@ CREATE TABLE IF NOT EXISTS stazioni_ferroviarie (
 
 CREATE TABLE IF NOT EXISTS sedi_universitarie (
     id SERIAL PRIMARY KEY,
-    tipo VARCHAR(50),      -- 'unibo' (dipartimenti/uffici/laboratori) o 'museo' (Sistema Museale Ateneo)
+    tipo VARCHAR(50),
     nome TEXT,
     indirizzo VARCHAR(255),
     url TEXT,
@@ -102,7 +123,7 @@ CREATE TABLE IF NOT EXISTS mense (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255),
     indirizzo VARCHAR(255),
-    tipo VARCHAR(50),       -- 'mensa' (pasto completo) o 'punto_ristoro' (self/microonde)
+    tipo VARCHAR(50),
     gestore VARCHAR(255),
     geom GEOMETRY(Point, 4326),
     geog GEOGRAPHY GENERATED ALWAYS AS (geom::geography) STORED
@@ -229,15 +250,6 @@ CREATE INDEX IF NOT EXISTS idx_aree_verdi_geog ON aree_verdi USING gist(geog);
 CREATE INDEX IF NOT EXISTS idx_residenze_geog ON residenze_universitarie USING gist(geog);
 CREATE INDEX IF NOT EXISTS idx_stazioni_geog ON stazioni_ferroviarie USING gist(geog);
 
--- ============================================================================
--- Sale studio e biblioteche universitarie:
--- 1) biblioteche di Ateneo estratte dai Punti di interesse Unibo (mappe.csv),
---    un punto per edificio, nome = la voce "Biblioteca ..." dell'elenco;
--- 2) import opzionale di altre sale studio da data/sale-studio.csv (formato
---    normalizzato, separatore ';', intestazione: nome;indirizzo;lat;lon;posti;fonte).
---    Se il file non esiste l'inizializzazione prosegue.
--- ============================================================================
-
 CREATE TABLE IF NOT EXISTS sale_studio (
     id SERIAL PRIMARY KEY,
     nome VARCHAR(255),
@@ -345,18 +357,6 @@ SELECT 'fermate', 'Servizio TPER', g.giorno,
     CASE WHEN g.giorno <= 5 THEN '05:30'::TIME ELSE '06:30'::TIME END,
     CASE WHEN g.giorno <= 4 THEN '00:30'::TIME WHEN g.giorno = 5 THEN '02:00'::TIME ELSE '23:00'::TIME END
 FROM generate_series(0, 6) AS g(giorno);
-
--- ============================================================================
--- GTFS TPER: fermate, corse e orari di passaggio per tipo di giorno
--- (feriale / sabato / festivo), frequenza per fascia oraria.
--- Per ogni tipo di giorno si sceglie una DATA DI RIFERIMENTO reale: tra i primi
--- 60 giorni del calendario, quella di quel tipo con il maggior numero di corse
--- (esclude festivita' e periodi ridotti). Una corsa e' attiva se il suo servizio
--- lo e' in quella data secondo calendar.txt e le eccezioni di calendar_dates.txt.
--- Se calendar_dates.txt manca, varianti dello stesso servizio risultano attive
--- insieme: per ogni linea e tipo di giorno si tiene allora solo il service_id
--- con piu' corse, per non contare la stessa corsa piu' volte.
--- ============================================================================
 
 CREATE TABLE IF NOT EXISTS gtfs_fermate (
     stop_id VARCHAR(50) PRIMARY KEY,
@@ -504,8 +504,6 @@ WHERE st.trip_id IN (SELECT trip_id FROM gtfs_trips)
 CREATE INDEX IF NOT EXISTS idx_gtfs_stop_times_stop ON gtfs_stop_times (stop_id);
 CREATE INDEX IF NOT EXISTS idx_gtfs_stop_times_trip ON gtfs_stop_times (trip_id, stop_sequence);
 
--- Numero di corse distinte per fermata, tipo di giorno e fascia oraria (0-23).
--- Gli orari GTFS possono superare le 24:00 (corse dopo mezzanotte): si normalizza con % 24.
 INSERT INTO gtfs_frequenze_fermata (stop_id, tipo_giorno, fascia_oraria, numero_corse)
 SELECT st.stop_id, g.tipo, (st.dep_sec / 3600) % 24, COUNT(DISTINCT st.trip_id)
 FROM gtfs_stop_times st
@@ -515,10 +513,6 @@ WHERE g.attivo
 GROUP BY st.stop_id, g.tipo, (st.dep_sec / 3600) % 24;
 
 CREATE INDEX IF NOT EXISTS idx_gtfs_frequenze ON gtfs_frequenze_fermata (tipo_giorno, fascia_oraria, stop_id);
-
--- ============================================================================
--- Vista unificata dei PoI puntuali (per recall dei servizi vicini e indicatori per cella).
--- ============================================================================
 
 CREATE OR REPLACE VIEW poi_tutti AS
 SELECT 'biblioteche'::TEXT AS categoria, id::TEXT AS id, nome::TEXT AS nome, geom::GEOMETRY AS geom, geog FROM biblioteche

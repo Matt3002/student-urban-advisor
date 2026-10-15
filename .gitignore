@@ -1,31 +1,18 @@
-# =========================
-# .NET / C#
-# =========================
+# File esclusi dal repository: build .NET, dipendenze Node, dati locali di PostGIS e dump, file di sistema e segreti.
 bin/
 obj/
 *.user
 *.suo
 .vs/
 
-# =========================
-# Frontend / Node.js
-# =========================
 node_modules/
 dist/
 build/
 
-# =========================
-# Docker & Database
-# =========================
-# Ignora i dati persistenti di PostGIS montati localmente
 /pgdata/
-# Ignora dump SQL pesanti (puoi commentarlo se ti serve pushare uno script di init piccolo)
 *.bak
 *.dump
 
-# =========================
-# OS & Secrets
-# =========================
 .DS_Store
 Thumbs.db
 .env

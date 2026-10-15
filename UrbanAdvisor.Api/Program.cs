@@ -10,6 +10,8 @@
 // Il giorno della settimana segue la convenzione 0 = lunedi' ... 6 = domenica.
 // Il front-end statico e' servito da un container nginx separato che inoltra
 // le chiamate /api/ a questo servizio. Documento OpenAPI: /openapi/v1.json.
+// In fondo al file: funzioni di supporto e record per i corpi delle richieste
+// (feedback, PoI vicino, campioni e richiesta di valutazione della privacy).
 // ============================================================================
 
 using Microsoft.EntityFrameworkCore;
@@ -727,7 +729,7 @@ app.MapGet("/api/moran", async (string? indicatore, int? celle, int? profiloId, 
     });
 });
 
-// Analytics avanzata: clustering K-Means delle zone (feature standardizzate) e indice di Moran dello score.
+// Analytics avanzata: clustering K-Means delle zone (feature standardizzate, K = 4 di default) e indice di Moran dello score.
 app.MapGet("/api/clustering", async (int? k, int? profiloId, int? ora, int? giorno, UrbanAdvisorDbContext db) =>
 {
     int numClusters = Math.Clamp(k ?? 4, 2, 8);
@@ -848,14 +850,10 @@ static bool Aperto(TimeOnly t, TimeOnly apertura, TimeOnly chiusura) =>
 static string FasciaIsocrona(double minuti) =>
     minuti < 10 ? "0-10" : minuti < 20 ? "10-20" : minuti < 30 ? "20-30" : minuti < 45 ? "30-45" : ">45";
 
-// Record per deserializzare il corpo della richiesta di feedback.
 record FeedbackRequest(string Feedback);
 
-// PoI restituito dalla ricerca dei servizi vicini.
 record PoiVicino(string Id, string Nome, string Categoria, string Dettaglio, double Lat, double Lon, int DistanzaMetri);
 
-// Campione di posizione perturbata generato nel browser (livello = parametro del meccanismo, in metri).
 record CampionePrivacy(double Lat, double Lon, double Livello);
 
-// Richiesta di valutazione privacy: posizione reale, contesto e campioni perturbati.
 record ValutazionePrivacyRequest(double Lat, double Lon, int Ora, int? Giorno, int? ProfiloId, List<CampionePrivacy> Campioni);
